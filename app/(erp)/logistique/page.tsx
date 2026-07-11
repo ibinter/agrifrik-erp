@@ -2,617 +2,453 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
+import {
+  Truck,
+  DollarSign,
+  Clock,
+  Leaf,
+  CheckCircle,
+  AlertCircle,
+  Calendar,
+} from "lucide-react";
 
-// ─── DATA ────────────────────────────────────────────────────────────────────
-
-const livraisonsEnTransit = [
-  {
-    num: "LIV-2025-148",
-    chauffeur: "Bamba Oumar",
-    type: "camion",
-    depart: "Plantation Soubré",
-    heureDepart: "07:30",
-    destination: "Point collecte Abidjan (Terminal fruitier)",
-    chargement: "18 sacs cacao Grade AA (LOT-043)",
-    poids: "1 168 kg",
-    vehicule: "Camion Renault T460 (AB-1234-CI)",
-    distance: "342 km",
-    statut: "en_route",
-    statutLabel: "En route",
-    eta: "15h30",
-    progression: 35,
-    detail: "Départ 08:00",
-  },
-  {
-    num: "LIV-2025-147",
-    chauffeur: "Traoré Mamadou",
-    type: "camion",
-    depart: "Soubré",
-    heureDepart: "",
-    destination: "Yamoussoukro — AGRIINTRANT CI",
-    chargement: "Collecte 380 kg NPK 20-10-10 (commande BC-2025-084)",
-    poids: "380 kg",
-    vehicule: "Isuzu NQR (AB-5678-CI)",
-    distance: "248 km",
-    statut: "en_route",
-    statutLabel: "En route",
-    eta: "14h00",
-    progression: 52,
-    detail: "",
-  },
-  {
-    num: "LIV-2025-146",
-    chauffeur: "Koné Eric",
-    type: "camion",
-    depart: "Soubré",
-    heureDepart: "",
-    destination: "Abidjan Port (Terminal conteneurs)",
-    chargement: "Conteneur EXP-2025-041 (18 420 kg cacao)",
-    poids: "18 420 kg",
-    vehicule: "Toyota Hilux (AB-9012-CI)",
-    distance: "342 km",
-    statut: "livre",
-    statutLabel: "Livré — En attente navire",
-    eta: "—",
-    progression: 100,
-    detail: "Livré port 09h15",
-  },
-  {
-    num: "LIV-2025-145",
-    chauffeur: "Coulibaly Roger",
-    type: "moto",
-    depart: "Bureau",
-    heureDepart: "",
-    destination: "MINADER Soubré (documents phyto)",
-    chargement: "Documents administratifs",
-    poids: "—",
-    vehicule: "Moto Honda XR150 (AB-3456-CI)",
-    distance: "< 5 km",
-    statut: "livre",
-    statutLabel: "Livré",
-    eta: "—",
-    progression: 100,
-    detail: "Documents déposés 10h00",
-  },
-];
-
-const livraisonsMois = [
-  { num: "LIV-2025-148", date: "11/07", depart: "Soubré", destination: "Abidjan Terminal", contenu: "Cacao Grade AA", poids: "1 168 kg", vehicule: "Renault T460", chauffeur: "Bamba Oumar", statut: "En transit", duree: "En cours" },
-  { num: "LIV-2025-147", date: "11/07", depart: "Soubré", destination: "Yamoussoukro", contenu: "NPK 20-10-10", poids: "380 kg", vehicule: "Isuzu NQR", chauffeur: "Traoré Mamadou", statut: "En transit", duree: "En cours" },
-  { num: "LIV-2025-146", date: "11/07", depart: "Soubré", destination: "Abidjan Port", contenu: "Cacao EXP-041", poids: "18 420 kg", vehicule: "Toyota Hilux", chauffeur: "Koné Eric", statut: "Livré", duree: "4h15" },
-  { num: "LIV-2025-145", date: "11/07", depart: "Bureau", destination: "MINADER Soubré", contenu: "Documents phyto", poids: "—", vehicule: "Moto XR150", chauffeur: "Coulibaly Roger", statut: "Livré", duree: "0h45" },
-  { num: "LIV-2025-144", date: "10/07", depart: "Soubré", destination: "San Pedro Port", contenu: "Cacao LOT-042", poids: "8 240 kg", vehicule: "Renault T460", chauffeur: "Bamba Oumar", statut: "Livré", duree: "3h10" },
-  { num: "LIV-2025-143", date: "09/07", depart: "Gagnoa", destination: "Soubré entrepôt", contenu: "Semences maïs", poids: "620 kg", vehicule: "Isuzu NQR", chauffeur: "Traoré Mamadou", statut: "Livré", duree: "1h30" },
-  { num: "LIV-2025-142", date: "08/07", depart: "Soubré", destination: "Abidjan Terminal", contenu: "Cacao LOT-041", poids: "16 800 kg", vehicule: "Renault T460", chauffeur: "Bamba Oumar", statut: "Livré", duree: "5h45" },
-  { num: "LIV-2025-141", date: "07/07", depart: "Abidjan", destination: "Soubré", contenu: "Intrants divers", poids: "1 200 kg", vehicule: "Isuzu NQR", chauffeur: "Traoré Mamadou", statut: "Livré", duree: "5h20" },
-  { num: "LIV-2025-140", date: "05/07", depart: "Soubré", destination: "Yamoussoukro", contenu: "Cacao Grade B", poids: "3 400 kg", vehicule: "Toyota Hilux", chauffeur: "Koné Eric", statut: "Livré", duree: "4h00" },
-  { num: "LIV-2025-139", date: "04/07", depart: "Bureau", destination: "Banque BNI Soubré", contenu: "Documents financiers", poids: "—", vehicule: "Moto XR150", chauffeur: "Coulibaly Roger", statut: "Livré", duree: "0h30" },
-];
-
-const vehicules = [
-  { nom: "Renault T460", immat: "AB-1234-CI", type: "Camion 10t", capacite: "10 000 kg", etat: "bon", km: "184 230 km", revision: "190 000 km (dans ~3 000 km)", chauffeur: "Bamba Oumar", statut: "mission" },
-  { nom: "Isuzu NQR", immat: "AB-5678-CI", type: "Camion 3,5t", capacite: "3 500 kg", etat: "bon", km: "96 450 km", revision: "100 000 km", chauffeur: "Traoré Mamadou", statut: "mission" },
-  { nom: "Toyota Hilux", immat: "AB-9012-CI", type: "Pick-up", capacite: "800 kg", etat: "bon", km: "72 180 km", revision: "80 000 km", chauffeur: "Koné Eric", statut: "mission" },
-  { nom: "John Deere 6120M", immat: "—", type: "Tracteur", capacite: "—", etat: "alerte", km: "2 847 h", revision: "3 000 h", chauffeur: "Bamba Oumar", statut: "maintenance" },
-  { nom: "Moto Honda XR150", immat: "AB-3456-CI", type: "Moto liaison", capacite: "50 kg", etat: "bon", km: "28 400 km", revision: "30 000 km", chauffeur: "Coulibaly Roger", statut: "disponible" },
-];
-
-const chauffeurs = [
-  { nom: "Bamba Oumar", permis: "15/06/2024", categories: "B, C, D", missions: 42, km: "18 240 km", note: "4,8/5", statut: "mission" },
-  { nom: "Traoré Mamadou", permis: "03/09/2022", categories: "B, C", missions: 38, km: "14 820 km", note: "4,6/5", statut: "mission" },
-  { nom: "Koné Eric", permis: "18/01/2021", categories: "B", missions: 22, km: "8 640 km", note: "4,7/5", statut: "mission" },
-  { nom: "Coulibaly Roger", permis: "05/03/2023", categories: "A (moto)", missions: 56, km: "12 380 km", note: "4,9/5", statut: "disponible" },
-];
-
-const itineraires = [
-  { route: "Soubré → Abidjan", distance: "342 km", duree: "5h30", cout: "185 000 XOF", freq: "8 fois/mois", usage: "Export cacao" },
-  { route: "Soubré → San Pedro", distance: "148 km", duree: "2h45", cout: "82 000 XOF", freq: "3 fois/mois", usage: "Export port secondaire" },
-  { route: "Soubré → Yamoussoukro", distance: "248 km", duree: "3h45", cout: "128 000 XOF", freq: "4 fois/mois", usage: "Intrants/fournisseurs" },
-  { route: "Soubré → Gagnoa", distance: "68 km", duree: "1h15", cout: "38 000 XOF", freq: "6 fois/mois", usage: "Marché local" },
-  { route: "Intra-plantation", distance: "< 5 km", duree: "—", cout: "—", freq: "Quotidien", usage: "Tracteur" },
-];
-
-const coutCategories = [
-  { label: "Carburant", montant: "4 200 000 XOF", pct: 50, color: "#2E7D32" },
-  { label: "Salaires chauffeurs", montant: "2 100 000 XOF", pct: 25, color: "#4CAF50" },
-  { label: "Péages & taxes", montant: "840 000 XOF", pct: 10, color: "#E65100" },
-  { label: "Maintenance véhicules", montant: "840 000 XOF", pct: 10, color: "#F57C00" },
-  { label: "Assurances véhicules", montant: "420 000 XOF", pct: 5, color: "#FFA726" },
-];
-
-const coutLivraisons = [
-  { num: "LIV-2025-146", route: "Soubré → Abidjan Port", distance: "342 km", carburant: "92 000", peage: "18 500", salaire: "45 000", total: "155 500", coutT: "8 440 XOF/t" },
-  { num: "LIV-2025-145", route: "Bureau → MINADER", distance: "< 5 km", carburant: "1 200", peage: "0", salaire: "3 500", total: "4 700", coutT: "—" },
-  { num: "LIV-2025-144", route: "Soubré → San Pedro", distance: "148 km", carburant: "42 000", peage: "7 500", salaire: "25 000", total: "74 500", coutT: "9 040 XOF/t" },
-  { num: "LIV-2025-143", route: "Gagnoa → Soubré", distance: "68 km", carburant: "18 500", peage: "3 200", salaire: "14 000", total: "35 700", coutT: "57 580 XOF/t" },
-  { num: "LIV-2025-142", route: "Soubré → Abidjan", distance: "342 km", carburant: "88 000", peage: "18 500", salaire: "45 000", total: "151 500", coutT: "9 018 XOF/t" },
-];
-
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-
-function StatutBadge({ statut, label }: { statut: string; label?: string }) {
-  const cfg: Record<string, { cls: string; dot: string }> = {
-    En_transit: { cls: "bg-blue-50 text-blue-700", dot: "bg-blue-500" },
-    "En transit": { cls: "bg-blue-50 text-blue-700", dot: "bg-blue-500" },
-    Livré: { cls: "bg-green-50 text-green-700", dot: "bg-green-500" },
-    mission: { cls: "bg-blue-50 text-blue-700", dot: "bg-blue-500" },
-    disponible: { cls: "bg-green-50 text-green-700", dot: "bg-green-500" },
-    maintenance: { cls: "bg-orange-50 text-orange-700", dot: "bg-orange-400" },
-  };
-  const key = statut;
-  const c = cfg[key] ?? { cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400" };
-  const text = label ?? statut;
-  return (
-    <span className={`inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full font-medium ${c.cls}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
-      {text}
-    </span>
-  );
-}
-
-// ─── SVG DONUT ───────────────────────────────────────────────────────────────
-
-function DonutChart() {
-  const total = 100;
-  const r = 54;
-  const cx = 70;
-  const cy = 70;
-  const circ = 2 * Math.PI * r;
-  let cumul = 0;
-  return (
-    <svg viewBox="0 0 140 140" width={140} height={140}>
-      {coutCategories.map((c) => {
-        const dash = (c.pct / total) * circ;
-        const gap = circ - dash;
-        const offset = circ - (cumul / total) * circ;
-        cumul += c.pct;
-        return (
-          <circle
-            key={c.label}
-            cx={cx} cy={cy} r={r}
-            fill="none"
-            stroke={c.color}
-            strokeWidth={18}
-            strokeDasharray={`${dash} ${gap}`}
-            strokeDashoffset={offset}
-            transform={`rotate(-90 ${cx} ${cy})`}
-          />
-        );
-      })}
-      <text x={cx} y={cy - 6} textAnchor="middle" fontSize={11} fill="#374151" fontWeight="600">8,40 M</text>
-      <text x={cx} y={cy + 8} textAnchor="middle" fontSize={9} fill="#6B7280">XOF YTD</text>
-    </svg>
-  );
-}
-
-// ─── SVG MAP ─────────────────────────────────────────────────────────────────
-
-function CarteCI() {
-  const villes = [
-    { id: "soubre", label: "Soubré", x: 175, y: 275, base: true },
-    { id: "abidjan", label: "Abidjan", x: 310, y: 340, port: true },
-    { id: "sanpedro", label: "San Pedro", x: 175, y: 360, port2: true },
-    { id: "yamoussoukro", label: "Yamoussoukro", x: 270, y: 215 },
-    { id: "man", label: "Man", x: 100, y: 190 },
-    { id: "bouake", label: "Bouaké", x: 310, y: 175 },
-    { id: "korhogo", label: "Korhogo", x: 295, y: 90 },
-  ];
-
-  const routes = [
-    { from: { x: 175, y: 275 }, to: { x: 310, y: 340 }, color: "#2E7D32", label: "342 km", active: true },
-    { from: { x: 175, y: 275 }, to: { x: 175, y: 360 }, color: "#E65100", label: "148 km", active: true },
-    { from: { x: 175, y: 275 }, to: { x: 270, y: 215 }, color: "#1565C0", label: "248 km", active: true },
-    { from: { x: 175, y: 275 }, to: { x: 212, y: 282 }, color: "#6A1B9A", label: "68 km", active: false },
-  ];
-
-  return (
-    <svg viewBox="0 0 500 420" className="w-full max-w-lg mx-auto">
-      {/* fond */}
-      <rect width={500} height={420} fill="#F0F7F0" rx={12} />
-
-      {/* contour simplifié Côte d'Ivoire */}
-      <path
-        d="M 80 80 Q 120 50 200 55 Q 310 50 380 90 Q 440 130 430 200 Q 420 270 390 330 Q 360 380 310 400 Q 260 415 210 400 Q 160 385 120 355 Q 75 315 65 260 Q 50 200 65 140 Z"
-        fill="#DCF0DC" stroke="#A5D6A7" strokeWidth={1.5}
-      />
-
-      {/* routes */}
-      {routes.map((r, i) => (
-        <line
-          key={i}
-          x1={r.from.x} y1={r.from.y}
-          x2={r.to.x} y2={r.to.y}
-          stroke={r.color}
-          strokeWidth={r.active ? 2.5 : 1.5}
-          strokeDasharray={r.active ? "0" : "4 3"}
-          opacity={r.active ? 0.85 : 0.5}
-        />
-      ))}
-
-      {/* libellés distances sur route Abidjan */}
-      <text x={255} y={322} fontSize={9} fill="#2E7D32" fontWeight="500">342 km</text>
-      <text x={148} y={322} fontSize={9} fill="#E65100" fontWeight="500">148 km</text>
-      <text x={198} y={230} fontSize={9} fill="#1565C0" fontWeight="500">248 km</text>
-
-      {/* villes */}
-      {villes.map((v) => (
-        <g key={v.id}>
-          {v.base ? (
-            <>
-              <circle cx={v.x} cy={v.y} r={10} fill="#1B5E20" opacity={0.9} />
-              <text x={v.x} y={v.y + 4} textAnchor="middle" fontSize={9} fill="white" fontWeight="700">A</text>
-              <text x={v.x + 14} y={v.y - 8} fontSize={10} fill="#1B5E20" fontWeight="700">{v.label}</text>
-              <text x={v.x + 14} y={v.y + 4} fontSize={8} fill="#2E7D32">Base AGRIFRIK</text>
-            </>
-          ) : v.port || v.port2 ? (
-            <>
-              <rect x={v.x - 7} y={v.y - 7} width={14} height={14} rx={3} fill="#1565C0" opacity={0.85} />
-              <text x={v.x} y={v.y + 4} textAnchor="middle" fontSize={9} fill="white" fontWeight="700">★</text>
-              <text x={v.x + (v.port2 ? -60 : 12)} y={v.y + 4} fontSize={10} fill="#1565C0" fontWeight="600">{v.label}</text>
-              <text x={v.x + (v.port2 ? -60 : 12)} y={v.y + 15} fontSize={8} fill="#1565C0">Port export</text>
-            </>
-          ) : (
-            <>
-              <circle cx={v.x} cy={v.y} r={5} fill="#78909C" opacity={0.7} />
-              <text x={v.x + 8} y={v.y + 4} fontSize={9} fill="#37474F">{v.label}</text>
-            </>
-          )}
-        </g>
-      ))}
-
-      {/* légende */}
-      <rect x={10} y={358} width={150} height={54} rx={6} fill="white" opacity={0.9} />
-      <circle cx={24} cy={373} r={6} fill="#1B5E20" />
-      <text x={34} y={377} fontSize={9} fill="#374151">● Base AGRIFRIK</text>
-      <rect x={18} y={384} width={10} height={10} rx={2} fill="#1565C0" />
-      <text x={34} y={393} fontSize={9} fill="#374151">★ Port export</text>
-      <circle cx={24} cy={403} r={4} fill="#78909C" />
-      <text x={34} y={407} fontSize={9} fill="#374151">○ Partenaires</text>
-    </svg>
-  );
-}
-
-// ─── PAGE ─────────────────────────────────────────────────────────────────────
-
-const TABS = ["Livraisons", "Véhicules & Chauffeurs", "Itinéraires", "Coûts"] as const;
+const TABS = ["Opérations", "Flotte", "Planning"] as const;
 type Tab = (typeof TABS)[number];
 
-export default function LogistiquePage() {
-  const [activeTab, setActiveTab] = useState<Tab>("Livraisons");
+/* ─── KPI CARD ─── */
+function KpiCard({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  color = "#2E7D32",
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  icon: React.ElementType;
+  color?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-5">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs text-gray-500 font-medium">{label}</p>
+          <p className="mt-1 text-2xl font-bold text-gray-800">{value}</p>
+          {sub && <p className="mt-1 text-xs text-gray-400">{sub}</p>}
+        </div>
+        <div
+          className="flex h-10 w-10 items-center justify-center rounded-xl"
+          style={{ background: color + "18" }}
+        >
+          <Icon size={20} style={{ color }} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  const kpis = [
-    { label: "Livraisons ce mois", val: "28", color: "#1565C0", sub: "dont 2 en transit" },
-    { label: "En transit", val: "4", color: "#E65100", sub: "3 camions + 1 moto" },
-    { label: "Véhicules actifs", val: "3/5", color: "#2E7D32", sub: "1 en maintenance" },
-    { label: "Coût transport YTD", val: "8,4 M XOF", color: "#6A1B9A", sub: "Budget : 10,0 M" },
-    { label: "Taux livraison à temps", val: "96,4%", color: "#00695C", sub: "Objectif : 95%" },
-  ];
+/* ─── SVG CARTE FLUX LOGISTIQUES ─── */
+function SvgCarteFlux() {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-5">
+      <h3 className="mb-4 text-sm font-semibold text-gray-700">Flux logistiques actifs</h3>
+      <div className="overflow-x-auto">
+        <svg viewBox="0 0 700 380" width="700" height="380" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="380" fill="#F8FBF8" rx="12" />
+
+          {/* Silhouette CI simplifiée */}
+          <path
+            d="M110,75 L185,55 L265,65 L315,85 L345,125 L335,180 L315,235 L280,265 L248,282 L205,290 L165,272 L138,242 L115,200 L100,158 L105,115 Z"
+            fill="#E8F5E9"
+            stroke="#A5D6A7"
+            strokeWidth="1.5"
+          />
+          <text x="220" y="170" fontSize="11" fill="#388E3C" fontWeight="bold" textAnchor="middle">
+            Côte d&apos;Ivoire
+          </text>
+
+          {/* Mer */}
+          <rect x="300" y="55" width="370" height="250" rx="8" fill="#E3F2FD" opacity="0.55" />
+          <text x="485" y="95" fontSize="10" fill="#90CAF9" textAnchor="middle">Atlantique / Méditerranée</text>
+
+          {/* Points géographiques */}
+          {/* Soubré */}
+          <circle cx="192" cy="215" r="7" fill="#2E7D32" />
+          <text x="192" y="234" fontSize="11" fill="#1B5E20" fontWeight="bold" textAnchor="middle">Soubré</text>
+
+          {/* San-Pédro */}
+          <circle cx="222" cy="272" r="7" fill="#2E7D32" />
+          <text x="222" y="291" fontSize="11" fill="#1B5E20" fontWeight="bold" textAnchor="middle">San-Pédro</text>
+
+          {/* Abidjan */}
+          <circle cx="314" cy="232" r="7" fill="#2E7D32" />
+          <text x="340" y="236" fontSize="11" fill="#1B5E20" fontWeight="bold">Abidjan</text>
+
+          {/* Rotterdam */}
+          <circle cx="562" cy="88" r="7" fill="#1565C0" />
+          <text x="578" y="92" fontSize="11" fill="#1565C0" fontWeight="bold">Rotterdam</text>
+
+          {/* LIGNE 1 : Soubré → San-Pédro — verte solide */}
+          <line x1="192" y1="213" x2="220" y2="266" stroke="#2E7D32" strokeWidth="2.5" />
+          <polygon points="220,267 214,257 226,256" fill="#2E7D32" />
+          <rect x="70" y="242" width="108" height="18" rx="4" fill="white" stroke="#2E7D32" strokeWidth="1" />
+          <text x="124" y="254" fontSize="8.5" fill="#2E7D32" textAnchor="middle">LOT-045 — livré ✓</text>
+
+          {/* LIGNE 2 : San-Pédro → Rotterdam — bleue pointillée */}
+          <line x1="222" y1="268" x2="558" y2="92" stroke="#1565C0" strokeWidth="2" strokeDasharray="8,5" />
+          <polygon points="558,92 550,100 560,104" fill="#1565C0" />
+          <rect x="335" y="148" width="162" height="28" rx="4" fill="white" stroke="#1565C0" strokeWidth="1" />
+          <text x="416" y="160" fontSize="8.5" fill="#1565C0" textAnchor="middle">MSC Allegria — LOT-045</text>
+          <text x="416" y="170" fontSize="8.5" fill="#1565C0" textAnchor="middle">24 900 kg — ETA 05/08</text>
+
+          {/* LIGNE 3 : Abidjan → Soubré — orange */}
+          <line x1="310" y1="230" x2="200" y2="216" stroke="#E65100" strokeWidth="2" />
+          <polygon points="200,216 210,210 210,222" fill="#E65100" />
+          <rect x="214" y="197" width="138" height="18" rx="4" fill="white" stroke="#E65100" strokeWidth="1" />
+          <text x="283" y="209" fontSize="8.5" fill="#E65100" textAnchor="middle">DHL — Pièces JD ETA 15/07</text>
+
+          {/* Légende */}
+          <rect x="20" y="312" width="650" height="55" rx="8" fill="white" stroke="#E0E0E0" strokeWidth="1" />
+          <line x1="40" y1="332" x2="80" y2="332" stroke="#2E7D32" strokeWidth="2.5" />
+          <text x="90" y="336" fontSize="10" fill="#444">Transport routier (livré)</text>
+          <line x1="225" y1="332" x2="265" y2="332" stroke="#1565C0" strokeWidth="2" strokeDasharray="6,4" />
+          <text x="275" y="336" fontSize="10" fill="#444">Transport maritime (en cours)</text>
+          <line x1="448" y1="332" x2="488" y2="332" stroke="#E65100" strokeWidth="2" />
+          <text x="498" y="336" fontSize="10" fill="#444">Appro. (transit)</text>
+          <text x="350" y="354" fontSize="9" fill="#999" textAnchor="middle">Carte schématique — non à l&apos;échelle</text>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/* ─── OPÉRATIONS EN COURS ─── */
+const opsCourantes = [
+  { ref: "LOG-2025-048", type: "Export", marchandise: "Cacao 24 900 kg LOT-045", origine: "San-Pédro", destination: "Rotterdam", transport: "MSC Allegria", eta: "05/08", statut: "En mer", sc: "#1565C0", cout: "1 620 000" },
+  { ref: "LOG-2025-049", type: "Appro.", marchandise: "Pièces JD (ACH-091)", origine: "Abidjan", destination: "Soubré", transport: "DHL + Pick-up", eta: "15/07", statut: "En transit", sc: "#F59E0B", cout: "48 000" },
+  { ref: "LOG-2025-050", type: "Interne", marchandise: "Semences clones (20 kg)", origine: "CNRA Abidjan", destination: "Soubré", transport: "Toyota HiLux", eta: "20/07", statut: "Planifié", sc: "#6366F1", cout: "18 000" },
+];
+
+const dernieresLivraisons = [
+  { ref: "LOG-2025-047", date: "28/06", type: "Export", marchandise: "Anacarde WW240 2,4 t", transport: "Renault T460", cout: "420 000" },
+  { ref: "LOG-2025-046", date: "20/06", type: "Appro.", marchandise: "NPK 500 kg (SCPA)", transport: "Renault T460", cout: "62 000" },
+  { ref: "LOG-2025-045", date: "15/06", type: "Interne", marchandise: "Récolte cacao 1 200 kg", transport: "Remorque benne", cout: "12 000" },
+  { ref: "LOG-2025-044", date: "10/06", type: "Appro.", marchandise: "Pièces pompe irrigation", transport: "Toyota HiLux", cout: "24 000" },
+  { ref: "LOG-2025-043", date: "05/06", type: "Export", marchandise: "Cacao Grade A 3 100 kg", transport: "Renault T460", cout: "280 000" },
+  { ref: "LOG-2025-042", date: "28/05", type: "Appro.", marchandise: "Sacs jute 500 unités", transport: "Toyota HiLux", cout: "18 000" },
+  { ref: "LOG-2025-041", date: "20/05", type: "Appro.", marchandise: "Gasoil 400 L", transport: "Renault T460", cout: "310 000" },
+  { ref: "LOG-2025-040", date: "15/05", type: "Export", marchandise: "Anacarde SW340 8 kg", transport: "DHL Express", cout: "45 000" },
+];
+
+function OngletOperations() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+        <KpiCard label="Livraisons ce mois" value="14" icon={CheckCircle} />
+        <KpiCard label="En transit" value="3" sub="LOT-045 · ACH-091 · SEM-026" icon={Truck} color="#F59E0B" />
+        <KpiCard label="Coût transport YTD" value="8,4 M XOF" icon={DollarSign} />
+        <KpiCard label="Taux livraison à temps" value="92,8 %" icon={Clock} color="#1565C0" />
+        <KpiCard label="CO₂ transport YTD" value="18,4 tCO₂e" icon={Leaf} color="#4CAF50" />
+      </div>
+
+      <SvgCarteFlux />
+
+      {/* Tableau opérations en cours */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-5">
+        <h3 className="mb-4 text-sm font-semibold text-gray-700">Opérations en cours</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-xs">
+            <thead>
+              <tr className="bg-[#F8FBF8]">
+                {["Réf.", "Type", "Marchandise", "Origine", "Destination", "Transport", "ETA", "Statut", "Coût (XOF)"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {opsCourantes.map((op) => (
+                <tr key={op.ref} className="border-t border-gray-50 hover:bg-gray-50">
+                  <td className="px-3 py-2 font-mono font-medium text-gray-800 whitespace-nowrap">{op.ref}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{op.type}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{op.marchandise}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{op.origine}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{op.destination}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{op.transport}</td>
+                  <td className="px-3 py-2 font-medium whitespace-nowrap">{op.eta}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <span className="rounded-full px-2 py-0.5 text-xs font-medium" style={{ background: op.sc + "18", color: op.sc }}>{op.statut}</span>
+                  </td>
+                  <td className="px-3 py-2 text-right font-medium whitespace-nowrap">{op.cout}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Tableau dernières livraisons */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-5">
+        <h3 className="mb-4 text-sm font-semibold text-gray-700">Dernières livraisons</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-xs">
+            <thead>
+              <tr className="bg-[#F8FBF8]">
+                {["Réf.", "Date", "Type", "Marchandise", "Transport", "Coût (XOF)", "Statut"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {dernieresLivraisons.map((l) => (
+                <tr key={l.ref} className="border-t border-gray-50 hover:bg-gray-50">
+                  <td className="px-3 py-2 font-mono font-medium text-gray-800 whitespace-nowrap">{l.ref}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{l.date}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{l.type}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{l.marchandise}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{l.transport}</td>
+                  <td className="px-3 py-2 text-right font-medium whitespace-nowrap">{l.cout}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-green-50 text-green-700">Livré</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── FLOTTE ─── */
+const flotte = [
+  { code: "VEH-001", vehicule: "Renault T460 26t", immat: "AB 124 CI", usage: "Transport long-courrier", chauffeur: "Moussa Traoré", km: "148 240", entretien: "15/05/2025", vidange: "160 000 km", ok: true },
+  { code: "VEH-002", vehicule: "Toyota HiLux pick-up", immat: "AB 892 CI", usage: "Déplacements terrain", chauffeur: "Ibrahim Sawadogo", km: "64 820", entretien: "01/04/2025", vidange: "70 000 km", ok: true },
+  { code: "VEH-003", vehicule: "Toyota HiLux pick-up", immat: "AB 893 CI", usage: "Déplacements DG", chauffeur: "Chauffeur DG", km: "48 210", entretien: "15/03/2025", vidange: "55 000 km", ok: true },
+  { code: "VEH-004", vehicule: "Moto Honda XR 150", immat: "—", usage: "Liaisons terrain", chauffeur: "Konan Yao", km: "12 840", entretien: "01/06/2025", vidange: "15 000 km", ok: true },
+  { code: "VEH-005", vehicule: "Moto Honda XR 150", immat: "—", usage: "Liaisons terrain", chauffeur: "Sékou Bamba", km: "9 620", entretien: "01/06/2025", vidange: "12 000 km", ok: true },
+  { code: "VEH-006", vehicule: "Remorque benne 8t", immat: "AB 445 CI", usage: "Transport récoltes", chauffeur: "(attelée JD MAT-001)", km: "—", entretien: "Jan 2025", vidange: "—", ok: false, statut: "MAT-001 en maint." },
+];
+
+const coutsMois = [
+  { mois: "Jan", val: 0.9 },
+  { mois: "Fév", val: 0.8 },
+  { mois: "Mar", val: 1.2 },
+  { mois: "Avr", val: 1.4 },
+  { mois: "Mai", val: 2.1 },
+  { mois: "Jun", val: 2.0 },
+];
+
+const carburant = [
+  { code: "VEH-001", km: "42 800", litres: "6 420 L gasoil", cCarb: "5 778 000", cEntr: "820 000", total: "6 598 000" },
+  { code: "VEH-002", km: "18 400", litres: "2 116 L gasoil", cCarb: "1 904 000", cEntr: "245 000", total: "2 149 000" },
+  { code: "VEH-003", km: "12 100", litres: "1 392 L gasoil", cCarb: "1 253 000", cEntr: "180 000", total: "1 433 000" },
+  { code: "VEH-004", km: "4 200", litres: "210 L essence", cCarb: "168 000", cEntr: "35 000", total: "203 000" },
+  { code: "VEH-005", km: "3 100", litres: "155 L essence", cCarb: "124 000", cEntr: "32 000", total: "156 000" },
+];
+
+function SvgBarCouts() {
+  const maxVal = 2.1;
+  const chartH = 160;
+  const barW = 58;
+  const gap = 30;
+  const startX = 48;
+  const topPad = 20;
 
   return (
-    <div>
-      <Topbar title="Logistique & Transport" breadcrumb={["Logistique", "Logistique"]} />
-      <div className="p-6 space-y-6">
+    <div className="rounded-2xl border border-gray-100 bg-white p-5">
+      <h3 className="mb-4 text-sm font-semibold text-gray-700">Coûts transport par mois 2025 (M XOF)</h3>
+      <svg viewBox={`0 0 ${startX + coutsMois.length * (barW + gap) + 10} ${chartH + 60}`} width="100%" xmlns="http://www.w3.org/2000/svg">
+        {[0, 0.5, 1.0, 1.5, 2.0].map((v) => {
+          const y = chartH - (v / maxVal) * chartH + topPad;
+          return (
+            <g key={v}>
+              <line x1={startX} y1={y} x2={startX + coutsMois.length * (barW + gap) - gap} y2={y} stroke="#E0E0E0" strokeWidth="1" />
+              <text x={startX - 6} y={y + 4} fontSize="9" fill="#888" textAnchor="end">{v.toFixed(1)}</text>
+            </g>
+          );
+        })}
+        {coutsMois.map((d, i) => {
+          const x = startX + i * (barW + gap);
+          const bh = (d.val / maxVal) * chartH;
+          const y = chartH - bh + topPad;
+          return (
+            <g key={d.mois}>
+              <rect x={x} y={y} width={barW} height={bh} fill="#2E7D32" rx="4" opacity="0.85" />
+              <text x={x + barW / 2} y={y - 5} fontSize="9" fill="#2E7D32" textAnchor="middle" fontWeight="bold">{d.val}M</text>
+              <text x={x + barW / 2} y={chartH + topPad + 18} fontSize="10" fill="#555" textAnchor="middle">{d.mois}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {kpis.map((k) => (
-            <div key={k.label} className="bg-white rounded-2xl border border-gray-100 p-4">
-              <div className="text-2xl font-bold" style={{ color: k.color }}>{k.val}</div>
-              <div className="text-xs text-gray-700 font-medium mt-1">{k.label}</div>
-              <div className="text-[11px] text-gray-400 mt-0.5">{k.sub}</div>
-            </div>
-          ))}
+function OngletFlotte() {
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-gray-100 bg-white p-5">
+        <h3 className="mb-4 text-sm font-semibold text-gray-700">Flotte de transport AGRIFRIK</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-xs">
+            <thead>
+              <tr className="bg-[#F8FBF8]">
+                {["Code", "Véhicule", "Immat.", "Usage", "Chauffeur assigné", "Km", "Dernier entretien", "Proch. vidange", "Statut"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {flotte.map((v) => (
+                <tr key={v.code} className="border-t border-gray-50 hover:bg-gray-50">
+                  <td className="px-3 py-2 font-mono font-medium text-gray-700 whitespace-nowrap">{v.code}</td>
+                  <td className="px-3 py-2 font-medium whitespace-nowrap">{v.vehicule}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{v.immat}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{v.usage}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{v.chauffeur}</td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">{v.km}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{v.entretien}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{v.vidange}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${v.ok ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+                      {v.ok ? "✅ Disponible" : `⚠️ ${v.statut}`}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <SvgBarCouts />
+
+      <div className="rounded-2xl border border-gray-100 bg-white p-5">
+        <h3 className="mb-4 text-sm font-semibold text-gray-700">Carburant & Coûts véhicules YTD (XOF)</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-xs">
+            <thead>
+              <tr className="bg-[#F8FBF8]">
+                {["Véhicule", "Km parcourus", "Carburant (volume)", "Coût carburant", "Coût entretien", "Coût total"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {carburant.map((d) => (
+                <tr key={d.code} className="border-t border-gray-50 hover:bg-gray-50">
+                  <td className="px-3 py-2 font-mono font-medium text-gray-700 whitespace-nowrap">{d.code}</td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">{d.km} km</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{d.litres}</td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">{d.cCarb}</td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">{d.cEntr}</td>
+                  <td className="px-3 py-2 text-right font-semibold text-gray-800 whitespace-nowrap">{d.total}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── PLANNING ─── */
+const planning = [
+  { date: "15/07", ref: "LOG-049", marchandise: "Pièces JD + Semences", vehicule: "Toyota HiLux", trajet: "Abidjan → Soubré", resp: "Ibrahim S." },
+  { date: "20/07", ref: "LOG-050", marchandise: "Semences clones CNRA (20 kg)", vehicule: "Toyota HiLux", trajet: "Abidjan → Soubré", resp: "Konan Y." },
+  { date: "25/07", ref: "LOG-051", marchandise: "KCl 720 kg (en cours commande)", vehicule: "Renault T460", trajet: "SCPA Abidjan → Soubré", resp: "Moussa T." },
+  { date: "01/08", ref: "LOG-052", marchandise: "Anacarde WW240 (2,4 t)", vehicule: "Renault T460", trajet: "Soubré → San-Pédro", resp: "Moussa T." },
+  { date: "05/08", ref: "—", marchandise: "LOT-045 ETA Rotterdam", vehicule: "MSC Allegria", trajet: "San-Pédro → Rotterdam", resp: "— (maritime)" },
+  { date: "10/08", ref: "LOG-053", marchandise: "NPK 10t pour campagne sep.", vehicule: "Renault T460", trajet: "Abidjan → Soubré", resp: "Moussa T." },
+];
+
+function OngletPlanning() {
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-gray-100 bg-white p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <Calendar size={16} className="text-green-700" />
+          <h3 className="text-sm font-semibold text-gray-700">Calendrier livraisons prévues — Juillet & Août 2025</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-xs">
+            <thead>
+              <tr className="bg-[#F8FBF8]">
+                {["Date", "Réf.", "Marchandise", "Véhicule / Transporteur", "Trajet", "Responsable"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {planning.map((p, i) => (
+                <tr key={i} className="border-t border-gray-50 hover:bg-gray-50">
+                  <td className="px-3 py-2 font-semibold text-gray-800 whitespace-nowrap">{p.date}</td>
+                  <td className="px-3 py-2 font-mono whitespace-nowrap">{p.ref}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{p.marchandise}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{p.vehicule}</td>
+                  <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{p.trajet}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{p.resp}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle size={16} className="mt-0.5 text-blue-600 shrink-0" />
+          <div className="text-xs text-blue-700">
+            <p className="font-semibold mb-1">Notes de planning</p>
+            <ul className="space-y-1 list-disc ml-4">
+              <li>LOG-051 (KCl) conditionné à la validation de commande ACH — en attente fournisseur SCPA</li>
+              <li>Transport maritime LOT-045 : suivi en temps réel via portail MSC MyBox</li>
+              <li>Vérifier disponibilité VEH-001 (Renault T460) avant confirmation LOG-052 et LOG-053</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── PAGE ─── */
+export default function LogistiquePage() {
+  const [activeTab, setActiveTab] = useState<Tab>("Opérations");
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Topbar
+        breadcrumb={["Logistique", "Transport & Logistique"]}
+        title="Transport & Logistique"
+      />
+      <div className="p-6 space-y-6">
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">Gestion du transport et de la chaîne logistique</h1>
+          <p className="mt-1 text-sm text-gray-500">Suivi des opérations, flotte de véhicules et planning de livraisons</p>
         </div>
 
         {/* Onglets */}
-        <div className="flex gap-1 border-b border-gray-200">
-          {TABS.map((t) => (
+        <div className="flex gap-1 rounded-xl bg-white border border-gray-100 p-1 w-fit">
+          {TABS.map((tab) => (
             <button
-              key={t}
-              onClick={() => setActiveTab(t)}
-              className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
-                activeTab === t
-                  ? "text-[#2E7D32] border-b-2 border-[#2E7D32] bg-white"
-                  : "text-gray-500 hover:text-gray-700"
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`rounded-lg px-4 py-2 text-xs font-medium transition-colors ${
+                activeTab === tab ? "bg-[#2E7D32] text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              {t}
+              {tab}
             </button>
           ))}
         </div>
 
-        {/* ── TAB : LIVRAISONS ── */}
-        {activeTab === "Livraisons" && (
-          <div className="space-y-6">
-            {/* En transit maintenant */}
-            <div>
-              <h2 className="font-semibold text-gray-900 mb-3">En transit maintenant</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {livraisonsEnTransit.map((l) => (
-                  <div key={l.num} className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{l.type === "moto" ? "🏍️" : "🚛"}</span>
-                        <div>
-                          <span className="font-mono text-sm font-bold text-gray-800">{l.num}</span>
-                          <span className="mx-2 text-gray-300">·</span>
-                          <span className="text-sm text-gray-600">{l.chauffeur}</span>
-                        </div>
-                      </div>
-                      <StatutBadge statut={l.statut === "en_route" ? "En transit" : "Livré"} label={l.statutLabel} />
-                    </div>
-
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                      <span className="bg-gray-100 rounded-lg px-2 py-1">
-                        {l.depart}{l.heureDepart ? ` · ${l.heureDepart}` : ""}
-                      </span>
-                      <span className="text-gray-300">→</span>
-                      <span className="bg-gray-100 rounded-lg px-2 py-1">{l.destination}</span>
-                    </div>
-
-                    <div className="text-xs text-gray-600 space-y-0.5">
-                      <div><span className="text-gray-400">Chargement : </span>{l.chargement}</div>
-                      <div className="flex gap-4">
-                        <span><span className="text-gray-400">Poids : </span>{l.poids}</span>
-                        <span><span className="text-gray-400">Distance : </span>{l.distance}</span>
-                        {l.eta !== "—" && <span><span className="text-gray-400">ETA : </span><span className="font-medium text-gray-800">{l.eta}</span></span>}
-                      </div>
-                      {l.detail && <div className="text-gray-500 italic">{l.detail}</div>}
-                    </div>
-
-                    {l.progression < 100 && (
-                      <div>
-                        <div className="flex justify-between text-[11px] text-gray-500 mb-1">
-                          <span>Progression estimée</span>
-                          <span className="font-medium">{l.progression}%</span>
-                        </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] transition-all"
-                            style={{ width: `${l.progression}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tableau livraisons du mois */}
-            <div className="bg-white rounded-2xl border border-gray-100">
-              <div className="flex items-center justify-between p-5 border-b border-gray-100">
-                <h2 className="font-semibold text-gray-900">Livraisons du mois — Juillet 2025</h2>
-                <span className="text-xs text-gray-500">28 livraisons</span>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-[#F8FBF8] text-xs text-gray-500">
-                      {["N°", "Date", "Départ", "Destination", "Contenu", "Poids", "Véhicule", "Chauffeur", "Statut", "Durée"].map((h) => (
-                        <th key={h} className="text-left px-4 py-3 font-medium whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {livraisonsMois.map((l) => (
-                      <tr key={l.num} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-mono text-xs font-medium text-gray-700 whitespace-nowrap">{l.num}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{l.date}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{l.depart}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{l.destination}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{l.contenu}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{l.poids}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">{l.vehicule}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{l.chauffeur}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <StatutBadge statut={l.statut} />
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{l.duree}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── TAB : VÉHICULES & CHAUFFEURS ── */}
-        {activeTab === "Véhicules & Chauffeurs" && (
-          <div className="space-y-6">
-            {/* Parc véhicules */}
-            <div className="bg-white rounded-2xl border border-gray-100">
-              <div className="p-5 border-b border-gray-100">
-                <h2 className="font-semibold text-gray-900">Parc véhicules</h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-[#F8FBF8] text-xs text-gray-500">
-                      {["Véhicule", "Immat.", "Type", "Capacité", "État", "Compteur", "Prochaine révision", "Chauffeur attitré", "Statut"].map((h) => (
-                        <th key={h} className="text-left px-4 py-3 font-medium whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {vehicules.map((v) => (
-                      <tr key={v.nom} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{v.nom}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-600 whitespace-nowrap">{v.immat}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{v.type}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{v.capacite}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {v.etat === "bon" ? (
-                            <span className="text-xs text-green-600 font-medium">✅ Bon</span>
-                          ) : (
-                            <span className="text-xs text-orange-600 font-medium">⚠️ Fuite hydraulique</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">{v.km}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">{v.revision}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{v.chauffeur}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <StatutBadge statut={v.statut} label={v.statut === "mission" ? "En mission" : v.statut === "maintenance" ? "Maintenance" : "Disponible"} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Chauffeurs */}
-            <div className="bg-white rounded-2xl border border-gray-100">
-              <div className="p-5 border-b border-gray-100">
-                <h2 className="font-semibold text-gray-900">Chauffeurs</h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-[#F8FBF8] text-xs text-gray-500">
-                      {["Chauffeur", "Permis (valid.)", "Catégories", "Missions YTD", "Km YTD", "Note clients", "Statut"].map((h) => (
-                        <th key={h} className="text-left px-4 py-3 font-medium whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {chauffeurs.map((c) => (
-                      <tr key={c.nom} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{c.nom}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">{c.permis}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-lg font-medium">{c.categories}</span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap font-medium">{c.missions}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.km}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="text-[#2E7D32] font-bold text-sm">{c.note}</span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <StatutBadge statut={c.statut} label={c.statut === "mission" ? "En mission" : "Disponible"} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── TAB : ITINÉRAIRES ── */}
-        {activeTab === "Itinéraires" && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
-              <h2 className="font-semibold text-gray-900 mb-4">Carte schématique — Côte d'Ivoire</h2>
-              <CarteCI />
-            </div>
-
-            <div className="bg-white rounded-2xl border border-gray-100">
-              <div className="p-5 border-b border-gray-100">
-                <h2 className="font-semibold text-gray-900">Itinéraires fréquents</h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-[#F8FBF8] text-xs text-gray-500">
-                      {["Route", "Distance", "Durée moy.", "Coût moyen", "Fréquence/mois", "Usage"].map((h) => (
-                        <th key={h} className="text-left px-4 py-3 font-medium whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {itineraires.map((it) => (
-                      <tr key={it.route} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{it.route}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{it.distance}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{it.duree}</td>
-                        <td className="px-4 py-3 text-gray-700 font-medium whitespace-nowrap">{it.cout}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{it.freq}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-medium">{it.usage}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── TAB : COÛTS ── */}
-        {activeTab === "Coûts" && (
-          <div className="space-y-6">
-            {/* Coûts YTD */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="font-semibold text-gray-900">Coûts transport YTD</h2>
-                <span className="text-sm font-bold text-gray-800">Total : 8 400 000 XOF</span>
-              </div>
-              <div className="flex flex-col md:flex-row gap-8 items-center">
-                {/* Donut */}
-                <div className="flex-shrink-0">
-                  <DonutChart />
-                </div>
-                {/* Barres */}
-                <div className="flex-1 space-y-4 w-full">
-                  {coutCategories.map((c) => (
-                    <div key={c.label}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: c.color }} />
-                          <span className="text-sm text-gray-700">{c.label}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-gray-500">{c.montant}</span>
-                          <span className="text-xs font-bold text-gray-700 w-8 text-right">{c.pct}%</span>
-                        </div>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full" style={{ width: `${c.pct}%`, background: c.color }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Coût par livraison */}
-            <div className="bg-white rounded-2xl border border-gray-100">
-              <div className="p-5 border-b border-gray-100">
-                <h2 className="font-semibold text-gray-900">Coût par livraison — 5 dernières</h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-[#F8FBF8] text-xs text-gray-500">
-                      {["Livraison", "Route", "Distance", "Carburant", "Péage", "Salaire", "Total", "Coût/t"].map((h) => (
-                        <th key={h} className="text-left px-4 py-3 font-medium whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {coutLivraisons.map((l) => (
-                      <tr key={l.num} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-mono text-xs font-medium text-gray-700 whitespace-nowrap">{l.num}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{l.route}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{l.distance}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{l.carburant} XOF</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{l.peage} XOF</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{l.salaire} XOF</td>
-                        <td className="px-4 py-3 font-bold text-gray-900 whitespace-nowrap">{l.total} XOF</td>
-                        <td className="px-4 py-3 text-[#2E7D32] font-medium whitespace-nowrap text-xs">{l.coutT}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
+        {activeTab === "Opérations" && <OngletOperations />}
+        {activeTab === "Flotte" && <OngletFlotte />}
+        {activeTab === "Planning" && <OngletPlanning />}
       </div>
     </div>
   );

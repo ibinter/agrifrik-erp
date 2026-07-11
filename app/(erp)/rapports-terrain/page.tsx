@@ -1,553 +1,642 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Topbar from "../../components/Topbar";
 import {
-  Plus,
-  FileText,
-  Users,
-  MapPin,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Camera,
-  ChevronDown,
-  Filter,
+  Search, Filter, MapPin, Camera, CheckCircle, AlertTriangle,
+  Clock, FileText, BarChart2, ChevronDown, Upload, Navigation,
 } from "lucide-react";
 
-const kpis = [
-  {
-    label: "Rapports ce mois",
-    value: "48",
-    unit: "",
-    sub: "+6 vs mois dernier",
-    subUp: true,
-    icon: FileText,
-    iconColor: "#2E7D32",
-    iconBg: "#E8F5E9",
-  },
-  {
-    label: "Techniciens actifs",
-    value: "8",
-    unit: "",
-    sub: "Sur 10 terrain",
-    subUp: true,
-    icon: Users,
-    iconColor: "#1565C0",
-    iconBg: "#E3F2FD",
-  },
-  {
-    label: "Parcelles inspectées",
-    value: "6",
-    unit: "",
-    sub: "Ce mois / 8 total",
-    subUp: true,
-    icon: MapPin,
-    iconColor: "#6A1B9A",
-    iconBg: "#F3E5F5",
-  },
-  {
-    label: "Anomalies signalées",
-    value: "3",
-    unit: "",
-    sub: "2 en cours de traitement",
-    subUp: false,
-    icon: AlertTriangle,
-    iconColor: "#E65100",
-    iconBg: "#FFF3E0",
-  },
-];
+const TABS = ["Rapports", "Formulaire", "Tableaux de bord"] as const;
+type Tab = typeof TABS[number];
 
-type Statut = "Validé" | "En attente validation" | "Brouillon";
+type CriticiteType = "haute" | "moyen" | "bas";
+type StatutType = "en-cours" | "commande" | "planifie" | "resolu";
 
 interface Rapport {
-  id: string;
-  technicien: string;
+  ref: string;
   date: string;
-  heure: string;
-  parcelle: string;
+  operateur: string;
+  lieu: string;
   type: string;
-  resume: string;
-  observations?: string;
-  actions?: string;
-  recommandations?: string;
-  photos: number;
-  statut: Statut;
-  anomalie?: string;
-  compact?: boolean;
+  parcelle?: string;
+  surface?: string;
+  resume: string[];
+  meteo?: string;
+  epi?: boolean;
+  coords?: string;
+  photos?: number;
 }
 
-const rapports: Rapport[] = [
+const RAPPORTS: Rapport[] = [
   {
-    id: "RT-2025-048",
-    technicien: "Ibrahim Sawadogo",
-    date: "09/07/2025",
-    heure: "09:15",
-    parcelle: "PAR-A3",
-    type: "Inspection régulière",
-    resume: "Humidité sol 34%, dans les normes. Culture en bon état. Quelques cabosses immatures signalées zone nord (env. 5%). Irrigation planifiée pour demain matin.",
-    observations: "Température 34°C | Vent faible | Sol sec en surface",
-    actions: "Relevé pH (6,8 ✅) | Photo zone nord",
-    recommandations: "Irrigation 15 000L demain 06h | Surveiller cabosses nord",
-    photos: 3,
-    statut: "Validé",
-  },
-  {
-    id: "RT-2025-047",
-    technicien: "Ibrahim Sawadogo",
-    date: "08/07/2025",
-    heure: "14:30",
-    parcelle: "PAR-A1",
-    type: "Post-récolte",
-    resume: "Récolte cabosses terminée. 2 400 kg collectés, qualité Grade A. Pesée vérifiée (×3). Transport vers fermenteur A effectué 16h00.",
-    observations: "Aucune anomalie | Météo : 31°C ☀️",
-    photos: 5,
-    statut: "Validé",
-  },
-  {
-    id: "RT-2025-046",
-    technicien: "Bamba Oumar",
-    date: "08/07/2025",
-    heure: "11:00",
-    parcelle: "Zone D — Matériels",
-    type: "Maintenance préventive",
-    resume: "Révision tracteur JD 6120M : vidange + filtres remplacés. Pression pneus OK. Heure compteur : 2 847h. Prochaine révision : 3 000h.",
-    anomalie: "⚠️ Fuite légère circuit hydraulique (joint usé) — Pièce commandée DHL-JD-20785.",
-    photos: 4,
-    statut: "En attente validation",
-  },
-  {
-    id: "RT-2025-045",
-    technicien: "Koné Seydou",
-    date: "07/07/2025",
-    heure: "08:45",
-    parcelle: "PAR-B2",
-    type: "Inspection régulière",
-    resume: "Croissance caféiers normale. Taux de floraison estimé à 78%. Sol bien drainé après les pluies de jeudi.",
-    photos: 2,
-    statut: "Validé",
-    compact: true,
-  },
-  {
-    id: "RT-2025-044",
-    technicien: "Ibrahim Sawadogo",
-    date: "06/07/2025",
-    heure: "10:00",
-    parcelle: "PAR-A2",
-    type: "Traitement phytosanitaire",
-    resume: "Application fongicide Mancozeb 80 WP (dose 2,5 kg/ha). Zone couverte : 3,2 ha. EPI portés. Délai avant récolte : 14 jours.",
-    photos: 1,
-    statut: "Validé",
-    compact: true,
-  },
-  {
-    id: "RT-2025-043",
-    technicien: "Bamba Oumar",
-    date: "05/07/2025",
-    heure: "13:15",
-    parcelle: "PAR-D2",
-    type: "Inspection régulière",
-    resume: "Présence adventices importante — sarclage requis avant 14/07. Cultures saines par ailleurs.",
-    anomalie: "Adventices > seuil tolérance",
-    photos: 3,
-    statut: "Validé",
-    compact: true,
-  },
-  {
-    id: "RT-2025-042",
-    technicien: "Koné Seydou",
-    date: "04/07/2025",
-    heure: "09:30",
-    parcelle: "PAR-C1",
-    type: "Irrigation",
-    resume: "Vérification réseau irrigation goutte-à-goutte. 2 goutteurs bouchés remplacés. Débit vérifié : 4,2 L/h/plant.",
-    photos: 2,
-    statut: "Validé",
-    compact: true,
-  },
-  {
-    id: "RT-2025-041",
-    technicien: "Traoré Awa",
-    date: "03/07/2025",
-    heure: "07:50",
-    parcelle: "PAR-A4",
-    type: "Inspection régulière",
-    resume: "État général satisfaisant. Début de formation des cabosses détecté sur 30% des plants. Humidité 38%.",
-    photos: 4,
-    statut: "Validé",
-    compact: true,
-  },
-  {
-    id: "RT-2025-040",
-    technicien: "Ibrahim Sawadogo",
-    date: "02/07/2025",
-    heure: "11:20",
+    ref: "RT-2025-082",
+    date: "11/07/2025",
+    operateur: "Ibrahim Sawadogo",
+    lieu: "Soubré Nord — PAR-B1",
+    type: "Opération culturale + Traitement",
     parcelle: "PAR-B1",
-    type: "Post-récolte",
-    resume: "Collecte anacarde terminée. 1 800 kg stockés en entrepôt E2. Humidité grains : 9,5% — conforme export.",
+    surface: "3,2 ha",
+    resume: [
+      "Traitement mildiou — Ridomil Gold 68 WG 2,5 g/L × 120 L",
+      "Intervention 08h30-10h45 — 100% PAR-B1 traité",
+      "3 cabosses supplémentaires infectées retirées",
+      "Traitement préventif PAR-A3 recommandé si pluies >30 mm la semaine prochaine",
+    ],
+    meteo: "Ensoleillé, vent faible (<5 km/h) — conditions optimales",
+    epi: true,
+    coords: "5°47'12\"N 6°36'24\"W",
     photos: 3,
-    statut: "Validé",
-    compact: true,
   },
   {
-    id: "RT-2025-039",
-    technicien: "Bamba Oumar",
-    date: "01/07/2025",
-    heure: "08:00",
-    parcelle: "Zone D — Matériels",
-    type: "Maintenance corrective",
-    resume: "Remplacement courroie moteur motopompe P3. Durée intervention : 2h30. Pompe opérationnelle. Test débit OK.",
-    photos: 2,
-    statut: "Validé",
-    compact: true,
+    ref: "RT-2025-081",
+    date: "11/07/2025",
+    operateur: "Adjoua Messou",
+    lieu: "Entrepôt A",
+    type: "Contrôle qualité lot",
+    parcelle: "LOT-2025-048",
+    resume: [
+      "Cut test : 85 fèves — 89% brunes, 8% violettes, 3% ardoisées",
+      "Indice fermentation : 89/100 — Progression normale (objectif J6 : ≥94%)",
+      "Température bac : 48°C (cible J5 : 44-52°C) ✓",
+      "Humidité entrepôt : 64% ✓ — Ne pas sécher avant J6. Retourner à 14h00.",
+    ],
+  },
+  {
+    ref: "RT-2025-080",
+    date: "10/07/2025",
+    operateur: "Konan Yao",
+    lieu: "Parcelle PAR-A3",
+    type: "Inspection phénologique",
+    parcelle: "PAR-A3",
+    surface: "—",
+    resume: [
+      "Stade fructification — 68% cabosses au stade vert mature",
+      "2 840 cabosses estimées → projection 3,4 t fèves fraîches → ~1,07 t cacao sec",
+      "Pathologies : 0 miride, 2 cabosses suintement (isolées) ✓",
+      "Prochaine inspection : 18/07/2025",
+    ],
+  },
+  {
+    ref: "RT-2025-079",
+    date: "09/07/2025",
+    operateur: "Bamba Oumar",
+    lieu: "Atelier maintenance",
+    type: "Rapport de maintenance",
+    resume: [
+      "Équipement : MAT-001 (JD 6120M) — Fuite hydraulique confirmée",
+      "Flexible HP AT366488 rompu côté raccord — Circuit isolé",
+      "BC ACH-2025-091 émis — Pièces ETA 15/07/2025",
+      "Perte exploitation estimée : 6 jours non-disponibilité (report labour PAR-D2)",
+    ],
+  },
+  {
+    ref: "RT-2025-078", date: "09/07/2025", operateur: "Ibrahim Sawadogo", lieu: "PAR-B1", type: "Inspection phyto",
+    resume: ["Détection foyer mildiou — 12 cabosses infectées sur rang N-O", "Délimitation foyer — Traitement programmé 11/07"],
+  },
+  {
+    ref: "RT-2025-077", date: "08/07/2025", operateur: "Aïcha Diabaté", lieu: "PAR-C2", type: "Opération culturale",
+    resume: ["Désherbage mécanique 1,8 ha — Finalisé 100%", "Paillage complémentaire pied des jeunes plants"],
+  },
+  {
+    ref: "RT-2025-076", date: "08/07/2025", operateur: "Adjoua Messou", lieu: "Entrepôt A", type: "Contrôle qualité",
+    resume: ["LOT-2025-047 — Séchage J4 : humidité 7,8% (objectif ≤8%) ✓", "Mise en sac autorisée — Poids net 580 kg"],
+  },
+  {
+    ref: "RT-2025-075", date: "07/07/2025", operateur: "Moussa Traoré", lieu: "Transport", type: "Rapport transport",
+    resume: ["Livraison 580 kg cacao sec — Coopérative Soubré Nord", "Bon de livraison BL-2025-034 signé"],
+  },
+  {
+    ref: "RT-2025-074", date: "07/07/2025", operateur: "Sékou Bamba", lieu: "PAR-A1", type: "Opération culturale",
+    resume: ["Taille sanitaire 45 cacaoyers — Rejet de gourmands", "Débris végétaux évacués et compostés"],
+  },
+  {
+    ref: "RT-2025-073", date: "06/07/2025", operateur: "Konan Yao", lieu: "PAR-A3", type: "Fertilisation",
+    resume: ["Épandage KCl 45 kg/ha × 2,1 ha — Traitement déficit potassique", "Irrigation post-épandage 30 min"],
+  },
+  {
+    ref: "RT-2025-072", date: "05/07/2025", operateur: "Ibrahim Sawadogo", lieu: "PAR-B1/B2", type: "Récolte",
+    resume: ["Récolte mi-saison — 142 cabosses récoltées sur PAR-B1", "Cabosse fraîche : 840 kg — Écabossage programmé 06/07"],
+  },
+  {
+    ref: "RT-2025-071", date: "04/07/2025", operateur: "Bamba Oumar", lieu: "Atelier", type: "Maintenance préventive",
+    resume: ["Révision MAT-002 (JD 5075E) — 500h — Filtres + huile moteur", "Matériel restitué opérationnel"],
   },
 ];
 
-const anomalies = [
-  {
-    niveau: "rouge",
-    titre: "Fuite hydraulique tracteur JD",
-    technicien: "Bamba Oumar",
-    date: "08/07",
-    detail: "En attente pièce DHL-JD-20785",
-  },
-  {
-    niveau: "jaune",
-    titre: "Cabosses immatures PAR-A3 zone nord (5%)",
-    technicien: "Ibrahim Sawadogo",
-    date: "09/07",
-    detail: "Surveillance active",
-  },
-  {
-    niveau: "jaune",
-    titre: "Présence adventices parcelle PAR-D2",
-    technicien: "Ibrahim Sawadogo",
-    date: "05/07",
-    detail: "Sarclage planifié 14/07",
-  },
+const TYPE_COLORS: Record<string, string> = {
+  "Opération culturale + Traitement": "bg-purple-100 text-purple-700",
+  "Contrôle qualité lot": "bg-blue-100 text-blue-700",
+  "Inspection phénologique": "bg-green-100 text-green-700",
+  "Rapport de maintenance": "bg-orange-100 text-orange-700",
+  "Opération culturale": "bg-teal-100 text-teal-700",
+  "Contrôle qualité": "bg-blue-100 text-blue-700",
+  "Rapport transport": "bg-gray-100 text-gray-700",
+  "Fertilisation": "bg-lime-100 text-lime-700",
+  "Récolte": "bg-yellow-100 text-yellow-700",
+  "Maintenance préventive": "bg-orange-100 text-orange-700",
+  "Inspection phyto": "bg-red-100 text-red-700",
+};
+
+const ANOMALIES = [
+  { date: "09/07", rapporteur: "Ibrahim S.", anomalie: "Cabosses infectées mildiou PAR-B1", parcelle: "PAR-B1", criticite: "haute" as CriticiteType, statut: "en-cours" as StatutType },
+  { date: "09/07", rapporteur: "Bamba O.", anomalie: "Fuite hydraulique MAT-001", parcelle: "—", criticite: "haute" as CriticiteType, statut: "commande" as StatutType },
+  { date: "02/07", rapporteur: "Konan Y.", anomalie: "Déficit hydrique visible PAR-A3", parcelle: "PAR-A3", criticite: "moyen" as CriticiteType, statut: "planifie" as StatutType },
+  { date: "28/06", rapporteur: "Adjoua M.", anomalie: "Humidité LOT-047 à 8,1% (seuil 8%)", parcelle: "Entrepôt A", criticite: "moyen" as CriticiteType, statut: "resolu" as StatutType },
 ];
 
-const filtresPeriode = ["Tous", "Aujourd'hui", "Cette semaine", "Ce mois"];
-const techniciens = ["Tous les techniciens", "Ibrahim Sawadogo", "Bamba Oumar", "Koné Seydou", "Traoré Awa"];
-const parcelles = ["Toutes les parcelles", "PAR-A1", "PAR-A2", "PAR-A3", "PAR-A4", "PAR-B1", "PAR-B2", "PAR-C1", "PAR-D2", "Zone D — Matériels"];
+const CRITICITE_BADGES: Record<CriticiteType, string> = {
+  haute: "bg-red-100 text-red-700",
+  moyen: "bg-yellow-100 text-yellow-700",
+  bas: "bg-green-100 text-green-700",
+};
 
-function statutBadge(statut: Statut) {
-  if (statut === "Validé") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-        <CheckCircle size={11} />
-        Validé
-      </span>
-    );
-  }
-  if (statut === "En attente validation") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-        <Clock size={11} />
-        En attente validation
-      </span>
-    );
-  }
+const CRITICITE_LABELS: Record<CriticiteType, string> = {
+  haute: "Haute",
+  moyen: "Moyen",
+  bas: "Bas",
+};
+
+const STATUT_LABELS: Record<StatutType, { label: string; cls: string }> = {
+  "en-cours": { label: "Traitement en cours", cls: "bg-orange-100 text-orange-700" },
+  "commande": { label: "Pièces commandées", cls: "bg-blue-100 text-blue-700" },
+  "planifie": { label: "Fertilisation planifiée", cls: "bg-purple-100 text-purple-700" },
+  "resolu": { label: "Résolu", cls: "bg-green-100 text-green-700" },
+};
+
+function RapportsTab() {
+  const [search, setSearch] = useState("");
+  const filtered = RAPPORTS.filter(r =>
+    r.operateur.toLowerCase().includes(search.toLowerCase()) ||
+    r.type.toLowerCase().includes(search.toLowerCase()) ||
+    r.ref.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-      Brouillon
-    </span>
+    <div className="space-y-4">
+      {/* Stats + Filtres */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <div className="relative flex-1 max-w-sm">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Rechercher un rapport..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+          />
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {["Tous", "Par parcelle", "Par opérateur", "Par type"].map(f => (
+            <button key={f} className="text-xs px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 hover:border-[#2E7D32] hover:text-[#2E7D32] transition-colors flex items-center gap-1">
+              <Filter size={11} />{f}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-4 ml-auto text-xs text-gray-500">
+          <span><span className="font-semibold text-gray-800">82</span> rapports YTD</span>
+          <span><span className="font-semibold text-gray-800">4,2</span> / semaine</span>
+          <span className="flex items-center gap-1"><MapPin size={11} className="text-green-500" /><span className="font-semibold text-gray-800">100%</span> géolocalisés</span>
+        </div>
+      </div>
+
+      {/* Liste rapports */}
+      <div className="space-y-3">
+        {filtered.map((r, i) => {
+          const typeColor = TYPE_COLORS[r.type] ?? "bg-gray-100 text-gray-700";
+          return (
+            <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5 hover:border-gray-200 transition-colors">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="font-bold text-sm text-[#2E7D32]">{r.ref}</span>
+                  <span className="text-xs text-gray-400">{r.date}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${typeColor}`}>{r.type}</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 text-xs text-gray-500">
+                  {r.photos && (
+                    <span className="flex items-center gap-1"><Camera size={11} />{r.photos} photos</span>
+                  )}
+                  {r.coords && (
+                    <span className="flex items-center gap-1"><MapPin size={11} className="text-green-500" />{r.coords}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs text-gray-600">
+                <span><span className="text-gray-400">Opérateur :</span> <span className="font-medium">{r.operateur}</span></span>
+                <span><span className="text-gray-400">Lieu :</span> {r.lieu}</span>
+                {r.parcelle && <span><span className="text-gray-400">Parcelle/Lot :</span> {r.parcelle}</span>}
+                {r.surface && <span><span className="text-gray-400">Surface :</span> {r.surface}</span>}
+                {r.meteo && <span><span className="text-gray-400">Météo :</span> {r.meteo}</span>}
+                {r.epi !== undefined && (
+                  <span className="flex items-center gap-1">
+                    <span className="text-gray-400">EPI :</span>
+                    {r.epi ? <CheckCircle size={11} className="text-green-500" /> : <AlertTriangle size={11} className="text-red-500" />}
+                    <span className={r.epi ? "text-green-600" : "text-red-600"}>{r.epi ? "Conformes" : "Non conformes"}</span>
+                  </span>
+                )}
+              </div>
+
+              <ul className="space-y-1">
+                {r.resume.map((line, li) => (
+                  <li key={li} className="text-xs text-gray-600 flex items-start gap-2">
+                    <span className="mt-1 w-1 h-1 rounded-full bg-[#4CAF50] shrink-0" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function FormulaireTab() {
+  const [typeRapport, setTypeRapport] = useState("");
+  const [meteo, setMeteo] = useState("");
+  const [epi, setEpi] = useState<Record<string, boolean>>({});
+  const [coords, setCoords] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [drawing, setDrawing] = useState(false);
+  const [signed, setSigned] = useState(false);
+
+  const toggleEpi = (item: string) => setEpi(prev => ({ ...prev, [item]: !prev[item] }));
+
+  const captureGPS = () => {
+    setCoords("5°47'09\"N 6°36'31\"W — Précision : ±3 m");
+  };
+
+  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setDrawing(true);
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    const rect = canvasRef.current!.getBoundingClientRect();
+    ctx.beginPath();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!drawing) return;
+    const ctx = canvasRef.current?.getContext("2d");
+    const rect = canvasRef.current!.getBoundingClientRect();
+    if (!ctx) return;
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.strokeStyle = "#1B5E20";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    setSigned(true);
+  };
+
+  const clearCanvas = () => {
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx || !canvasRef.current) return;
+    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    setSigned(false);
+  };
+
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 max-w-3xl space-y-6">
+      <h2 className="font-semibold text-gray-800">Nouveau rapport terrain</h2>
+
+      {/* Type + Date */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="text-xs font-medium text-gray-600 mb-1.5 block">Type de rapport *</label>
+          <div className="relative">
+            <select
+              value={typeRapport}
+              onChange={e => setTypeRapport(e.target.value)}
+              className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+            >
+              <option value="">Sélectionner…</option>
+              {["Opération culturale", "Contrôle qualité", "Maintenance", "Incident", "Récolte", "Inspection phyto"].map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-gray-600 mb-1.5 block">Date et heure *</label>
+          <input
+            type="datetime-local"
+            defaultValue="2025-07-11T08:00"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+          />
+        </div>
+      </div>
+
+      {/* Parcelles + Opérateur */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="text-xs font-medium text-gray-600 mb-2 block">Parcelle(s) concernée(s)</label>
+          <div className="grid grid-cols-2 gap-2">
+            {["PAR-A1", "PAR-A3", "PAR-B1", "PAR-B2", "PAR-C2", "PAR-D2", "Entrepôt A", "Atelier"].map(p => (
+              <label key={p} className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="accent-[#2E7D32]" />
+                <span className="text-xs text-gray-700">{p}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-gray-600 mb-1.5 block">Opérateur *</label>
+          <div className="relative">
+            <select className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]">
+              <option value="">Sélectionner…</option>
+              {["Ibrahim Sawadogo", "Konan Yao", "Adjoua Messou", "Bamba Oumar", "Aïcha Diabaté", "Sékou Bamba", "Moussa Traoré"].map(e => (
+                <option key={e}>{e}</option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+
+          <label className="text-xs font-medium text-gray-600 mt-4 mb-2 block">Conditions météo</label>
+          <div className="flex flex-wrap gap-2">
+            {["Ensoleillé", "Nuageux", "Pluvieux", "Vent fort"].map(m => (
+              <label key={m} className="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="meteo" value={m} checked={meteo === m} onChange={() => setMeteo(m)} className="accent-[#2E7D32]" />
+                <span className="text-xs text-gray-700">{m}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Description + Résultats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description de l&apos;opération *</label>
+          <textarea
+            rows={4}
+            placeholder="Décrire l'opération réalisée, les produits utilisés, les quantités…"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-gray-600 mb-1.5 block">Résultats / Observations</label>
+          <textarea
+            rows={4}
+            placeholder="Résultats obtenus, anomalies constatées, recommandations…"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+          />
+        </div>
+      </div>
+
+      {/* EPI */}
+      <div>
+        <label className="text-xs font-medium text-gray-600 mb-2 block">EPI portés lors de l&apos;intervention</label>
+        <div className="flex flex-wrap gap-3">
+          {["Masque FFP2", "Gants nitrile", "Lunettes protection", "Combinaison", "Bottes"].map(item => (
+            <label key={item} className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={!!epi[item]} onChange={() => toggleEpi(item)} className="accent-[#2E7D32]" />
+              <span className="text-xs text-gray-700">{item}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Photos upload */}
+      <div>
+        <label className="text-xs font-medium text-gray-600 mb-2 block">Photos de l&apos;intervention</label>
+        <div className="grid grid-cols-3 gap-3">
+          {[1, 2, 3].map(n => (
+            <div
+              key={n}
+              onDragOver={e => { e.preventDefault(); setDragOver(n); }}
+              onDragLeave={() => setDragOver(null)}
+              onDrop={e => { e.preventDefault(); setDragOver(null); }}
+              className={`border-2 border-dashed rounded-xl h-24 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors ${
+                dragOver === n ? "border-[#2E7D32] bg-green-50" : "border-gray-200 hover:border-gray-300 bg-gray-50"
+              }`}
+            >
+              <Upload size={18} className="text-gray-400" />
+              <span className="text-[10px] text-gray-400">Photo {n}</span>
+              <span className="text-[9px] text-gray-300">Glisser ou cliquer</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* GPS */}
+      <div>
+        <label className="text-xs font-medium text-gray-600 mb-2 block">Géolocalisation</label>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={captureGPS}
+            className="flex items-center gap-2 text-xs bg-[#2E7D32] text-white px-4 py-2 rounded-xl font-medium hover:bg-[#1B5E20] transition-colors"
+          >
+            <Navigation size={13} /> Capturer GPS
+          </button>
+          {coords && (
+            <span className="text-xs text-green-700 bg-green-50 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+              <MapPin size={12} /> {coords}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Signature */}
+      <div>
+        <label className="text-xs font-medium text-gray-600 mb-2 block">Signature de l&apos;opérateur</label>
+        <div className="border border-gray-200 rounded-xl overflow-hidden w-full max-w-sm bg-gray-50">
+          <canvas
+            ref={canvasRef}
+            width={380}
+            height={100}
+            className="w-full cursor-crosshair"
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={() => setDrawing(false)}
+            onMouseLeave={() => setDrawing(false)}
+          />
+        </div>
+        {signed && (
+          <button onClick={clearCanvas} className="mt-1 text-[10px] text-gray-400 hover:text-gray-600 underline">Effacer la signature</button>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-3 pt-2">
+        <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-5 py-2.5 hover:bg-[#1B5E20] transition-colors">
+          Enregistrer le rapport
+        </button>
+        <button className="bg-gray-100 text-gray-600 rounded-xl text-xs font-medium px-5 py-2.5 hover:bg-gray-200 transition-colors">
+          Enregistrer brouillon
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TableauxDeBordTab() {
+  // Bar chart data
+  const barData = [
+    { label: "Ibrahim S.", value: 28 },
+    { label: "Konan Y.", value: 22 },
+    { label: "Adjoua M.", value: 18 },
+    { label: "Bamba O.", value: 14 },
+    { label: "Autres", value: 10 },
+  ];
+  const barMax = 28;
+
+  // Donut data
+  const donutData = [
+    { label: "Op. culturale", pct: 42, color: "#2E7D32" },
+    { label: "Ctrl qualité", pct: 28, color: "#3b82f6" },
+    { label: "Maintenance", pct: 14, color: "#f97316" },
+    { label: "Récolte", pct: 10, color: "#eab308" },
+    { label: "Incident", pct: 6, color: "#ef4444" },
+  ];
+
+  // Donut path builder
+  const cx = 90, cy = 90, r = 60, ir = 36;
+  let startAngle = -Math.PI / 2;
+  const donutPaths = donutData.map(seg => {
+    const angle = (seg.pct / 100) * 2 * Math.PI;
+    const x1o = cx + r * Math.cos(startAngle);
+    const y1o = cy + r * Math.sin(startAngle);
+    const x1i = cx + ir * Math.cos(startAngle);
+    const y1i = cy + ir * Math.sin(startAngle);
+    startAngle += angle;
+    const x2o = cx + r * Math.cos(startAngle);
+    const y2o = cy + r * Math.sin(startAngle);
+    const x2i = cx + ir * Math.cos(startAngle);
+    const y2i = cy + ir * Math.sin(startAngle);
+    const large = angle > Math.PI ? 1 : 0;
+    const d = `M ${x1i} ${y1i} L ${x1o} ${y1o} A ${r} ${r} 0 ${large} 1 ${x2o} ${y2o} L ${x2i} ${y2i} A ${ir} ${ir} 0 ${large} 0 ${x1i} ${y1i} Z`;
+    return { ...seg, d };
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Charts row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Bar chart */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <BarChart2 size={16} className="text-[#2E7D32]" /> Rapports par opérateur — YTD 2025
+          </h2>
+          <svg viewBox="0 0 300 180" className="w-full" aria-label="Rapports par opérateur">
+            {barData.map((item, i) => {
+              const barW = (item.value / barMax) * 200;
+              const y = i * 33 + 10;
+              return (
+                <g key={i}>
+                  <text x={0} y={y + 14} fontSize={9.5} fill="#374151">{item.label}</text>
+                  <rect x={82} y={y + 2} width={barW} height={20} fill="#2E7D32" rx={4} opacity={0.85} />
+                  <text x={82 + barW + 4} y={y + 15} fontSize={10} fill="#374151" fontWeight="600">{item.value}</text>
+                </g>
+              );
+            })}
+            <text x={82} y={175} fontSize={9} fill="#9ca3af">0</text>
+            <text x={165} y={175} fontSize={9} fill="#9ca3af">14</text>
+            <text x={278} y={175} fontSize={9} fill="#9ca3af">28</text>
+          </svg>
+        </div>
+
+        {/* Donut chart */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="font-semibold text-gray-800 mb-4">Répartition par type de rapport</h2>
+          <div className="flex items-center gap-6">
+            <svg viewBox="0 0 180 180" className="w-40 h-40 shrink-0" aria-label="Répartition types rapports">
+              {donutPaths.map((seg, i) => (
+                <path key={i} d={seg.d} fill={seg.color} opacity={0.9} />
+              ))}
+              <text x={cx} y={cy - 4} textAnchor="middle" fontSize={11} fill="#374151" fontWeight="700">82</text>
+              <text x={cx} y={cy + 10} textAnchor="middle" fontSize={8} fill="#9ca3af">rapports</text>
+            </svg>
+            <div className="space-y-2">
+              {donutData.map((seg, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: seg.color }} />
+                  <span className="text-xs text-gray-700">{seg.label}</span>
+                  <span className="text-xs font-semibold text-gray-800 ml-auto">{seg.pct}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Table anomalies */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-5 overflow-x-auto">
+        <h2 className="font-semibold text-gray-800 mb-4">Anomalies signalées — 30 derniers jours</h2>
+        <table className="w-full text-xs min-w-[600px]">
+          <thead>
+            <tr className="bg-[#F8FBF8]">
+              {["Date", "Rapporteur", "Anomalie", "Parcelle", "Criticité", "Statut"].map(h => (
+                <th key={h} className="text-left py-2 px-3 font-medium text-gray-600">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {ANOMALIES.map((a, i) => (
+              <tr key={i} className="hover:bg-gray-50">
+                <td className="py-2.5 px-3 text-gray-600">{a.date}</td>
+                <td className="py-2.5 px-3 text-gray-700 font-medium">{a.rapporteur}</td>
+                <td className="py-2.5 px-3 text-gray-700 max-w-xs">{a.anomalie}</td>
+                <td className="py-2.5 px-3 text-gray-500">{a.parcelle}</td>
+                <td className="py-2.5 px-3">
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${CRITICITE_BADGES[a.criticite]}`}>
+                    {CRITICITE_LABELS[a.criticite]}
+                  </span>
+                </td>
+                <td className="py-2.5 px-3">
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${STATUT_LABELS[a.statut].cls}`}>
+                    {STATUT_LABELS[a.statut].label}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
 export default function RapportsTerrainPage() {
-  const [filtrePeriode, setFiltrePeriode] = useState("Tous");
-  const [technicien, setTechnicien] = useState("Tous les techniciens");
-  const [parcelle, setParcelle] = useState("Toutes les parcelles");
-  const [expanded, setExpanded] = useState<string | null>("RT-2025-048");
+  const [tab, setTab] = useState<Tab>("Rapports");
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar
-        title="Rapports de Terrain"
-        breadcrumb={["Rapports & BI", "Rapports Terrain"]}
-      />
-
+    <div className="flex-1 flex flex-col min-h-screen bg-gray-50">
+      <Topbar breadcrumb={["Rapports", "Rapports Terrain"]} />
       <main className="flex-1 p-6 space-y-6">
-
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {kpis.map((kpi) => {
-            const Icon = kpi.icon;
-            return (
-              <div
-                key={kpi.label}
-                className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-col gap-3"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-500">{kpi.label}</span>
-                  <span
-                    style={{ background: kpi.iconBg, color: kpi.iconColor }}
-                    className="rounded-xl p-2 flex items-center justify-center"
-                  >
-                    <Icon size={18} />
-                  </span>
-                </div>
-                <div className="flex items-end gap-1">
-                  <span className="text-2xl font-bold text-gray-900">{kpi.value}</span>
-                  {kpi.unit && <span className="text-xs text-gray-400 mb-1">{kpi.unit}</span>}
-                </div>
-                <span
-                  className="text-xs font-medium"
-                  style={{ color: kpi.subUp ? "#2E7D32" : "#E65100" }}
-                >
-                  {kpi.sub}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Bouton + filtres */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <button
-            className="text-white rounded-xl text-sm font-semibold px-5 py-2.5 flex items-center gap-2 w-fit shadow-sm"
-            style={{ background: "#2E7D32" }}
-          >
-            <Plus size={16} />
-            Nouveau rapport
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-gray-800">Rapports Terrain</h1>
+            <p className="text-xs text-gray-500 mt-0.5">Rapports quotidiens des équipes terrain — Semaine 29</p>
+          </div>
+          <button className="flex items-center gap-2 text-xs bg-[#2E7D32] text-white px-4 py-2 rounded-xl font-medium hover:bg-[#1B5E20] transition-colors">
+            <FileText size={13} /> Nouveau rapport
           </button>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Filtres période */}
-            <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1">
-              {filtresPeriode.map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFiltrePeriode(f)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                  style={
-                    filtrePeriode === f
-                      ? { background: "#2E7D32", color: "#fff" }
-                      : { color: "#9E9E9E" }
-                  }
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-
-            {/* Sélect technicien */}
-            <div className="relative">
-              <select
-                value={technicien}
-                onChange={(e) => setTechnicien(e.target.value)}
-                className="appearance-none border border-gray-200 bg-white rounded-xl text-xs text-gray-600 px-3 py-2 pr-7 outline-none cursor-pointer"
-              >
-                {techniciens.map((t) => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
-              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            </div>
-
-            {/* Sélect parcelle */}
-            <div className="relative">
-              <select
-                value={parcelle}
-                onChange={(e) => setParcelle(e.target.value)}
-                className="appearance-none border border-gray-200 bg-white rounded-xl text-xs text-gray-600 px-3 py-2 pr-7 outline-none cursor-pointer"
-              >
-                {parcelles.map((p) => (
-                  <option key={p}>{p}</option>
-                ))}
-              </select>
-              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            </div>
-
-            <button className="flex items-center gap-1.5 border border-gray-200 bg-white text-gray-600 rounded-xl text-xs px-3 py-2 hover:bg-gray-50">
-              <Filter size={12} />
-              Plus de filtres
+        {/* Tabs */}
+        <div className="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1.5 w-fit">
+          {TABS.map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${
+                tab === t
+                  ? "bg-[#2E7D32] text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {t}
             </button>
-          </div>
+          ))}
         </div>
 
-        {/* Liste des rapports */}
-        <div className="space-y-3">
-          {rapports.map((r) => {
-            if (r.compact) {
-              return (
-                <div
-                  key={r.id}
-                  className="rounded-2xl border border-gray-100 bg-white px-5 py-3 flex flex-wrap items-center gap-4"
-                >
-                  <span className="font-mono text-xs font-semibold text-[#2E7D32] w-28">{r.id}</span>
-                  <span className="text-xs text-gray-700 font-medium w-36">{r.technicien}</span>
-                  <span className="text-xs text-gray-500 w-28">{r.date} {r.heure}</span>
-                  <span className="flex items-center gap-1 text-xs text-gray-600">
-                    <MapPin size={11} className="text-gray-400" />
-                    {r.parcelle}
-                  </span>
-                  <span className="text-xs text-gray-400 italic">{r.type}</span>
-                  <span className="flex items-center gap-1 text-xs text-gray-400 ml-auto">
-                    <Camera size={11} />
-                    {r.photos}
-                  </span>
-                  <div>{statutBadge(r.statut)}</div>
-                  {r.anomalie && (
-                    <span className="text-xs text-orange-600 font-medium">⚠️ Anomalie</span>
-                  )}
-                </div>
-              );
-            }
-
-            const isOpen = expanded === r.id;
-            return (
-              <div
-                key={r.id}
-                className="rounded-2xl border border-gray-100 bg-white overflow-hidden"
-              >
-                {/* Header */}
-                <button
-                  className="w-full flex flex-wrap items-center gap-4 px-5 py-4 text-left hover:bg-gray-50 transition-colors"
-                  onClick={() => setExpanded(isOpen ? null : r.id)}
-                >
-                  <span className="font-mono text-sm font-bold text-[#2E7D32] w-32">{r.id}</span>
-                  <span className="text-sm font-semibold text-gray-800 w-40">{r.technicien}</span>
-                  <span className="text-xs text-gray-500 w-32">{r.date} {r.heure}</span>
-                  <span className="flex items-center gap-1 text-xs text-gray-600">
-                    <MapPin size={12} className="text-[#2E7D32]" />
-                    {r.parcelle}
-                  </span>
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{r.type}</span>
-                  <div className="ml-auto flex items-center gap-3">
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
-                      <Camera size={12} />
-                      {r.photos} photo{r.photos > 1 ? "s" : ""}
-                    </span>
-                    {statutBadge(r.statut)}
-                    <ChevronDown
-                      size={14}
-                      className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
-                    />
-                  </div>
-                </button>
-
-                {/* Body */}
-                {isOpen && (
-                  <div className="border-t border-gray-100 px-5 py-4 space-y-3">
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Résumé</p>
-                      <p className="text-sm text-gray-700">{r.resume}</p>
-                    </div>
-                    {r.anomalie && (
-                      <div className="rounded-xl bg-orange-50 border border-orange-100 px-4 py-3">
-                        <p className="text-xs font-semibold text-orange-700 mb-0.5">Anomalie détectée</p>
-                        <p className="text-sm text-orange-800">{r.anomalie}</p>
-                      </div>
-                    )}
-                    {r.observations && (
-                      <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Observations</p>
-                        <p className="text-sm text-gray-600">{r.observations}</p>
-                      </div>
-                    )}
-                    {r.actions && (
-                      <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Actions prises</p>
-                        <p className="text-sm text-gray-600">{r.actions}</p>
-                      </div>
-                    )}
-                    {r.recommandations && (
-                      <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Recommandations</p>
-                        <p className="text-sm text-gray-600">{r.recommandations}</p>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
-                      <button className="text-xs border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 hover:bg-gray-50">
-                        Voir les photos ({r.photos})
-                      </button>
-                      {r.statut === "En attente validation" && (
-                        <button
-                          className="text-xs text-white rounded-lg px-3 py-1.5 font-medium"
-                          style={{ background: "#2E7D32" }}
-                        >
-                          Valider le rapport
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Anomalies ouvertes */}
-        <div>
-          <h2 className="text-base font-semibold text-gray-900 mb-3">Anomalies ouvertes</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {anomalies.map((a, i) => (
-              <div
-                key={i}
-                className="rounded-2xl border bg-white p-4 flex flex-col gap-2"
-                style={{
-                  borderColor: a.niveau === "rouge" ? "#FFCDD2" : "#FFE0B2",
-                }}
-              >
-                <div className="flex items-start gap-2">
-                  <AlertTriangle
-                    size={16}
-                    style={{ color: a.niveau === "rouge" ? "#C62828" : "#E65100", flexShrink: 0, marginTop: 2 }}
-                  />
-                  <p className="text-sm font-semibold text-gray-800">{a.titre}</p>
-                </div>
-                <p className="text-xs text-gray-500">{a.technicien} — {a.date}</p>
-                <span
-                  className="text-xs font-medium px-2.5 py-1 rounded-full w-fit"
-                  style={
-                    a.niveau === "rouge"
-                      ? { background: "#FFEBEE", color: "#C62828" }
-                      : { background: "#FFF3E0", color: "#E65100" }
-                  }
-                >
-                  {a.detail}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Statistiques terrain */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Statistiques terrain</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-              <p className="text-xs text-gray-500 mb-1">Fréquence d'inspection</p>
-              <p className="text-2xl font-bold text-gray-900">2,3</p>
-              <p className="text-xs text-gray-400">visites/parcelle/mois</p>
-              <span className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                <CheckCircle size={10} />
-                Objectif 2/mois atteint
-              </span>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 mb-1">Taux de validation rapports</p>
-              <p className="text-2xl font-bold text-gray-900">94%</p>
-              <p className="text-xs text-gray-400">validés en moins de 48h</p>
-              <div className="mt-2 h-2 rounded-full bg-gray-100">
-                <div className="h-2 rounded-full bg-green-500" style={{ width: "94%" }} />
-              </div>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 mb-1">Anomalies détectées vs corrigées</p>
-              <p className="text-2xl font-bold text-gray-900">
-                18 <span className="text-sm font-normal text-gray-400">détectées</span>
-              </p>
-              <p className="text-xs text-gray-400">15 corrigées (83%)</p>
-              <div className="mt-2 h-2 rounded-full bg-gray-100">
-                <div className="h-2 rounded-full bg-orange-400" style={{ width: "83%" }} />
-              </div>
-            </div>
-          </div>
-        </div>
-
+        {tab === "Rapports" && <RapportsTab />}
+        {tab === "Formulaire" && <FormulaireTab />}
+        {tab === "Tableaux de bord" && <TableauxDeBordTab />}
       </main>
     </div>
   );

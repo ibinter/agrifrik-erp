@@ -1,433 +1,525 @@
 "use client";
 
-import {
-  AlertTriangle,
-  Package,
-  Thermometer,
-  TrendingUp,
-  Warehouse,
-} from "lucide-react";
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
+import {
+  Warehouse,
+  Thermometer,
+  AlertTriangle,
+  CheckCircle,
+  Package,
+  BarChart2,
+} from "lucide-react";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+const TABS = ["Vue d'ensemble", "Entrepôt A", "Entrepôt B"] as const;
+type Tab = (typeof TABS)[number];
 
-type Onglet = "overview" | "entrepot-a" | "entrepot-b" | "entrepot-frais";
-
-interface Lot {
-  ref: string;
-  produit: string;
-  emplacement: string;
-  qte: string;
-  entree: string;
-  sortie: string;
-  humidite: string;
-  statut: string;
-  statutColor: string;
+/* ─── KPI CARD ─── */
+function KpiCard({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  color = "#2E7D32",
+  alert = false,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  icon: React.ElementType;
+  color?: string;
+  alert?: boolean;
+}) {
+  return (
+    <div className={`rounded-2xl border bg-white p-5 ${alert ? "border-amber-200" : "border-gray-100"}`}>
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs text-gray-500 font-medium">{label}</p>
+          <p className="mt-1 text-2xl font-bold text-gray-800">{value}</p>
+          {sub && <p className="mt-1 text-xs text-gray-400">{sub}</p>}
+        </div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: color + "18" }}>
+          <Icon size={20} style={{ color }} />
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// ─── Lots Entrepôt A ─────────────────────────────────────────────────────────
+/* ─── SVG PLAN SCHÉMATIQUE ─── */
+function SvgPlanEntrepots() {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-5">
+      <h3 className="mb-4 text-sm font-semibold text-gray-700">Plan schématique — Vue d&apos;ensemble</h3>
+      <div className="overflow-x-auto">
+        <svg viewBox="0 0 700 300" width="700" height="300" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="300" fill="#F8FBF8" rx="12" />
 
-const lotsA: Lot[] = [
-  { ref: "LOT-043", produit: "Cacao Grade AA", emplacement: "Zone 1-A1", qte: "5 200 kg", entree: "05/07", sortie: "22/07 (export)", humidite: "7,2%", statut: "Prêt export", statutColor: "#2E7D32" },
-  { ref: "LOT-042", produit: "Cacao Grade AA", emplacement: "Zone 1-A2", qte: "4 680 kg", entree: "03/07", sortie: "22/07 (export)", humidite: "7,6%", statut: "Prêt export", statutColor: "#2E7D32" },
-  { ref: "LOT-041", produit: "Cacao Grade A", emplacement: "Zone 3-B1", qte: "2 570 kg", entree: "01/07", sortie: "Stock", humidite: "7,8%", statut: "Stockage", statutColor: "#1565C0" },
-  { ref: "LOT-038", produit: "Anacarde WW240", emplacement: "Zone 2-C1", qte: "4 200 kg", entree: "25/06", sortie: "05/08 (export)", humidite: "9,2%", statut: "En attente export", statutColor: "#E65100" },
-  { ref: "LOT-036", produit: "Anacarde WW240", emplacement: "Zone 2-C2", qte: "4 220 kg", entree: "20/06", sortie: "05/08 (export)", humidite: "9,6%", statut: "En attente export", statutColor: "#E65100" },
-  { ref: "LOT-035", produit: "Cacao Grade B", emplacement: "Zone 3-B2", qte: "1 710 kg", entree: "18/06", sortie: "Marché local", humidite: "8,1%", statut: "Disponible vente", statutColor: "#00695C" },
-];
+          {/* ══ ENTREPÔT A — 600 m² (grand rectangle) ══ */}
+          <rect x="30" y="30" width="430" height="200" rx="8" fill="white" stroke="#2E7D32" strokeWidth="2" />
+          <text x="245" y="22" fontSize="12" fill="#1B5E20" fontWeight="bold" textAnchor="middle">Entrepôt A — 600 m²</text>
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+          {/* Zone A1 — 85% occupation → vert foncé */}
+          <rect x="35" y="35" width="205" height="90" rx="5" fill="#388E3C" opacity="0.75" />
+          <text x="138" y="75" fontSize="11" fill="white" textAnchor="middle" fontWeight="bold">Zone A1 — Cacao AA</text>
+          <text x="138" y="90" fontSize="10" fill="#E8F5E9" textAnchor="middle">180 m² · 85% occupé</text>
+          <text x="138" y="104" fontSize="10" fill="#E8F5E9" textAnchor="middle">5 170 kg · 41 palettes</text>
 
-export default function EntrepotsPage() {
-  const [onglet, setOnglet] = useState<Onglet>("overview");
+          {/* Zone A2 — 42% → vert clair */}
+          <rect x="245" y="35" width="210" height="90" rx="5" fill="#A5D6A7" opacity="0.8" />
+          <text x="350" y="75" fontSize="11" fill="#1B5E20" textAnchor="middle" fontWeight="bold">Zone A2 — Cacao A</text>
+          <text x="350" y="90" fontSize="10" fill="#2E7D32" textAnchor="middle">120 m² · 42% occupé</text>
+          <text x="350" y="104" fontSize="10" fill="#2E7D32" textAnchor="middle">3 010 kg</text>
 
-  const onglets: { id: Onglet; label: string }[] = [
-    { id: "overview", label: "Vue d'ensemble" },
-    { id: "entrepot-a", label: "Entrepôt A" },
-    { id: "entrepot-b", label: "Entrepôt B" },
-    { id: "entrepot-frais", label: "Entrepôt Frais" },
-  ];
+          {/* Zone A3 — 58% → vert moyen */}
+          <rect x="35" y="130" width="205" height="94" rx="5" fill="#66BB6A" opacity="0.7" />
+          <text x="138" y="170" fontSize="11" fill="white" textAnchor="middle" fontWeight="bold">Zone A3 — Anacarde</text>
+          <text x="138" y="185" fontSize="10" fill="#E8F5E9" textAnchor="middle">160 m² · 58% occupé</text>
+          <text x="138" y="199" fontSize="10" fill="#E8F5E9" textAnchor="middle">2 398 kg</text>
+
+          {/* Zone A4 — 74% → vert moyen foncé */}
+          <rect x="245" y="130" width="210" height="94" rx="5" fill="#43A047" opacity="0.7" />
+          <text x="350" y="170" fontSize="11" fill="white" textAnchor="middle" fontWeight="bold">Zone A4 — Intrants</text>
+          <text x="350" y="185" fontSize="10" fill="#E8F5E9" textAnchor="middle">140 m² · 74% occupé</text>
+          <text x="350" y="199" fontSize="10" fill="#E8F5E9" textAnchor="middle">NPK · KCl · Phyto · Gasoil</text>
+
+          {/* Icône alerte zone A4 */}
+          <circle cx="444" cy="138" r="9" fill="#F59E0B" />
+          <text x="444" y="142" fontSize="10" fill="white" textAnchor="middle" fontWeight="bold">!</text>
+
+          {/* ══ ENTREPÔT B — 200 m² ══ */}
+          <rect x="490" y="30" width="185" height="200" rx="8" fill="white" stroke="#1565C0" strokeWidth="2" />
+          <text x="583" y="22" fontSize="12" fill="#1565C0" fontWeight="bold" textAnchor="middle">Entrepôt B — 200 m²</text>
+
+          {/* Zone B1 — 58% → bleu clair */}
+          <rect x="495" y="35" width="175" height="90" rx="5" fill="#90CAF9" opacity="0.7" />
+          <text x="583" y="72" fontSize="11" fill="#0D47A1" textAnchor="middle" fontWeight="bold">Zone B1</text>
+          <text x="583" y="86" fontSize="10" fill="#0D47A1" textAnchor="middle">Semences &amp; Plants</text>
+          <text x="583" y="100" fontSize="10" fill="#0D47A1" textAnchor="middle">120 m² · 58%</text>
+
+          {/* Zone B2 — 45% → bleu très clair */}
+          <rect x="495" y="130" width="175" height="94" rx="5" fill="#BBDEFB" opacity="0.8" />
+          <text x="583" y="168" fontSize="11" fill="#1565C0" textAnchor="middle" fontWeight="bold">Zone B2</text>
+          <text x="583" y="182" fontSize="10" fill="#1565C0" textAnchor="middle">Petit matériel</text>
+          <text x="583" y="196" fontSize="10" fill="#1565C0" textAnchor="middle">80 m² · 45%</text>
+
+          {/* LÉGENDE */}
+          <rect x="30" y="244" width="640" height="45" rx="6" fill="white" stroke="#E0E0E0" strokeWidth="1" />
+          <rect x="50" y="256" width="14" height="14" rx="3" fill="#A5D6A7" />
+          <text x="70" y="267" fontSize="9.5" fill="#444">{"< 50%"}</text>
+          <rect x="140" y="256" width="14" height="14" rx="3" fill="#66BB6A" />
+          <text x="160" y="267" fontSize="9.5" fill="#444">50–80%</text>
+          <rect x="230" y="256" width="14" height="14" rx="3" fill="#388E3C" />
+          <text x="250" y="267" fontSize="9.5" fill="#444">{"> 80%"}</text>
+          <circle cx="322" cy="263" r="7" fill="#F59E0B" />
+          <text x="322" y="267" fontSize="9" fill="white" textAnchor="middle" fontWeight="bold">!</text>
+          <text x="336" y="267" fontSize="9.5" fill="#444">Alerte active</text>
+          <rect x="410" y="256" width="14" height="14" rx="3" fill="#90CAF9" />
+          <text x="430" y="267" fontSize="9.5" fill="#444">Entrepôt B (chambres froides)</text>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/* ─── VUE D'ENSEMBLE ─── */
+function OngletVueEnsemble() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+        <KpiCard label="Entrepôts" value="2" sub="A : 600 m² | B : 200 m²" icon={Warehouse} />
+        <KpiCard label="Capacité totale" value="800 m²" icon={BarChart2} />
+        <KpiCard label="Taux d'occupation" value="68,4 %" icon={BarChart2} color="#1565C0" />
+        <KpiCard label="Valeur marchandises" value="26,4 M XOF" icon={Package} color="#E65100" />
+        <KpiCard label="Alertes stock" value="3" icon={AlertTriangle} color="#F59E0B" alert />
+      </div>
+
+      <SvgPlanEntrepots />
+
+      {/* Tableau récap */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-5">
+        <h3 className="mb-4 text-sm font-semibold text-gray-700">Récapitulatif entrepôts</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-xs">
+            <thead>
+              <tr className="bg-[#F8FBF8]">
+                {["Entrepôt", "Surface", "Zones", "Occupation", "Température moy.", "Hygrométrie", "Responsable"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t border-gray-50 hover:bg-gray-50">
+                <td className="px-3 py-2 font-semibold text-gray-800 whitespace-nowrap">Entrepôt A</td>
+                <td className="px-3 py-2 whitespace-nowrap">600 m²</td>
+                <td className="px-3 py-2 whitespace-nowrap">4 zones</td>
+                <td className="px-3 py-2 whitespace-nowrap">
+                  <span className="rounded-full px-2 py-0.5 bg-green-50 text-green-700 font-medium">72 %</span>
+                </td>
+                <td className="px-3 py-2 whitespace-nowrap">22 °C</td>
+                <td className="px-3 py-2 whitespace-nowrap">64 %</td>
+                <td className="px-3 py-2 whitespace-nowrap">Ibrahim Sawadogo</td>
+              </tr>
+              <tr className="border-t border-gray-50 hover:bg-gray-50">
+                <td className="px-3 py-2 font-semibold text-gray-800 whitespace-nowrap">Entrepôt B</td>
+                <td className="px-3 py-2 whitespace-nowrap">200 m²</td>
+                <td className="px-3 py-2 whitespace-nowrap">2 zones</td>
+                <td className="px-3 py-2 whitespace-nowrap">
+                  <span className="rounded-full px-2 py-0.5 bg-blue-50 text-blue-700 font-medium">58 %</span>
+                </td>
+                <td className="px-3 py-2 whitespace-nowrap">20 °C</td>
+                <td className="px-3 py-2 whitespace-nowrap">58 %</td>
+                <td className="px-3 py-2 whitespace-nowrap">Bamba Oumar</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── ZONE CARD ─── */
+function ZoneCard({
+  titre,
+  surface,
+  occupation,
+  occupationPct,
+  details,
+  conditions,
+  conformite,
+  alert,
+}: {
+  titre: string;
+  surface: string;
+  occupation: string;
+  occupationPct: number;
+  details: string[];
+  conditions: string;
+  conformite?: string[];
+  alert?: string;
+}) {
+  const barColor = occupationPct > 80 ? "#2E7D32" : occupationPct > 50 ? "#66BB6A" : "#A5D6A7";
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar title="Entrepôts & Stockage" breadcrumb={["Logistique", "Entrepôts"]} />
+    <div className="rounded-2xl border border-gray-100 bg-white p-5">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h4 className="text-sm font-bold text-gray-800">{titre}</h4>
+          <p className="text-xs text-gray-400">{surface}</p>
+        </div>
+        <span className="text-sm font-bold" style={{ color: barColor }}>{occupationPct} %</span>
+      </div>
 
-      <main className="flex-1 p-6 space-y-5">
+      {/* Barre occupation */}
+      <div className="mb-4 h-2 rounded-full bg-gray-100">
+        <div className="h-2 rounded-full transition-all" style={{ width: `${occupationPct}%`, background: barColor }} />
+      </div>
+      <p className="text-xs text-gray-500 mb-3">{occupation}</p>
 
-        {/* ── KPI ─────────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-          {[
-            { label: "Entrepôts actifs", value: "3", sub: "Opérationnels", icon: <Warehouse size={18} />, iconBg: "#E8F5E9", iconColor: "#2E7D32" },
-            { label: "Taux remplissage moyen", value: "68%", sub: "Sur 3 entrepôts", icon: <TrendingUp size={18} />, iconBg: "#E3F2FD", iconColor: "#1565C0" },
-            { label: "Volume stocké", value: "24,2 t", sub: "Total entreposé", icon: <Package size={18} />, iconBg: "#FFF3E0", iconColor: "#E65100" },
-            { label: "Valeur du stock", value: "22,7 M XOF", sub: "Estimation marché", icon: <TrendingUp size={18} />, iconBg: "#F3E5F5", iconColor: "#6A1B9A" },
-          ].map((k) => (
-            <div key={k.label} className="rounded-2xl border border-gray-100 bg-white px-5 py-4 flex items-center gap-4">
-              <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: k.iconBg, color: k.iconColor }}>
-                {k.icon}
-              </span>
-              <div>
-                <p className="text-xl font-bold text-gray-900 leading-none">{k.value}</p>
-                <p className="text-xs font-semibold text-gray-700 mt-0.5">{k.label}</p>
-                <p className="text-[11px] text-gray-400">{k.sub}</p>
-              </div>
-            </div>
+      {/* Contenu */}
+      <div className="mb-3">
+        <p className="text-xs font-semibold text-gray-600 mb-1">Contenu :</p>
+        <ul className="space-y-0.5">
+          {details.map((d, i) => (
+            <li key={i} className="text-xs text-gray-600">• {d}</li>
           ))}
+        </ul>
+      </div>
+
+      {/* Conditions */}
+      <div className="rounded-lg bg-[#F8FBF8] px-3 py-2 mb-3">
+        <p className="text-xs text-gray-600"><span className="font-semibold">Conditions :</span> {conditions}</p>
+      </div>
+
+      {/* Alerte */}
+      {alert && (
+        <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 mb-3">
+          <AlertTriangle size={13} className="text-amber-600 mt-0.5 shrink-0" />
+          <p className="text-xs text-amber-700">{alert}</p>
+        </div>
+      )}
+
+      {/* Conformité */}
+      {conformite && (
+        <div>
+          <p className="text-xs font-semibold text-gray-600 mb-1">Conformité :</p>
+          <ul className="space-y-0.5">
+            {conformite.map((c, i) => (
+              <li key={i} className="text-xs text-green-700 flex items-center gap-1">
+                <CheckCircle size={11} /> {c}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── MOUVEMENTS ─── */
+const mouvements = [
+  { date: "10/07", type: "Sortie", article: "Cacao AA LOT-045", zone: "A1", qte: "2 490 kg", operateur: "Ibrahim S." },
+  { date: "08/07", type: "Entrée", article: "NPK 50 kg sacs (6 sacs)", zone: "A4", qte: "300 kg", operateur: "Konan Y." },
+  { date: "05/07", type: "Entrée", article: "Cacao AA LOT-048", zone: "A1", qte: "2 680 kg", operateur: "Ibrahim S." },
+  { date: "02/07", type: "Sortie", article: "Gasoil fût", zone: "A4", qte: "200 L", operateur: "Moussa T." },
+  { date: "28/06", type: "Entrée", article: "Anacarde WW240", zone: "A3", qte: "2 390 kg", operateur: "Ibrahim S." },
+  { date: "25/06", type: "Sortie", article: "Anacarde SW340", zone: "A3", qte: "8 kg", operateur: "Bamba O." },
+  { date: "20/06", type: "Entrée", article: "Sacs jute 200 unités", zone: "A4", qte: "200 u.", operateur: "Konan Y." },
+  { date: "18/06", type: "Sortie", article: "Calixin EC (phyto)", zone: "A4", qte: "5 L", operateur: "Ibrahim S." },
+  { date: "15/06", type: "Entrée", article: "KCl 50 kg sacs", zone: "A4", qte: "250 kg", operateur: "Moussa T." },
+  { date: "10/06", type: "Sortie", article: "Cacao Grade A LOT-047", zone: "A2", qte: "1 200 kg", operateur: "Ibrahim S." },
+];
+
+function TableauMouvements() {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-5">
+      <h3 className="mb-4 text-sm font-semibold text-gray-700">Entrées / Sorties — 10 derniers mouvements</h3>
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-xs">
+          <thead>
+            <tr className="bg-[#F8FBF8]">
+              {["Date", "Type", "Article", "Zone", "Quantité", "Opérateur"].map((h) => (
+                <th key={h} className="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {mouvements.map((m, i) => (
+              <tr key={i} className="border-t border-gray-50 hover:bg-gray-50">
+                <td className="px-3 py-2 whitespace-nowrap text-gray-700">{m.date}</td>
+                <td className="px-3 py-2 whitespace-nowrap">
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${m.type === "Entrée" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+                    {m.type}
+                  </span>
+                </td>
+                <td className="px-3 py-2 whitespace-nowrap">{m.article}</td>
+                <td className="px-3 py-2 whitespace-nowrap font-mono font-medium text-gray-700">{m.zone}</td>
+                <td className="px-3 py-2 whitespace-nowrap text-right">{m.qte}</td>
+                <td className="px-3 py-2 whitespace-nowrap">{m.operateur}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ─── ENTREPÔT A ─── */
+function OngletEntrepotA() {
+  return (
+    <div className="space-y-6">
+      {/* En-tête */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-bold text-gray-800">Entrepôt A — 600 m²</h2>
+            <p className="text-xs text-gray-500 mt-1">Zone : Site Soubré Nord · Construit : 2015</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-1.5 rounded-lg bg-green-50 px-3 py-2">
+              <Thermometer size={14} className="text-green-700" />
+              <span className="text-xs font-medium text-green-700">22 °C ✅</span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2">
+              <span className="text-xs font-medium text-blue-700">Hygro. 64 % ✅</span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-lg bg-purple-50 px-3 py-2">
+              <span className="text-xs font-medium text-purple-700">Capteurs IoT : 4 actifs</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4 zones */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <ZoneCard
+          titre="Zone A1 — Cacao Grade AA"
+          surface="180 m²"
+          occupation="153 / 180 m² occupés"
+          occupationPct={85}
+          details={[
+            "LOT-2025-046 : 2 490 kg",
+            "LOT-2025-048 : 2 680 kg",
+            "Total : 5 170 kg — 41 palettes",
+          ]}
+          conditions="22 °C / 64 % HR — ✅ Dans les normes ICCO"
+          conformite={["Prochaine rotation : LOT-2025-046 sortie prévue 15/08"]}
+        />
+        <ZoneCard
+          titre="Zone A2 — Cacao Grade A"
+          surface="120 m²"
+          occupation="50 / 120 m² occupés"
+          occupationPct={42}
+          details={[
+            "LOT-2025-047 : 1 810 kg",
+            "LOT-2025-047 partiel : 1 200 kg",
+            "Total : 3 010 kg",
+          ]}
+          conditions="22 °C / 63 % HR — ✅ Dans les normes"
+        />
+        <ZoneCard
+          titre="Zone A3 — Anacarde"
+          surface="160 m²"
+          occupation="93 / 160 m² occupés"
+          occupationPct={58}
+          details={[
+            "Anacarde WW240 : 2 390 kg",
+            "Anacarde SW340 : 8 kg",
+            "Total : 2 398 kg",
+          ]}
+          conditions="20 °C / 58 % HR — ✅ Humidité critique pour anacarde"
+          conformite={["Hygrométrie conforme seuil max 60 % pour anacarde"]}
+        />
+        <ZoneCard
+          titre="Zone A4 — Intrants & Consommables"
+          surface="140 m²"
+          occupation="104 / 140 m² occupés"
+          occupationPct={74}
+          details={[
+            "NPK : 240 sacs (12 000 kg)",
+            "KCl : 5 sacs (250 kg)",
+            "Produits phyto : armoire sécurisée",
+            "Gasoil : 2 fûts (400 L)",
+            "Sacs jute : stock en cours",
+          ]}
+          conditions="22 °C / 64 % HR"
+          alert="Armoire phyto : 1 produit expirant dans 30 jours (Calixin EC)"
+          conformite={[
+            "Séparé des denrées alimentaires",
+            "Affiches EPI en place",
+            "Kit urgence disponible",
+          ]}
+        />
+      </div>
+
+      <TableauMouvements />
+    </div>
+  );
+}
+
+/* ─── ENTREPÔT B ─── */
+function OngletEntrepotB() {
+  return (
+    <div className="space-y-6">
+      {/* En-tête */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-bold text-gray-800">Entrepôt B — 200 m²</h2>
+            <p className="text-xs text-gray-500 mt-1">Zone : Site Soubré Nord — Bâtiment B · Responsable : Bamba Oumar</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2">
+              <Thermometer size={14} className="text-blue-700" />
+              <span className="text-xs font-medium text-blue-700">12 °C (Chambre froide B1)</span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-lg bg-green-50 px-3 py-2">
+              <span className="text-xs font-medium text-green-700">Hygro. 55 % ✅</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* Zone B1 */}
+        <ZoneCard
+          titre="Zone B1 — Semences & Plants"
+          surface="120 m²"
+          occupation="70 / 120 m² occupés"
+          occupationPct={58}
+          details={[
+            "Semences cacao hybrides F1 : 4 kg",
+            "Clones CNRA (commande en cours) : 20 kg prévu",
+            "Semences maraîchères : 3,2 kg",
+            "Semences riz Nerica : 75 kg",
+            "Plants maraîchers : 850 unités",
+            "Semences niébé : 40 kg",
+          ]}
+          conditions="12 °C / 55 % HR — Chambre froide active"
+          conformite={[
+            "Température conforme normes CNRA",
+            "Enregistrement daily des conditions IoT",
+            "Rotation FIFO respectée",
+          ]}
+        />
+
+        {/* Zone B2 */}
+        <ZoneCard
+          titre="Zone B2 — Petit matériel & Outillage"
+          surface="80 m²"
+          occupation="36 / 80 m² occupés"
+          occupationPct={45}
+          details={[
+            "Balances électroniques : 8 unités",
+            "Tablettes terrain durcies : 6 unités",
+            "Pompes à dos 16 L : 4 unités",
+            "Outillage atelier : pinces, clés, etc.",
+            "Pièces détachées petits moteurs",
+            "Atelier mécanique léger — Bamba O.",
+          ]}
+          conditions="20 °C / 58 % HR — Conditions ambiantes"
+          conformite={[
+            "Rangement conforme — inventaire à jour",
+            "Matériel électronique en charge protégée",
+          ]}
+        />
+      </div>
+
+      {/* Info box */}
+      <div className="rounded-2xl border border-green-100 bg-green-50 p-4">
+        <div className="flex items-start gap-3">
+          <CheckCircle size={16} className="mt-0.5 text-green-600 shrink-0" />
+          <div className="text-xs text-green-700">
+            <p className="font-semibold mb-1">Bilan Entrepôt B</p>
+            <ul className="space-y-1 list-disc ml-4">
+              <li>Chambre froide B1 opérationnelle — capteur IoT actif, alertes SMS configurées</li>
+              <li>Inventaire B2 mis à jour le 01/07/2025 — aucune anomalie détectée</li>
+              <li>Entrée de semences CNRA (20 kg clones) prévue le 20/07/2025 — espace réservé</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── PAGE ─── */
+export default function EntrepotsPage() {
+  const [activeTab, setActiveTab] = useState<Tab>("Vue d'ensemble");
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Topbar
+        breadcrumb={["Logistique", "Entrepôts"]}
+        title="Entrepôts"
+      />
+      <div className="p-6 space-y-6">
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">Gestion des entrepôts et espaces de stockage</h1>
+          <p className="mt-1 text-sm text-gray-500">Suivi des zones de stockage, conditions climatiques et mouvements de marchandises</p>
         </div>
 
-        {/* ── Onglets ──────────────────────────────────────────────────────── */}
-        <div className="flex gap-1 bg-white rounded-xl p-1 border border-gray-100 w-fit">
-          {onglets.map((o) => (
+        {/* Onglets */}
+        <div className="flex gap-1 rounded-xl bg-white border border-gray-100 p-1 w-fit">
+          {TABS.map((tab) => (
             <button
-              key={o.id}
-              onClick={() => setOnglet(o.id)}
-              className="px-4 py-2 rounded-lg text-xs font-medium transition-colors"
-              style={onglet === o.id ? { background: "#2E7D32", color: "#fff" } : { color: "#616161" }}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`rounded-lg px-4 py-2 text-xs font-medium transition-colors ${
+                activeTab === tab ? "bg-[#2E7D32] text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
+              }`}
             >
-              {o.label}
+              {tab}
             </button>
           ))}
         </div>
 
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* VUE D'ENSEMBLE                                                      */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {onglet === "overview" && (
-          <div className="space-y-4">
-
-            {/* Entrepôt A */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-bold text-gray-900">Entrepôt A — Cacao & Anacarde Premium</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Surface : 800 m² · Capacité : 40 t</p>
-                </div>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">Actif</span>
-              </div>
-
-              {/* Barre */}
-              <div>
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-gray-500">Stock actuel : <strong className="text-gray-800">28,4 t</strong></span>
-                  <span className="font-bold" style={{ color: "#2E7D32" }}>71%</span>
-                </div>
-                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: "71%", background: "#4CAF50" }} />
-                </div>
-              </div>
-
-              {/* Conditions */}
-              <div className="flex gap-4 text-xs text-gray-600">
-                <div className="flex items-center gap-1"><Thermometer size={13} style={{ color: "#E65100" }} /> T° 24-26°C</div>
-                <div>Humidité 55-65%</div>
-                <div>Aération naturelle + ventilateurs</div>
-              </div>
-
-              {/* Zones */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { zone: "Zone 1", label: "Cacao Grade AA", kg: "12 450 kg", color: "#1B5E20", bg: "#E8F5E9" },
-                  { zone: "Zone 2", label: "Anacarde WW240", kg: "8 420 kg", color: "#1565C0", bg: "#E3F2FD" },
-                  { zone: "Zone 3", label: "Cacao Grade A/B", kg: "4 280 kg", color: "#4CAF50", bg: "#F1F8E9" },
-                  { zone: "Zone 4", label: "Disponible", kg: "3 250 kg libres", color: "#9E9E9E", bg: "#F5F5F5" },
-                ].map((z) => (
-                  <div key={z.zone} className="rounded-xl p-3 text-center" style={{ background: z.bg }}>
-                    <p className="text-[10px] font-bold" style={{ color: z.color }}>{z.zone}</p>
-                    <p className="text-xs text-gray-700 mt-1">{z.label}</p>
-                    <p className="text-xs font-semibold mt-1" style={{ color: z.color }}>{z.kg}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Entrepôt B */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-bold text-gray-900">Entrepôt B — Céréales & Produits divers</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Surface : 400 m² · Capacité : 20 t</p>
-                </div>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">Actif</span>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-gray-500">Stock actuel : <strong className="text-gray-800">6 200 kg</strong></span>
-                  <span className="font-bold text-amber-600">31%</span>
-                </div>
-                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: "31%", background: "#F59E0B" }} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: "Riz blanchi", kg: "1 458 kg", bg: "#FFF8E1", color: "#F9A825" },
-                  { label: "Maïs", kg: "2 840 kg", bg: "#FFF3E0", color: "#E65100" },
-                  { label: "Emballages & intrants", kg: "1 902 kg", bg: "#F5F5F5", color: "#757575" },
-                ].map((z) => (
-                  <div key={z.label} className="rounded-xl p-3 text-center" style={{ background: z.bg }}>
-                    <p className="text-xs text-gray-700">{z.label}</p>
-                    <p className="text-xs font-bold mt-1" style={{ color: z.color }}>{z.kg}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Entrepôt Frais */}
-            <div className="rounded-2xl border border-orange-200 bg-white p-5 space-y-4" style={{ borderColor: "#FFCCBC" }}>
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-gray-900">Entrepôt Frais — Produits périssables</h3>
-                    <AlertTriangle size={16} style={{ color: "#E65100" }} />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-0.5">Surface : 100 m² (chambre froide 60 m² + sas 40 m²) · Capacité : 5 t</p>
-                </div>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700">⚠️ Presque plein</span>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-gray-500">Stock actuel : <strong className="text-gray-800">4 520 kg</strong></span>
-                  <span className="font-bold text-orange-600">90%</span>
-                </div>
-                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: "90%", background: "#E65100" }} />
-                </div>
-              </div>
-
-              <div className="flex gap-4 text-xs text-gray-600">
-                <div className="flex items-center gap-1"><Thermometer size={13} style={{ color: "#1565C0" }} /> T° 8-12°C</div>
-                <div>Humidité 85-90%</div>
-              </div>
-
-              <div className="rounded-xl p-4 text-center" style={{ background: "#FFF3E0" }}>
-                <p className="text-xs text-gray-700 font-medium">Bananiers plantain</p>
-                <p className="text-sm font-bold mt-1" style={{ color: "#E65100" }}>4 520 kg</p>
-                <p className="text-[11px] text-orange-500 mt-1">⚠️ Priorité évacuation — Presque plein</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* ENTREPÔT A                                                          */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {onglet === "entrepot-a" && (
-          <div className="space-y-5">
-
-            {/* Plan SVG */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="font-bold text-gray-900 mb-4">Plan schématique — Entrepôt A (800 m²)</h2>
-
-              <div className="overflow-x-auto">
-                <svg viewBox="0 0 720 320" className="w-full max-w-2xl" style={{ minWidth: 480 }}>
-                  {/* Contour global */}
-                  <rect x="20" y="20" width="680" height="280" rx="8" fill="none" stroke="#D1D5DB" strokeWidth="2" />
-
-                  {/* Porte */}
-                  <rect x="335" y="285" width="50" height="15" rx="3" fill="#9E9E9E" />
-                  <text x="360" y="295" textAnchor="middle" fontSize="9" fill="#fff" fontWeight="bold">ENTRÉE</text>
-
-                  {/* Allée centrale */}
-                  <rect x="330" y="20" width="60" height="265" fill="#F9FAFB" stroke="#E5E7EB" strokeWidth="1" strokeDasharray="5,3" />
-                  <text x="360" y="165" textAnchor="middle" fontSize="9" fill="#9CA3AF" transform="rotate(-90, 360, 165)">ALLÉE CENTRALE</text>
-
-                  {/* Zone 1 — Cacao AA (vert foncé) */}
-                  <rect x="30" y="30" width="290" height="130" rx="6" fill="#C8E6C9" stroke="#2E7D32" strokeWidth="1.5" />
-                  <text x="175" y="80" textAnchor="middle" fontSize="11" fill="#1B5E20" fontWeight="bold">Zone 1</text>
-                  <text x="175" y="96" textAnchor="middle" fontSize="10" fill="#2E7D32">Cacao Grade AA</text>
-                  <text x="175" y="112" textAnchor="middle" fontSize="11" fill="#1B5E20" fontWeight="bold">12 450 kg</text>
-
-                  {/* Zone 2 — Anacarde (bleu) */}
-                  <rect x="400" y="30" width="290" height="130" rx="6" fill="#BBDEFB" stroke="#1565C0" strokeWidth="1.5" />
-                  <text x="545" y="80" textAnchor="middle" fontSize="11" fill="#0D47A1" fontWeight="bold">Zone 2</text>
-                  <text x="545" y="96" textAnchor="middle" fontSize="10" fill="#1565C0">Anacarde WW240</text>
-                  <text x="545" y="112" textAnchor="middle" fontSize="11" fill="#0D47A1" fontWeight="bold">8 420 kg</text>
-
-                  {/* Zone 3 — Cacao A/B (vert clair) */}
-                  <rect x="30" y="170" width="290" height="115" rx="6" fill="#DCEDC8" stroke="#558B2F" strokeWidth="1.5" />
-                  <text x="175" y="220" textAnchor="middle" fontSize="11" fill="#33691E" fontWeight="bold">Zone 3</text>
-                  <text x="175" y="236" textAnchor="middle" fontSize="10" fill="#558B2F">Cacao Grade A/B</text>
-                  <text x="175" y="252" textAnchor="middle" fontSize="11" fill="#33691E" fontWeight="bold">4 280 kg</text>
-
-                  {/* Zone 4 — Disponible (gris pointillé) */}
-                  <rect x="400" y="170" width="290" height="115" rx="6" fill="#F9FAFB" stroke="#9CA3AF" strokeWidth="1.5" strokeDasharray="6,3" />
-                  <text x="545" y="220" textAnchor="middle" fontSize="11" fill="#6B7280" fontWeight="bold">Zone 4</text>
-                  <text x="545" y="236" textAnchor="middle" fontSize="10" fill="#9CA3AF">Disponible</text>
-                  <text x="545" y="252" textAnchor="middle" fontSize="11" fill="#6B7280" fontWeight="bold">3 250 kg libres</text>
-                </svg>
-              </div>
-
-              {/* Légende */}
-              <div className="flex flex-wrap gap-4 mt-4 text-xs">
-                {[
-                  { color: "#C8E6C9", border: "#2E7D32", label: "Zone 1 — Cacao Grade AA" },
-                  { color: "#BBDEFB", border: "#1565C0", label: "Zone 2 — Anacarde WW240" },
-                  { color: "#DCEDC8", border: "#558B2F", label: "Zone 3 — Cacao A/B" },
-                  { color: "#F9FAFB", border: "#9CA3AF", label: "Zone 4 — Disponible", dash: true },
-                ].map((l) => (
-                  <div key={l.label} className="flex items-center gap-2">
-                    <span
-                      className="w-5 h-5 rounded shrink-0"
-                      style={{ background: l.color, border: `2px ${l.dash ? "dashed" : "solid"} ${l.border}` }}
-                    />
-                    <span className="text-gray-600">{l.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tableau des lots */}
-            <div className="rounded-2xl border border-gray-100 bg-white">
-              <div className="px-5 py-4 border-b border-gray-100">
-                <h2 className="font-bold text-gray-900">Lots stockés — Entrepôt A</h2>
-                <p className="text-xs text-gray-400 mt-0.5">{lotsA.length} lots en cours de stockage</p>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr style={{ background: "#F8FBF8" }}>
-                      {["Lot", "Produit", "Emplacement", "Quantité", "Date entrée", "Sortie prévue", "Humidité", "Statut"].map((h) => (
-                        <th key={h} className="text-left text-gray-500 font-semibold px-4 py-3 whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {lotsA.map((lot) => (
-                      <tr key={lot.ref} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-mono font-semibold text-gray-700 whitespace-nowrap">{lot.ref}</td>
-                        <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{lot.produit}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{lot.emplacement}</td>
-                        <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap tabular-nums">{lot.qte}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{lot.entree}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{lot.sortie}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="flex items-center gap-1 text-green-600 font-medium">
-                            {lot.humidite} <span className="text-green-500">✓</span>
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span
-                            className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-white"
-                            style={{ background: lot.statutColor }}
-                          >
-                            {lot.statut}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* ENTREPÔT B                                                          */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {onglet === "entrepot-b" && (
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-5">
-            <div>
-              <h2 className="font-bold text-gray-900">Entrepôt B — Céréales & Produits divers</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Surface : 400 m² · Capacité : 20 t · Taux de remplissage : 31%</p>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-xs mb-2">
-                <span className="text-gray-500">Stock actuel : <strong>6 200 kg</strong></span>
-                <span className="font-bold text-amber-600">31% · Capacité disponible : 13 800 kg</span>
-              </div>
-              <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: "31%", background: "#F59E0B" }} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                { label: "Riz blanchi", kg: "1 458 kg", pct: "7%", color: "#F9A825", bg: "#FFF8E1" },
-                { label: "Maïs", kg: "2 840 kg", pct: "14%", color: "#E65100", bg: "#FFF3E0" },
-                { label: "Emballages & intrants", kg: "1 902 kg", pct: "10%", color: "#757575", bg: "#F5F5F5" },
-              ].map((z) => (
-                <div key={z.label} className="rounded-xl p-4" style={{ background: z.bg }}>
-                  <p className="text-xs font-semibold text-gray-700">{z.label}</p>
-                  <p className="text-lg font-bold mt-1" style={{ color: z.color }}>{z.kg}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{z.pct} de la capacité totale</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="rounded-xl p-4 bg-blue-50 border border-blue-100 text-xs text-blue-700">
-              <strong>Capacité disponible :</strong> 13 800 kg — Entrepôt sous-utilisé. Possibilité de transfert depuis l&apos;Entrepôt Frais (⚠️ saturé).
-            </div>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* ENTREPÔT FRAIS                                                      */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {onglet === "entrepot-frais" && (
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="font-bold text-gray-900">Entrepôt Frais — Produits périssables</h2>
-                  <AlertTriangle size={16} style={{ color: "#E65100" }} />
-                </div>
-                <p className="text-xs text-gray-500 mt-0.5">Chambre froide 60 m² + sas 40 m² · Capacité : 5 t</p>
-              </div>
-              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-orange-100 text-orange-700">⚠️ 90% — Priorité évacuation</span>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-xs mb-2">
-                <span className="text-gray-500">Stock : <strong>4 520 kg / 5 000 kg</strong></span>
-                <span className="font-bold text-orange-600">90%</span>
-              </div>
-              <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: "90%", background: "#E65100" }} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-xl p-4 bg-blue-50 border border-blue-100">
-                <div className="flex items-center gap-2 mb-1">
-                  <Thermometer size={15} style={{ color: "#1565C0" }} />
-                  <span className="text-xs font-semibold text-blue-700">Température</span>
-                </div>
-                <p className="text-lg font-bold text-blue-900">8 – 12 °C</p>
-                <p className="text-[11px] text-blue-600 mt-1">Conforme</p>
-              </div>
-              <div className="rounded-xl p-4 bg-cyan-50 border border-cyan-100">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-semibold text-cyan-700">Humidité</span>
-                </div>
-                <p className="text-lg font-bold text-cyan-900">85 – 90 %</p>
-                <p className="text-[11px] text-cyan-600 mt-1">Conforme</p>
-              </div>
-            </div>
-
-            <div className="rounded-xl p-4" style={{ background: "#FFF3E0" }}>
-              <p className="text-xs font-bold text-orange-800 mb-1">Contenu actuel</p>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">Bananiers plantain</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Lot unique — en attente d&apos;expédition</p>
-                </div>
-                <p className="text-xl font-bold" style={{ color: "#E65100" }}>4 520 kg</p>
-              </div>
-            </div>
-
-            <div className="rounded-xl p-4 border border-orange-200 bg-orange-50 text-xs text-orange-800">
-              <strong>Action requise :</strong> L&apos;entrepôt frais est à 90% de capacité. Planifier une évacuation urgente ou un transfert des bananiers avant toute nouvelle entrée de produits périssables. Capacité résiduelle : <strong>480 kg</strong>.
-            </div>
-          </div>
-        )}
-
-      </main>
+        {activeTab === "Vue d'ensemble" && <OngletVueEnsemble />}
+        {activeTab === "Entrepôt A" && <OngletEntrepotA />}
+        {activeTab === "Entrepôt B" && <OngletEntrepotB />}
+      </div>
     </div>
   );
 }
