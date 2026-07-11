@@ -135,6 +135,7 @@ const navSections: NavSection[] = [
       { label: "Traçabilité", href: "/tracabilite", icon: ScanLine },
       { label: "Audit", href: "/audit", icon: ClipboardCheck },
       { label: "Certifications", href: "/certifications", icon: Award },
+      { label: "Contrats", href: "/contrats", icon: FileSignature },
     ],
   },
   {

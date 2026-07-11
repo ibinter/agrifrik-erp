@@ -293,6 +293,14 @@ export default function LoginPage() {
             <span className="font-semibold text-gray-700">🔐 Vos données sont hébergées en Afrique</span>{" "}
             (Supabase EU Frankfurt). Connexion SSL/TLS 256-bit.
           </div>
+
+          {/* Lien inscription */}
+          <p className="mt-5 text-center text-sm text-gray-500">
+            Pas encore de compte ?{" "}
+            <Link href="/inscription" className="font-medium hover:underline" style={{ color: "#2E7D32" }}>
+              Créer un compte
+            </Link>
+          </p>
         </div>
 
         {/* Footer */}
