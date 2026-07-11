@@ -5,396 +5,568 @@ import Topbar from "../../components/Topbar";
 import {
   Users,
   Wallet,
-  PiggyBank,
-  CreditCard,
-  Gift,
-  Calendar,
-  CheckCircle,
-  AlertCircle,
   TrendingUp,
-  Bell,
+  Award,
+  CreditCard,
+  Search,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  CheckCircle,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 
-// ─── KPIs ─────────────────────────────────────────────────────────────────────
+const TABS = ["Vue d'ensemble", "Membres", "Micro-crédit", "Assemblées", "Distributions"] as const;
+type Tab = (typeof TABS)[number];
 
 const kpis = [
-  {
-    label: "Membres actifs",
-    value: "287",
-    sub: "agriculteurs",
-    color: "#2E7D32",
-    icon: <Users size={20} />,
-  },
-  {
-    label: "Cotisations 2025",
-    value: "14,35 M XOF",
-    sub: "collectées",
-    color: "#1565C0",
-    icon: <Wallet size={20} />,
-  },
-  {
-    label: "Fonds commun",
-    value: "48,2 M XOF",
-    sub: "trésorerie coopérative",
-    color: "#E65100",
-    icon: <PiggyBank size={20} />,
-  },
-  {
-    label: "Micro-crédits actifs",
-    value: "18",
-    sub: "encours : 12,4 M XOF",
-    color: "#6A1B9A",
-    icon: <CreditCard size={20} />,
-  },
-  {
-    label: "Dividendes distribués",
-    value: "8,4 M XOF",
-    sub: "campagne 2024-2025",
-    color: "#00695C",
-    icon: <Gift size={20} />,
-  },
+  { label: "Membres actifs", value: "142", icon: Users, color: "text-green-700", bg: "bg-green-50" },
+  { label: "Superficie totale gérée", value: "284 ha", icon: TrendingUp, color: "text-blue-700", bg: "bg-blue-50" },
+  { label: "CA collecté 2025", value: "82,4 M XOF", icon: Wallet, color: "text-orange-700", bg: "bg-orange-50" },
+  { label: "Prime qualité versée", value: "4,2 M XOF", icon: Award, color: "text-purple-700", bg: "bg-purple-50" },
+  { label: "Taux remboursement micro-crédit", value: "94,8%", icon: CreditCard, color: "text-teal-700", bg: "bg-teal-50" },
 ];
 
-// ─── Membres ──────────────────────────────────────────────────────────────────
-
-interface Membre {
-  nom: string;
-  zone: string;
-  surface: string;
-  cotisation: number;
-  paiement: "paye" | "impaye";
-  credit: string | null;
-  dividende: string | null;
-  statut: "actif" | "attente";
-}
-
-const membres: Membre[] = [
-  { nom: "Konan Yao", zone: "Soubré A", surface: "10 ha", cotisation: 500000, paiement: "paye", credit: null, dividende: "420 000 XOF", statut: "actif" },
-  { nom: "Adjoua Koffi", zone: "Soubré A", surface: "6,5 ha", cotisation: 325000, paiement: "paye", credit: "850 000 XOF actif", dividende: "273 000 XOF", statut: "actif" },
-  { nom: "Ibrahim Sawadogo", zone: "Soubré B", surface: "8,2 ha", cotisation: 410000, paiement: "paye", credit: null, dividende: "344 400 XOF", statut: "actif" },
-  { nom: "Brou Aminata", zone: "Korhogo C", surface: "12 ha", cotisation: 600000, paiement: "paye", credit: null, dividende: "504 000 XOF", statut: "actif" },
-  { nom: "Soro Adama", zone: "Korhogo C", surface: "4,5 ha", cotisation: 225000, paiement: "impaye", credit: null, dividende: null, statut: "attente" },
-  { nom: "Coulibaly Fatoumata", zone: "Soubré B", surface: "7,0 ha", cotisation: 350000, paiement: "paye", credit: "620 000 XOF actif", dividende: "294 000 XOF", statut: "actif" },
-  { nom: "Traoré Mamadou", zone: "Soubré A", surface: "9,5 ha", cotisation: 475000, paiement: "paye", credit: null, dividende: "399 000 XOF", statut: "actif" },
-  { nom: "N'Guessan Koffi", zone: "Korhogo C", surface: "5,5 ha", cotisation: 275000, paiement: "paye", credit: null, dividende: "231 000 XOF", statut: "actif" },
-  { nom: "Diabaté Ibrahim", zone: "Soubré B", surface: "11 ha", cotisation: 550000, paiement: "impaye", credit: null, dividende: null, statut: "attente" },
-  { nom: "Bamba Oumar", zone: "Korhogo C", surface: "6,0 ha", cotisation: 300000, paiement: "paye", credit: "480 000 XOF actif", dividende: "252 000 XOF", statut: "actif" },
+const villages = [
+  { name: "Soubré", count: 48 },
+  { name: "Méagui", count: 32 },
+  { name: "Buyo", count: 22 },
+  { name: "San-Pédro", count: 18 },
+  { name: "Gagnoa", count: 12 },
+  { name: "Autres", count: 10 },
 ];
 
-// ─── Micro-crédits ────────────────────────────────────────────────────────────
+const donutData = [
+  { label: "< 2 ha", members: 28, pct: 20, color: "#A5D6A7" },
+  { label: "2-5 ha", members: 67, pct: 47, color: "#4CAF50" },
+  { label: "5-10 ha", members: 38, pct: 27, color: "#2E7D32" },
+  { label: "> 10 ha", members: 9, pct: 6, color: "#795548" },
+];
+
+const campagneResults = [
+  { label: "Volume collecté cacao", objectif: "180 t", realise: "187,4 t", pct: "104%", ok: true },
+  { label: "Prix moyen payé", objectif: "1 050 XOF/kg", realise: "1 087 XOF/kg", pct: "103,5%", ok: true },
+  { label: "Prime qualité", objectif: "3,5 M XOF", realise: "4,2 M XOF", pct: "120%", ok: true },
+  { label: "Membres certifiés RA", objectif: "120", realise: "131", pct: "109%", ok: true },
+  { label: "Crédits remboursés", objectif: "95%", realise: "94,8%", pct: "99,8%", ok: false },
+  { label: "Femmes dans CA", objectif: "30%", realise: "34%", pct: "113%", ok: true },
+];
+
+const membres = [
+  { id: "COOP-0001", nom: "Konan Yao", village: "Soubré", surface: "4,2 ha", cert: "RA", prod: "5,2 t", credit: "Non", statut: "Actif" },
+  { id: "COOP-0002", nom: "Diallo Fatoumata", village: "Méagui", surface: "2,8 ha", cert: "RA", prod: "3,4 t", credit: "150 000 XOF", statut: "Actif" },
+  { id: "COOP-0003", nom: "Traoré Moussa", village: "Buyo", surface: "6,4 ha", cert: "RA", prod: "7,8 t", credit: "Non", statut: "Actif" },
+  { id: "COOP-0042", nom: "Ibrahim Sawadogo", village: "Soubré", surface: "3,2 ha", cert: "RA", prod: "4,1 t", credit: "Non", statut: "Actif" },
+  { id: "COOP-0087", nom: "Ouattara Aminata", village: "Gagnoa", surface: "1,6 ha", cert: "En cours", prod: "1,8 t", credit: "80 000 XOF", statut: "Actif" },
+  { id: "COOP-0015", nom: "Bamba Seydou", village: "Soubré", surface: "3,8 ha", cert: "RA", prod: "4,6 t", credit: "Non", statut: "Actif" },
+  { id: "COOP-0028", nom: "Coulibaly Mamadou", village: "Méagui", surface: "5,0 ha", cert: "RA", prod: "6,1 t", credit: "450 000 XOF", statut: "Actif" },
+  { id: "COOP-0034", nom: "Koffi Yves", village: "Buyo", surface: "2,2 ha", cert: "RA", prod: "2,7 t", credit: "Non", statut: "Actif" },
+  { id: "COOP-0056", nom: "Diabaté Rokia", village: "San-Pédro", surface: "1,8 ha", cert: "En cours", prod: "2,0 t", credit: "Non", statut: "Actif" },
+  { id: "COOP-0067", nom: "Soro Lacina", village: "Gagnoa", surface: "4,5 ha", cert: "RA", prod: "5,5 t", credit: "Non", statut: "Actif" },
+  { id: "COOP-0071", nom: "N'Guessan Paul", village: "San-Pédro", surface: "3,1 ha", cert: "RA", prod: "3,7 t", credit: "Non", statut: "Actif" },
+  { id: "COOP-0082", nom: "Touré Hawa", village: "Méagui", surface: "2,4 ha", cert: "RA", prod: "2,9 t", credit: "Non", statut: "Actif" },
+  { id: "COOP-0091", nom: "Kouyaté Mariam", village: "Soubré", surface: "6,0 ha", cert: "RA", prod: "7,2 t", credit: "Non", statut: "Actif" },
+  { id: "COOP-0103", nom: "Fofana Adama", village: "Buyo", surface: "2,9 ha", cert: "En cours", prod: "3,2 t", credit: "100 000 XOF", statut: "Actif" },
+  { id: "COOP-0118", nom: "Zouzoua Bertin", village: "Autres", surface: "3,6 ha", cert: "RA", prod: "4,3 t", credit: "Non", statut: "Actif" },
+];
 
 const credits = [
-  { beneficiaire: "Adjoua Koffi", montant: "850 000 XOF", taux: "6%/an", mensualite: "72 500 XOF", resteDu: "578 000 XOF", echeance: "Déc 2025" },
-  { beneficiaire: "Coulibaly Fatoumata", montant: "620 000 XOF", taux: "6%/an", mensualite: "53 000 XOF", resteDu: "424 000 XOF", echeance: "Nov 2025" },
-  { beneficiaire: "Bamba Oumar", montant: "480 000 XOF", taux: "6%/an", mensualite: "41 000 XOF", resteDu: "287 000 XOF", echeance: "Oct 2025" },
-  { beneficiaire: "Soro Fatima", montant: "750 000 XOF", taux: "6%/an", mensualite: "64 000 XOF", resteDu: "563 000 XOF", echeance: "Jan 2026" },
-  { beneficiaire: "Koné Seydou", montant: "920 000 XOF", taux: "6%/an", mensualite: "79 000 XOF", resteDu: "691 000 XOF", echeance: "Fév 2026" },
+  { benef: "Diallo F.", type: "Intrants", montant: "150 000", date: "Mar 2025", echeance: "Nov 2025", rembourse: "0", restant: "150 000", statut: "En cours" },
+  { benef: "Ouattara A.", type: "Intrants", montant: "80 000", date: "Avr 2025", echeance: "Nov 2025", rembourse: "0", restant: "80 000", statut: "En cours" },
+  { benef: "Coulibaly M.", type: "Équipement", montant: "450 000", date: "Jan 2025", echeance: "Jan 2027", rembourse: "75 000", restant: "375 000", statut: "En cours" },
+  { benef: "Bamba S.", type: "Urgence", montant: "100 000", date: "Fév 2025", echeance: "Aoû 2025", rembourse: "100 000", restant: "0", statut: "Soldé" },
+  { benef: "Fofana A.", type: "Intrants", montant: "100 000", date: "Avr 2025", echeance: "Nov 2025", rembourse: "0", restant: "100 000", statut: "En cours" },
+  { benef: "Koffi Y.", type: "Intrants", montant: "120 000", date: "Mar 2025", echeance: "Nov 2025", rembourse: "60 000", restant: "60 000", statut: "En cours" },
+  { benef: "N'Guessan P.", type: "Équipement", montant: "320 000", date: "Fév 2025", echeance: "Fév 2027", rembourse: "40 000", restant: "280 000", statut: "En cours" },
+  { benef: "Diabaté R.", type: "Urgence", montant: "80 000", date: "Mar 2025", echeance: "Sep 2025", rembourse: "80 000", restant: "0", statut: "Soldé" },
+  { benef: "Touré H.", type: "Intrants", montant: "200 000", date: "Jan 2025", echeance: "Nov 2025", rembourse: "100 000", restant: "100 000", statut: "En cours" },
+  { benef: "Zouzoua B.", type: "Intrants", montant: "180 000", date: "Fév 2025", echeance: "Nov 2025", rembourse: "90 000", restant: "90 000", statut: "En cours" },
 ];
 
-// ─── Fonds ────────────────────────────────────────────────────────────────────
-
-const fonds = [
-  { label: "Réserve légale", montant: "8,4 M XOF", detail: "20% du résultat net", color: "#2E7D32", pct: 17 },
-  { label: "Fonds d'investissement", montant: "28,6 M XOF", detail: "Financement projet irrigation", color: "#1565C0", pct: 59 },
-  { label: "Fonds de solidarité", montant: "4,2 M XOF", detail: "Aide aux membres en difficulté", color: "#E65100", pct: 9 },
-  { label: "Compte courant", montant: "7,0 M XOF", detail: "Trésorerie disponible", color: "#6A1B9A", pct: 15 },
+const assemblees = [
+  { date: "15/03/2025", type: "AGO", quorum: "83%", points: 6, pv: true },
+  { date: "10/09/2024", type: "AGEX", quorum: "71%", points: 3, pv: true },
+  { date: "16/03/2024", type: "AGO", quorum: "78%", points: 5, pv: true },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+const agPoints = [
+  { num: 1, statut: "ok", texte: "Approbation comptes 2024", resultat: "Adopté à 97,5%" },
+  { num: 2, statut: "ok", texte: "Renouvellement CA (3 postes)", resultat: "Élection mme Kouyaté, M. Diabaté, M. Soro" },
+  { num: 3, statut: "ok", texte: "Adhésion à l'ANOPACI", resultat: "Adopté à 94%" },
+  { num: 4, statut: "ok", texte: "Budget 2025 : 48 M XOF", resultat: "Adopté à 100%" },
+  { num: 5, statut: "ok", texte: "Augmentation fonds micro-crédit : +5 M XOF", resultat: "Adopté à 89%" },
+  { num: 6, statut: "info", texte: "Renouvellement certification RA collective", resultat: "Information" },
+];
 
-function PaiementBadge({ statut }: { statut: "paye" | "impaye" }) {
-  if (statut === "paye")
-    return (
-      <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">
-        <CheckCircle size={11} /> Payé
-      </span>
-    );
+const distributions = [
+  { membre: "Traoré Moussa", village: "Buyo", volume: "7 800 kg", qualite: "AA", prime: "1 404 000 XOF" },
+  { membre: "Konan Yao", village: "Soubré", volume: "5 200 kg", qualite: "AA", prime: "936 000 XOF" },
+  { membre: "Ibrahim Sawadogo", village: "Soubré", volume: "4 100 kg", qualite: "A", prime: "492 000 XOF" },
+  { membre: "Soro Lacina", village: "Gagnoa", volume: "5 500 kg", qualite: "AA", prime: "990 000 XOF" },
+  { membre: "Kouyaté Mariam", village: "Soubré", volume: "7 200 kg", qualite: "A", prime: "864 000 XOF" },
+  { membre: "Bamba Seydou", village: "Soubré", volume: "4 600 kg", qualite: "AA", prime: "828 000 XOF" },
+  { membre: "N'Guessan Paul", village: "San-Pédro", volume: "3 700 kg", qualite: "A", prime: "444 000 XOF" },
+  { membre: "Coulibaly Mamadou", village: "Méagui", volume: "6 100 kg", qualite: "AA", prime: "1 098 000 XOF" },
+  { membre: "Koffi Yves", village: "Buyo", volume: "2 700 kg", qualite: "A", prime: "324 000 XOF" },
+  { membre: "Touré Hawa", village: "Méagui", volume: "2 900 kg", qualite: "AA", prime: "522 000 XOF" },
+];
+
+function DonutChart() {
+  const cx = 80, cy = 80, r = 60;
+  let cumul = 0;
+  const segments = donutData.map((d) => {
+    const start = cumul;
+    cumul += d.pct;
+    const startAngle = (start / 100) * 2 * Math.PI - Math.PI / 2;
+    const endAngle = ((start + d.pct) / 100) * 2 * Math.PI - Math.PI / 2;
+    const x1 = cx + r * Math.cos(startAngle);
+    const y1 = cy + r * Math.sin(startAngle);
+    const x2 = cx + r * Math.cos(endAngle);
+    const y2 = cy + r * Math.sin(endAngle);
+    const large = d.pct > 50 ? 1 : 0;
+    return { ...d, path: `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} Z` };
+  });
+
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-800">
-      <AlertCircle size={11} /> Non payé
-    </span>
+    <div className="flex items-center gap-6">
+      <svg width={160} height={160} viewBox="0 0 160 160">
+        {segments.map((s, i) => (
+          <path key={i} d={s.path} fill={s.color} stroke="white" strokeWidth={2} />
+        ))}
+        <circle cx={cx} cy={cy} r={35} fill="white" />
+        <text x={cx} y={cy - 4} textAnchor="middle" fontSize={11} fontWeight="600" fill="#1B5E20">142</text>
+        <text x={cx} y={cy + 9} textAnchor="middle" fontSize={8} fill="#666">membres</text>
+      </svg>
+      <div className="space-y-2">
+        {donutData.map((d, i) => (
+          <div key={i} className="flex items-center gap-2 text-xs">
+            <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: d.color }} />
+            <span className="text-gray-600">{d.label}</span>
+            <span className="font-medium text-gray-800">{d.members} ({d.pct}%)</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
-
-function StatutBadge({ statut }: { statut: "actif" | "attente" }) {
-  if (statut === "actif")
-    return (
-      <span className="inline-flex text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">
-        Actif
-      </span>
-    );
-  return (
-    <span className="inline-flex text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
-      En attente
-    </span>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CooperativePage() {
-  const [agRappelSent, setAgRappelSent] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>("Vue d'ensemble");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const perPage = 8;
+
+  const filteredMembres = membres.filter(
+    (m) =>
+      m.nom.toLowerCase().includes(search.toLowerCase()) ||
+      m.village.toLowerCase().includes(search.toLowerCase()) ||
+      m.id.toLowerCase().includes(search.toLowerCase())
+  );
+  const totalPages = Math.ceil(filteredMembres.length / perPage);
+  const paginated = filteredMembres.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Topbar title="Coopérative" breadcrumb={["RH", "Coopérative"]} />
+    <div className="flex-1 flex flex-col min-h-0 bg-[#F8FBF8]">
+      <Topbar title="Coopérative Agricole" breadcrumb={["RH & Social", "Coopérative"]} />
 
-      <div className="p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          {kpis.map((k) => (
-            <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-gray-500 leading-tight">{k.label}</p>
-                <span style={{ color: k.color }}>{k.icon}</span>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {kpis.map((k, i) => (
+            <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5">
+              <div className={`w-9 h-9 rounded-xl ${k.bg} flex items-center justify-center mb-3`}>
+                <k.icon className={`w-4 h-4 ${k.color}`} />
               </div>
-              <p className="text-xl font-bold" style={{ color: k.color }}>
-                {k.value}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">{k.sub}</p>
+              <p className="text-xs text-gray-500">{k.label}</p>
+              <p className="text-lg font-bold text-gray-800 mt-0.5">{k.value}</p>
             </div>
           ))}
         </div>
 
-        {/* Assemblée Générale 2025 */}
-        <div className="rounded-2xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-white p-6 shadow-sm">
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-green-700 flex items-center justify-center shrink-0">
-                <Calendar size={20} className="text-white" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">Assemblée Générale 2025</p>
-                <h3 className="text-base font-bold text-gray-900">15 septembre 2025 à 09h00</h3>
-                <p className="text-sm text-gray-600">Salle de réunion AGROTEK CI</p>
-              </div>
-            </div>
+        {/* Tabs */}
+        <div className="flex gap-1 bg-white rounded-xl border border-gray-100 p-1 w-fit">
+          {TABS.map((t) => (
             <button
-              onClick={() => setAgRappelSent(true)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                agRappelSent
-                  ? "bg-green-100 text-green-800 cursor-default"
-                  : "bg-green-700 text-white hover:bg-green-800"
+              key={t}
+              onClick={() => setActiveTab(t)}
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
+                activeTab === t ? "bg-[#2E7D32] text-white" : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              <Bell size={14} />
-              {agRappelSent ? "Rappel envoyé ✓" : "Envoyer rappel AG"}
+              {t}
             </button>
-          </div>
+          ))}
+        </div>
 
-          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Ordre du jour */}
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-2">Ordre du jour</p>
-              <ul className="space-y-1.5">
+        {/* VUE D'ENSEMBLE */}
+        {activeTab === "Vue d'ensemble" && (
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Tableau de bord coopérative</h2>
+              <div className="grid grid-cols-3 gap-4 mb-6">
                 {[
-                  "Bilan campagne 2024-2025",
-                  "Approbation des comptes",
-                  "Élection du bureau",
-                  "Plan stratégique 2025-2026",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-sm text-gray-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-600 shrink-0" />
-                    {item}
-                  </li>
+                  { label: "Hommes", value: "88", sub: "62%", color: "bg-blue-50 text-blue-700" },
+                  { label: "Femmes", value: "54", sub: "38%", color: "bg-pink-50 text-pink-700" },
+                  { label: "Jeunes -35 ans", value: "28", sub: "20%", color: "bg-yellow-50 text-yellow-700" },
+                ].map((s, i) => (
+                  <div key={i} className={`rounded-xl p-4 ${s.color}`}>
+                    <p className="text-xs font-medium">{s.label}</p>
+                    <p className="text-2xl font-bold mt-1">{s.value}</p>
+                    <p className="text-xs mt-0.5">{s.sub}</p>
+                  </div>
                 ))}
-              </ul>
-            </div>
-            {/* Quorum & confirmations */}
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">Quorum requis</p>
-                <p className="text-sm font-medium text-gray-800 mt-0.5">
-                  50%+1 des membres — <span className="font-bold">144 membres</span>
-                </p>
               </div>
-              <div>
-                <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                  <span>Convocations envoyées</span>
-                  <span className="font-bold text-green-700">245 / 287 ✅</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="h-2 rounded-full bg-green-600" style={{ width: "85%" }} />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                  <span>Confirmations reçues</span>
-                  <span className="font-bold text-blue-700">182 membres (63%)</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="h-2 rounded-full bg-blue-600" style={{ width: "63%" }} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Tableau membres */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <Users size={18} className="text-green-700" />
-            <h3 className="text-base font-semibold text-gray-900">Membres &amp; Cotisations</h3>
-            <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-              287 membres
-            </span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  {["Membre", "Zone", "Surface", "Cotisation 2025", "Paiement", "Micro-crédit", "Dividende", "Statut"].map(
-                    (h) => (
-                      <th
-                        key={h}
-                        className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide pb-3 pr-4 whitespace-nowrap"
-                      >
-                        {h}
-                      </th>
-                    )
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {membres.map((m, i) => (
-                  <tr key={m.nom} className={`border-b border-gray-50 ${i % 2 !== 0 ? "bg-gray-50/40" : ""}`}>
-                    <td className="py-3 pr-4 font-semibold text-gray-800 whitespace-nowrap">{m.nom}</td>
-                    <td className="py-3 pr-4 text-gray-600 whitespace-nowrap">{m.zone}</td>
-                    <td className="py-3 pr-4 text-gray-700">{m.surface}</td>
-                    <td className="py-3 pr-4 font-medium text-gray-800 whitespace-nowrap">
-                      {m.cotisation.toLocaleString("fr-FR")} XOF
-                    </td>
-                    <td className="py-3 pr-4">
-                      <PaiementBadge statut={m.paiement} />
-                    </td>
-                    <td className="py-3 pr-4 text-xs text-gray-600 whitespace-nowrap">
-                      {m.credit ? (
-                        <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-medium">
-                          {m.credit}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </td>
-                    <td className="py-3 pr-4 text-sm font-medium text-gray-800 whitespace-nowrap">
-                      {m.dividende ?? <span className="text-gray-400">—</span>}
-                    </td>
-                    <td className="py-3">
-                      <StatutBadge statut={m.statut} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-            <span>Affichage de 1 à 10 sur 287 membres</span>
-            <div className="flex items-center gap-1">
-              <button className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">‹</button>
-              <button className="px-2.5 py-1 rounded bg-green-600 text-white font-semibold">1</button>
-              <button className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">2</button>
-              <button className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">3</button>
-              <span className="px-1">…</span>
-              <button className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">29</button>
-              <button className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">›</button>
-            </div>
-          </div>
-        </div>
-
-        {/* Section Micro-crédit */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <CreditCard size={18} className="text-purple-700" />
-            <h3 className="text-base font-semibold text-gray-900">Micro-crédit</h3>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-5">
-            <div className="rounded-xl bg-purple-50 p-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Encours total</p>
-              <p className="text-xl font-bold text-purple-800 mt-1">12,4 M XOF</p>
-            </div>
-            <div className="rounded-xl bg-green-50 p-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Taux de remboursement</p>
-              <p className="text-xl font-bold text-green-800 mt-1">96%</p>
-            </div>
-            <div className="rounded-xl bg-blue-50 p-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Taux d'intérêt</p>
-              <p className="text-xl font-bold text-blue-800 mt-1">6% / an</p>
-            </div>
-          </div>
-
-          {/* Tableau crédits */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  {["Bénéficiaire", "Montant", "Taux", "Mensualité", "Reste dû", "Échéance"].map((h) => (
-                    <th
-                      key={h}
-                      className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide pb-3 pr-4 whitespace-nowrap"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {credits.map((c, i) => (
-                  <tr key={c.beneficiaire} className={`border-b border-gray-50 ${i % 2 !== 0 ? "bg-gray-50/40" : ""}`}>
-                    <td className="py-3 pr-4 font-semibold text-gray-800 whitespace-nowrap">{c.beneficiaire}</td>
-                    <td className="py-3 pr-4 font-medium text-purple-700 whitespace-nowrap">{c.montant}</td>
-                    <td className="py-3 pr-4 text-gray-600">{c.taux}</td>
-                    <td className="py-3 pr-4 text-gray-700 whitespace-nowrap">{c.mensualite}</td>
-                    <td className="py-3 pr-4 font-semibold text-orange-700 whitespace-nowrap">{c.resteDu}</td>
-                    <td className="py-3 pr-4 text-gray-600 whitespace-nowrap">{c.echeance}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Section Fonds & Investissements */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-5">
-            <TrendingUp size={18} className="text-blue-700" />
-            <h3 className="text-base font-semibold text-gray-900">Fonds &amp; Investissements communs</h3>
-            <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-              Total : 48,2 M XOF
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {fonds.map((f) => (
-              <div
-                key={f.label}
-                className="rounded-xl border p-4 flex items-start gap-4"
-                style={{ borderColor: f.color + "33" }}
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white font-bold text-sm"
-                  style={{ background: f.color }}
-                >
-                  {f.pct}%
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-400 uppercase tracking-wide">{f.label}</p>
-                  <p className="text-lg font-bold mt-0.5" style={{ color: f.color }}>
-                    {f.montant}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">{f.detail}</p>
-                  <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5">
-                    <div
-                      className="h-1.5 rounded-full"
-                      style={{ width: `${f.pct}%`, background: f.color }}
-                    />
+              <div className="grid grid-cols-2 gap-6">
+                {/* Villages */}
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-600 mb-3">Villages représentés</h3>
+                  <div className="space-y-2">
+                    {villages.map((v, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <div className="flex justify-between text-xs mb-0.5">
+                            <span className="text-gray-700">{v.name}</span>
+                            <span className="font-medium text-gray-800">{v.count} membres</span>
+                          </div>
+                          <div className="h-1.5 bg-gray-100 rounded-full">
+                            <div
+                              className="h-1.5 bg-[#4CAF50] rounded-full"
+                              style={{ width: `${(v.count / 48) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
+                {/* Donut */}
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-600 mb-3">Répartition par surface</h3>
+                  <DonutChart />
+                </div>
               </div>
-            ))}
+            </div>
+
+            {/* Résultats campagne */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Résultats campagne 2024-2025</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      <th className="text-left px-3 py-2 font-semibold text-gray-600 rounded-l-lg">Indicateur</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-600">Objectif</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-600">Réalisé</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-600 rounded-r-lg">%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {campagneResults.map((r, i) => (
+                      <tr key={i} className="border-t border-gray-50">
+                        <td className="px-3 py-2.5 text-gray-700">{r.label}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{r.objectif}</td>
+                        <td className="px-3 py-2.5 font-medium text-gray-800">{r.realise}</td>
+                        <td className="px-3 py-2.5">
+                          <span className={`font-semibold ${r.ok ? "text-green-600" : "text-yellow-600"}`}>
+                            {r.ok ? "✅" : "⚠️"} {r.pct}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* MEMBRES */}
+        {activeTab === "Membres" && (
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un membre..."
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                  className="w-full pl-8 pr-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/20"
+                />
+              </div>
+              <button className="flex items-center gap-1.5 px-3 py-2 text-xs border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+                <Filter className="w-3.5 h-3.5" /> Village
+              </button>
+              <button className="flex items-center gap-1.5 px-3 py-2 text-xs border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+                <Filter className="w-3.5 h-3.5" /> Statut
+              </button>
+              <button className="flex items-center gap-1.5 px-3 py-2 text-xs border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+                <Filter className="w-3.5 h-3.5" /> Certification
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-[#F8FBF8]">
+                    {["#", "Membre", "Village", "Surface", "Certification", "Production 2024", "Micro-crédit actif", "Statut"].map((h, i) => (
+                      <th key={i} className={`text-left px-3 py-2 font-semibold text-gray-600 ${i === 0 ? "rounded-l-lg" : ""} ${i === 7 ? "rounded-r-lg" : ""}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginated.map((m, i) => (
+                    <tr key={i} className="border-t border-gray-50 hover:bg-gray-50/50">
+                      <td className="px-3 py-2.5 text-gray-400 font-mono">{m.id}</td>
+                      <td className="px-3 py-2.5 font-medium text-gray-800">{m.nom}</td>
+                      <td className="px-3 py-2.5 text-gray-600">{m.village}</td>
+                      <td className="px-3 py-2.5 text-gray-600">{m.surface}</td>
+                      <td className="px-3 py-2.5">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${m.cert === "RA" ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-700"}`}>
+                          {m.cert === "RA" ? "RA ✅" : "En cours"}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 text-gray-600">{m.prod}</td>
+                      <td className="px-3 py-2.5 text-gray-600">{m.credit}</td>
+                      <td className="px-3 py-2.5">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                          ✅ Actif
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <p className="text-xs text-gray-500">{filteredMembres.length} membres</p>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50">
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <span className="text-xs text-gray-600">Page {page}/{totalPages}</span>
+                <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50">
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MICRO-CREDIT */}
+        {activeTab === "Micro-crédit" && (
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Fonds de micro-crédit</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {[
+                  { label: "Dotation totale", value: "15 000 000 XOF", sub: "Projet ANADER", color: "bg-blue-50 text-blue-700" },
+                  { label: "Encours actif", value: "8 240 000 XOF", sub: "55 bénéficiaires", color: "bg-orange-50 text-orange-700" },
+                  { label: "Remboursements YTD", value: "6 120 000 XOF", sub: "Reçus", color: "bg-green-50 text-green-700" },
+                  { label: "Disponible", value: "6 760 000 XOF", sub: "Nouveaux crédits", color: "bg-purple-50 text-purple-700" },
+                ].map((s, i) => (
+                  <div key={i} className={`rounded-xl p-4 ${s.color}`}>
+                    <p className="text-xs font-medium">{s.label}</p>
+                    <p className="text-sm font-bold mt-1">{s.value}</p>
+                    <p className="text-xs mt-0.5 opacity-70">{s.sub}</p>
+                  </div>
+                ))}
+              </div>
+
+              <h3 className="text-xs font-semibold text-gray-600 mb-3">Types de crédit disponibles</h3>
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { nom: "Crédit intrants", max: "200 000 XOF", taux: "0%", duree: "Remboursement récolte", benef: 38, color: "border-green-200 bg-green-50/30" },
+                  { nom: "Crédit équipement", max: "500 000 XOF", taux: "4%", duree: "24 mois", benef: 12, color: "border-blue-200 bg-blue-50/30" },
+                  { nom: "Crédit urgence", max: "100 000 XOF", taux: "0%", duree: "6 mois", benef: 5, color: "border-orange-200 bg-orange-50/30" },
+                ].map((c, i) => (
+                  <div key={i} className={`border rounded-xl p-4 ${c.color}`}>
+                    <p className="text-xs font-semibold text-gray-800 mb-2">{c.nom}</p>
+                    <p className="text-xs text-gray-600">Max : <span className="font-medium">{c.max}</span></p>
+                    <p className="text-xs text-gray-600">Taux : <span className="font-medium">{c.taux}</span></p>
+                    <p className="text-xs text-gray-600">Durée : <span className="font-medium">{c.duree}</span></p>
+                    <p className="text-xs text-gray-500 mt-2">{c.benef} bénéficiaires actifs</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Crédits en cours</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Bénéficiaire", "Type", "Montant", "Date", "Échéance", "Remboursé", "Restant", "Statut"].map((h, i) => (
+                        <th key={i} className="text-left px-3 py-2 font-semibold text-gray-600">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {credits.map((c, i) => (
+                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50/50">
+                        <td className="px-3 py-2.5 font-medium text-gray-800">{c.benef}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{c.type}</td>
+                        <td className="px-3 py-2.5 text-gray-700">{c.montant}</td>
+                        <td className="px-3 py-2.5 text-gray-500">{c.date}</td>
+                        <td className="px-3 py-2.5 text-gray-500">{c.echeance}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{c.rembourse}</td>
+                        <td className="px-3 py-2.5 font-medium text-gray-800">{c.restant}</td>
+                        <td className="px-3 py-2.5">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${c.statut === "Soldé" ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-700"}`}>
+                            {c.statut === "Soldé" ? "✅" : "🟡"} {c.statut}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ASSEMBLÉES */}
+        {activeTab === "Assemblées" && (
+          <div className="space-y-5">
+            <div className="rounded-2xl border-2 border-[#2E7D32]/20 bg-white p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="text-base font-bold text-gray-800">AG 2025 — Assemblée Générale Ordinaire</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">15 Mars 2025 · Centre polyvalent de Soubré</p>
+                </div>
+                <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 text-xs font-semibold rounded-xl">
+                  <CheckCircle className="w-3.5 h-3.5" /> Quorum atteint
+                </span>
+              </div>
+
+              <div className="flex items-center gap-6 mb-5 p-3 bg-[#F8FBF8] rounded-xl">
+                <div>
+                  <p className="text-xs text-gray-500">Membres présents</p>
+                  <p className="text-lg font-bold text-gray-800">118<span className="text-sm text-gray-400">/142</span></p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Taux de présence</p>
+                  <p className="text-lg font-bold text-green-600">83,1%</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Points abordés</p>
+                  <p className="text-lg font-bold text-gray-800">6</p>
+                </div>
+              </div>
+
+              <h3 className="text-xs font-semibold text-gray-600 mb-3">Ordre du jour</h3>
+              <div className="space-y-2">
+                {agPoints.map((p, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-gray-50/80">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${p.statut === "ok" ? "bg-green-100" : "bg-blue-100"}`}>
+                      {p.statut === "ok" ? (
+                        <CheckCircle className="w-3 h-3 text-green-600" />
+                      ) : (
+                        <Info className="w-3 h-3 text-blue-600" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-800">{p.num}. {p.texte}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{p.resultat}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Historique des assemblées</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Date", "Type", "Quorum", "Points abordés", "PV disponible"].map((h, i) => (
+                        <th key={i} className="text-left px-3 py-2 font-semibold text-gray-600">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {assemblees.map((a, i) => (
+                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50/50">
+                        <td className="px-3 py-2.5 font-medium text-gray-800">{a.date}</td>
+                        <td className="px-3 py-2.5">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">{a.type}</span>
+                        </td>
+                        <td className="px-3 py-2.5 text-gray-600">{a.quorum}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{a.points} points</td>
+                        <td className="px-3 py-2.5">
+                          {a.pv && (
+                            <button className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-green-700 bg-green-50 rounded-lg hover:bg-green-100">
+                              <FileText className="w-3 h-3" /> ✅ PDF
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* DISTRIBUTIONS */}
+        {activeTab === "Distributions" && (
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Distribution prime qualité 2024 — 4 200 000 XOF</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                {[
+                  { label: "Critère d'éligibilité", value: "RA certifié + Qualité AA/A", color: "bg-green-50 text-green-800" },
+                  { label: "Membres éligibles", value: "89 / 142", color: "bg-blue-50 text-blue-800" },
+                  { label: "Prime qualité AA", value: "+180 XOF/kg", color: "bg-yellow-50 text-yellow-800" },
+                  { label: "Prime qualité A", value: "+120 XOF/kg", color: "bg-orange-50 text-orange-800" },
+                ].map((s, i) => (
+                  <div key={i} className={`rounded-xl p-4 ${s.color}`}>
+                    <p className="text-xs font-medium opacity-70">{s.label}</p>
+                    <p className="text-sm font-bold mt-1">{s.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Top 10 bénéficiaires — Primes 2024</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["#", "Membre", "Village", "Volume livré", "Qualité", "Prime reçue"].map((h, i) => (
+                        <th key={i} className="text-left px-3 py-2 font-semibold text-gray-600">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {distributions.map((d, i) => (
+                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50/50">
+                        <td className="px-3 py-2.5 text-gray-400 font-medium">#{i + 1}</td>
+                        <td className="px-3 py-2.5 font-medium text-gray-800">{d.membre}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{d.village}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{d.volume}</td>
+                        <td className="px-3 py-2.5">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${d.qualite === "AA" ? "bg-green-50 text-green-700" : "bg-blue-50 text-blue-700"}`}>
+                            {d.qualite}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 font-bold text-[#2E7D32]">{d.prime}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

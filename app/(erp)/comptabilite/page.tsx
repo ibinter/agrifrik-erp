@@ -2,243 +2,350 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
-import { BookOpen, TrendingUp, BarChart2, FileText, Plus, ExternalLink } from "lucide-react";
 
-// ─── KPI ────────────────────────────────────────────────────────────────────
-const kpis = [
-  { label: "Exercice", value: "2025", accent: "#374151", bg: "#F3F4F6", icon: BookOpen },
-  { label: "Écritures S1", value: "2 847", accent: "#1565C0", bg: "#E3F2FD", icon: BarChart2 },
-  { label: "CA comptabilisé", value: "145,2 M XOF", accent: "#2E7D32", bg: "#E8F5E9", icon: TrendingUp },
-  { label: "Résultat provisoire", value: "+37,2 M XOF", accent: "#6A1B9A", bg: "#F3E5F5", icon: FileText },
-];
+// ─── Types ───────────────────────────────────────────────────────────────────
+type Tab = "journaux" | "balance" | "grandlivre" | "plancomptable";
+type JournalFilter = "Tous" | "VTE" | "ACH" | "BNQ" | "CAI" | "OD";
+type ClasseFilter = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8";
 
-// ─── JOURNAL ─────────────────────────────────────────────────────────────────
+// ─── Journaux ─────────────────────────────────────────────────────────────────
 const journalEntries = [
-  { num: "J-2025-0847", date: "09/07", compteD: "411 Clients", compteC: "701 Ventes", libelle: "Vente cacao Barry Callebaut", montant: "2 880 000", piece: "FAC-341" },
-  { num: "J-2025-0846", date: "09/07", compteD: "512 Banque", compteC: "411 Clients", libelle: "Règlement CMD-2025-038", montant: "2 192 250", piece: "VIR-482" },
-  { num: "J-2025-0845", date: "08/07", compteD: "641 Charges personnel", compteC: "421 Dettes personnel", libelle: "Salaires juillet 2025", montant: "42 350 000", piece: "PAI-287" },
-  { num: "J-2025-0844", date: "08/07", compteD: "401 Fournisseurs", compteC: "512 Banque", libelle: "Règlement YARA Nederland", montant: "8 122 400", piece: "VIR-481" },
-  { num: "J-2025-0843", date: "07/07", compteD: "601 Achats marchandises", compteC: "401 Fournisseurs", libelle: "Achat engrais YARA", montant: "8 122 400", piece: "BC-042" },
-  { num: "J-2025-0842", date: "07/07", compteD: "411 Clients", compteC: "701 Ventes", libelle: "Vente anacarde CMD-2025-038", montant: "2 192 250", piece: "FAC-340" },
-  { num: "J-2025-0841", date: "05/07", compteD: "622 Locations", compteC: "512 Banque", libelle: "Loyer fermage Q2 (5 baux)", montant: "1 986 250", piece: "BK-227" },
-  { num: "J-2025-0840", date: "03/07", compteD: "164 Emprunts", compteC: "512 Banque", libelle: "Remboursement emprunt SGBCI", montant: "4 800 000", piece: "VIR-480" },
-  { num: "J-2025-0839", date: "01/07", compteD: "512 Banque", compteC: "756 Produits divers", libelle: "Cotisations coopérative Q2", montant: "3 500 000", piece: "VIR-479" },
-  { num: "J-2025-0838", date: "30/06", compteD: "601 Achats marchandises", compteC: "401 Fournisseurs", libelle: "Achat semences campagne 2025", montant: "2 450 000", piece: "BC-041" },
+  { date: "10/07", piece: "FAC-2025-048", journal: "VTE", compteD: "411000 Clients", libelle: "Vente cacao — Barry Callebaut LOT-045", debit: 27_390_000, compteC: "701000 Ventes cacao", credit: 27_390_000 },
+  { date: "08/07", piece: "ACH-2025-088", journal: "ACH", compteD: "601000 Achats intrants", libelle: "Livraison KCl 4t — SCPA", debit: 2_400_000, compteC: "401000 Fournisseurs", credit: 2_400_000 },
+  { date: "07/07", piece: "BNQ-2025-147", journal: "BNQ", compteD: "521000 BICICI", libelle: "Encaissement client Olam", debit: 18_240_000, compteC: "411000 Clients", credit: 18_240_000 },
+  { date: "05/07", piece: "BNQ-2025-146", journal: "BNQ", compteD: "641000 Salaires", libelle: "Virement salaires Juin 2025", debit: 3_840_000, compteC: "521000 BICICI", credit: 3_840_000 },
+  { date: "01/07", piece: "OD-2025-028", journal: "OD", compteD: "681000 Amortissements", libelle: "Dotation amort. Juin 2025", debit: 1_533_000, compteC: "281000 Amort. Immo", credit: 1_533_000 },
+  { date: "30/06", piece: "FAC-2025-047", journal: "VTE", compteD: "411000 Clients", libelle: "Vente cacao — Nestlé LOT-046", debit: 32_818_000, compteC: "701000 Ventes", credit: 32_818_000 },
+  { date: "28/06", piece: "BNQ-2025-145", journal: "BNQ", compteD: "521000 BICICI", libelle: "Paiement prime RA coop.", debit: 4_200_000, compteC: "411100 Coop.", credit: 4_200_000 },
+  { date: "25/06", piece: "ACH-2025-085", journal: "ACH", compteD: "601000 Achats intrants", libelle: "Engrais YARA 2t", debit: 1_840_000, compteC: "401000 Fournisseurs", credit: 1_840_000 },
+  { date: "20/06", piece: "CAI-2025-042", journal: "CAI", compteD: "531000 Caisse Soubré", libelle: "Frais déplacement terrain", debit: 240_000, compteC: "625000 Déplacements", credit: 240_000 },
+  { date: "15/06", piece: "FAC-2025-044", journal: "VTE", compteD: "411000 Clients", libelle: "Vente anacarde — Olam LOT-038", debit: 18_400_000, compteC: "702000 Ventes anacarde", credit: 18_400_000 },
+  { date: "10/06", piece: "BNQ-2025-140", journal: "BNQ", compteD: "521000 BICICI", libelle: "Remboursement emprunt BIC", debit: 2_000_000, compteC: "161000 Emprunts", credit: 2_000_000 },
+  { date: "05/06", piece: "OD-2025-025", journal: "OD", compteD: "681000 Amortissements", libelle: "Dotation amort. Mai 2025", debit: 1_533_000, compteC: "281000 Amort. Immo", credit: 1_533_000 },
+  { date: "02/06", piece: "ACH-2025-079", journal: "ACH", compteD: "601000 Achats intrants", libelle: "Semences certifiées ANADER", debit: 980_000, compteC: "401000 Fournisseurs", credit: 980_000 },
+  { date: "28/05", piece: "BNQ-2025-136", journal: "BNQ", compteD: "741000 Subventions", libelle: "Réception subvention AFD Tranche 2", debit: 12_100_000, compteC: "521000 BICICI", credit: 12_100_000 },
+  { date: "15/05", piece: "FAC-2025-038", journal: "VTE", compteD: "411000 Clients", libelle: "Vente cacao — Barry Callebaut LOT-040", debit: 24_600_000, compteC: "701000 Ventes cacao", credit: 24_600_000 },
 ];
 
-// ─── BALANCE ─────────────────────────────────────────────────────────────────
-const balanceClasses = [
-  { classe: "Classe 1", libelle: "Capitaux propres", debit: "0", credit: "486 200 000", solde: "486 200 000 Cr" },
-  { classe: "Classe 2", libelle: "Actifs immobilisés", debit: "312 400 000", credit: "48 600 000", solde: "263 800 000 Dt" },
-  { classe: "Classe 3", libelle: "Stocks", debit: "182 300 000", credit: "0", solde: "182 300 000 Dt" },
-  { classe: "Classe 4", libelle: "Tiers (Clients / Fournisseurs)", debit: "94 200 000", credit: "68 100 000", solde: "26 100 000 Dt" },
-  { classe: "Classe 5", libelle: "Trésorerie", debit: "34 220 000", credit: "0", solde: "34 220 000 Dt" },
-  { classe: "Classe 6", libelle: "Charges exploitation", debit: "108 000 000", credit: "0", solde: "108 000 000 Dt" },
-  { classe: "Classe 7", libelle: "Produits", debit: "0", credit: "145 200 000", solde: "145 200 000 Cr" },
+// ─── Balance ──────────────────────────────────────────────────────────────────
+const balanceData = [
+  // Classe 1
+  { compte: "101000", intitule: "Capital social", classe: "1", debit: 0, credit: 50_000_000, soldeDt: 0, soldeCr: 50_000_000 },
+  { compte: "111000", intitule: "Réserves légales", classe: "1", debit: 0, credit: 4_200_000, soldeDt: 0, soldeCr: 4_200_000 },
+  { compte: "121000", intitule: "Report à nouveau", classe: "1", debit: 0, credit: 18_200_000, soldeDt: 0, soldeCr: 18_200_000 },
+  { compte: "161000", intitule: "Emprunts BIC", classe: "1", debit: 0, credit: 24_000_000, soldeDt: 0, soldeCr: 24_000_000 },
+  // Classe 2
+  { compte: "221000", intitule: "Terres et terrains", classe: "2", debit: 42_000_000, credit: 0, soldeDt: 42_000_000, soldeCr: 0 },
+  { compte: "231000", intitule: "Bâtiments", classe: "2", debit: 18_400_000, credit: 0, soldeDt: 18_400_000, soldeCr: 0 },
+  { compte: "241000", intitule: "Matériels & outillage", classe: "2", debit: 68_200_000, credit: 0, soldeDt: 68_200_000, soldeCr: 0 },
+  { compte: "281000", intitule: "Amortissements", classe: "2", debit: 0, credit: 28_400_000, soldeDt: 0, soldeCr: 28_400_000 },
+  // Classe 3
+  { compte: "311000", intitule: "Cacao en stock", classe: "3", debit: 18_420_000, credit: 0, soldeDt: 18_420_000, soldeCr: 0 },
+  { compte: "321000", intitule: "Intrants en stock", classe: "3", debit: 6_840_000, credit: 0, soldeDt: 6_840_000, soldeCr: 0 },
+  // Classe 4
+  { compte: "401000", intitule: "Fournisseurs", classe: "4", debit: 0, credit: 8_240_000, soldeDt: 0, soldeCr: 8_240_000 },
+  { compte: "411000", intitule: "Clients", classe: "4", debit: 24_600_000, credit: 0, soldeDt: 24_600_000, soldeCr: 0 },
+  { compte: "421000", intitule: "Personnel", classe: "4", debit: 0, credit: 3_840_000, soldeDt: 0, soldeCr: 3_840_000 },
+  { compte: "431000", intitule: "CNPS", classe: "4", debit: 0, credit: 1_240_000, soldeDt: 0, soldeCr: 1_240_000 },
+  { compte: "441000", intitule: "État — impôts", classe: "4", debit: 0, credit: 2_840_000, soldeDt: 0, soldeCr: 2_840_000 },
+  // Classe 5
+  { compte: "521000", intitule: "BICICI c/c", classe: "5", debit: 34_200_000, credit: 0, soldeDt: 34_200_000, soldeCr: 0 },
+  { compte: "531000", intitule: "Caisse Soubré", classe: "5", debit: 1_240_000, credit: 0, soldeDt: 1_240_000, soldeCr: 0 },
+  { compte: "532000", intitule: "Orange Money CI", classe: "5", debit: 480_000, credit: 0, soldeDt: 480_000, soldeCr: 0 },
+  // Classe 6
+  { compte: "601000", intitule: "Achats intrants", classe: "6", debit: 29_400_000, credit: 0, soldeDt: 29_400_000, soldeCr: 0 },
+  { compte: "641000", intitule: "Salaires", classe: "6", debit: 21_200_000, credit: 0, soldeDt: 21_200_000, soldeCr: 0 },
+  { compte: "681000", intitule: "Dotations amort.", classe: "6", debit: 9_200_000, credit: 0, soldeDt: 9_200_000, soldeCr: 0 },
+  // Classe 7
+  { compte: "701000", intitule: "Ventes cacao", classe: "7", debit: 0, credit: 101_200_000, soldeDt: 0, soldeCr: 101_200_000 },
+  { compte: "702000", intitule: "Ventes anacarde", classe: "7", debit: 0, credit: 31_400_000, soldeDt: 0, soldeCr: 31_400_000 },
+  { compte: "703000", intitule: "Subventions", classe: "7", debit: 0, credit: 24_200_000, soldeDt: 0, soldeCr: 24_200_000 },
 ];
 
-const totalDebit = "731 120 000";
-const totalCredit = "748 100 000";
-
-// ─── ÉTATS FINANCIERS ────────────────────────────────────────────────────────
-const etats = [
-  {
-    titre: "Bilan",
-    desc: "Actif / Passif au 09/07/2025",
-    items: ["Actif total : 1,24 Mds XOF", "Capitaux propres : 486,2 M XOF", "Dettes financières : 312,4 M XOF"],
-    href: "/bilan",
-    accent: "#1565C0",
-    bg: "#E3F2FD",
-  },
-  {
-    titre: "Compte de résultat",
-    desc: "Produits / Charges S1 2025",
-    items: ["CA : 145,2 M XOF", "Charges exploitation : 108,0 M XOF", "Résultat provisoire : +37,2 M XOF"],
-    href: "/compte-resultat",
-    accent: "#2E7D32",
-    bg: "#E8F5E9",
-  },
-  {
-    titre: "Tableau flux trésorerie",
-    desc: "Flux de trésorerie",
-    items: ["Trésorerie début : 168 M XOF", "Flux exploitation : +82 M XOF", "Trésorerie fin : 34,2 M XOF"],
-    href: "/flux-tresorerie",
-    accent: "#E65100",
-    bg: "#FFF3E0",
-  },
-  {
-    titre: "Rapport annuel",
-    desc: "Exercice 2024 — Archivé",
-    items: ["CA 2024 : 862 M XOF", "Résultat net : 94,5 M XOF", "Charges : 748 M XOF"],
-    href: "/rapport-annuel",
-    accent: "#6A1B9A",
-    bg: "#F3E5F5",
-  },
+// ─── Grand Livre (compte 411000) ──────────────────────────────────────────────
+const grandLivreEntries = [
+  { date: "01/01", piece: "OD-2025-001", libelle: "À-nouveau 2024", debit: 8_400_000, credit: 0, solde: 8_400_000 },
+  { date: "15/01", piece: "FAC-2025-001", libelle: "Vente LOT-2024-042 Barry Callebaut", debit: 12_840_000, credit: 0, solde: 21_240_000 },
+  { date: "20/01", piece: "BNQ-2025-002", libelle: "Encaissement Barry Callebaut", debit: 0, credit: 12_840_000, solde: 8_400_000 },
+  { date: "10/02", piece: "FAC-2025-008", libelle: "Vente cacao LOT-028 Nestlé", debit: 24_200_000, credit: 0, solde: 32_600_000 },
+  { date: "25/02", piece: "BNQ-2025-015", libelle: "Encaissement Nestlé", debit: 0, credit: 24_200_000, solde: 8_400_000 },
+  { date: "15/03", piece: "FAC-2025-018", libelle: "Vente anacarde Olam LOT-012", debit: 18_400_000, credit: 0, solde: 26_800_000 },
+  { date: "28/03", piece: "BNQ-2025-025", libelle: "Encaissement Olam", debit: 0, credit: 18_400_000, solde: 8_400_000 },
+  { date: "12/04", piece: "FAC-2025-028", libelle: "Vente cacao LOT-033 Barry Callebaut", debit: 27_390_000, credit: 0, solde: 35_790_000 },
+  { date: "30/04", piece: "BNQ-2025-038", libelle: "Encaissement Barry Callebaut partiel", debit: 0, credit: 18_000_000, solde: 17_790_000 },
+  { date: "15/05", piece: "FAC-2025-038", libelle: "Vente cacao LOT-040", debit: 24_600_000, credit: 0, solde: 42_390_000 },
+  { date: "20/05", piece: "BNQ-2025-060", libelle: "Encaissement LOT-033 solde", debit: 0, credit: 9_390_000, solde: 33_000_000 },
+  { date: "10/06", piece: "FAC-2025-044", libelle: "Vente anacarde Olam LOT-038", debit: 18_400_000, credit: 0, solde: 51_400_000 },
+  { date: "20/06", piece: "BNQ-2025-120", libelle: "Encaissement LOT-040 + LOT-038", debit: 0, credit: 43_000_000, solde: 8_400_000 },
+  { date: "07/07", piece: "BNQ-2025-147", libelle: "Encaissement Olam (partiel)", debit: 0, credit: 18_240_000, solde: -9_840_000 },
+  { date: "30/06", piece: "FAC-2025-047", libelle: "Vente LOT-046 Nestlé", debit: 32_818_000, credit: 0, solde: 24_600_000 },
 ];
 
-// ─── TABS ────────────────────────────────────────────────────────────────────
-const TABS = ["Journal", "Grand Livre", "Balance", "États financiers"] as const;
-type Tab = typeof TABS[number];
+// ─── Plan comptable ───────────────────────────────────────────────────────────
+const planComptable: Record<string, { num: string; intitule: string; utilise: boolean; solde: string }[]> = {
+  "1": [
+    { num: "101000", intitule: "Capital social", utilise: true, solde: "50 000 000 Cr" },
+    { num: "111000", intitule: "Réserves légales", utilise: true, solde: "4 200 000 Cr" },
+    { num: "121000", intitule: "Report à nouveau", utilise: true, solde: "18 200 000 Cr" },
+    { num: "131000", intitule: "Résultat de l'exercice", utilise: false, solde: "—" },
+    { num: "141000", intitule: "Subventions d'équipement", utilise: false, solde: "—" },
+    { num: "151000", intitule: "Provisions réglementées", utilise: false, solde: "—" },
+    { num: "161000", intitule: "Emprunts à LT", utilise: true, solde: "24 000 000 Cr" },
+    { num: "162000", intitule: "Crédits de campagne", utilise: false, solde: "—" },
+    { num: "181000", intitule: "Comptes de liaison", utilise: false, solde: "—" },
+  ],
+  "2": [
+    { num: "211000", intitule: "Frais d'établissement", utilise: false, solde: "—" },
+    { num: "221000", intitule: "Terres et terrains", utilise: true, solde: "42 000 000 Dt" },
+    { num: "231000", intitule: "Bâtiments sur sol propre", utilise: true, solde: "18 400 000 Dt" },
+    { num: "241000", intitule: "Matériels & outillage", utilise: true, solde: "68 200 000 Dt" },
+    { num: "244000", intitule: "Matériels de transport", utilise: false, solde: "—" },
+    { num: "248000", intitule: "Autres immobilisations corp.", utilise: false, solde: "—" },
+    { num: "281000", intitule: "Amort. frais d'établ.", utilise: true, solde: "28 400 000 Cr" },
+  ],
+  "3": [
+    { num: "311000", intitule: "Marchandises (cacao)", utilise: true, solde: "18 420 000 Dt" },
+    { num: "312000", intitule: "Marchandises (anacarde)", utilise: false, solde: "—" },
+    { num: "321000", intitule: "Matières premières (intrants)", utilise: true, solde: "6 840 000 Dt" },
+    { num: "331000", intitule: "Produits en cours", utilise: false, solde: "—" },
+    { num: "381000", intitule: "Marchandises en transit", utilise: false, solde: "—" },
+  ],
+  "4": [
+    { num: "401000", intitule: "Fournisseurs, dettes en compte", utilise: true, solde: "8 240 000 Cr" },
+    { num: "411000", intitule: "Clients, créances en compte", utilise: true, solde: "24 600 000 Dt" },
+    { num: "421000", intitule: "Personnel, avances et acomptes", utilise: true, solde: "3 840 000 Cr" },
+    { num: "431000", intitule: "Organismes sociaux (CNPS)", utilise: true, solde: "1 240 000 Cr" },
+    { num: "441000", intitule: "État, impôts et taxes", utilise: true, solde: "2 840 000 Cr" },
+    { num: "471000", intitule: "Débiteurs divers", utilise: false, solde: "—" },
+  ],
+  "5": [
+    { num: "521000", intitule: "Banque BICICI c/c", utilise: true, solde: "34 200 000 Dt" },
+    { num: "522000", intitule: "Banque SGBCI c/c", utilise: false, solde: "—" },
+    { num: "531000", intitule: "Caisse Soubré", utilise: true, solde: "1 240 000 Dt" },
+    { num: "532000", intitule: "Orange Money CI", utilise: true, solde: "480 000 Dt" },
+  ],
+  "6": [
+    { num: "601000", intitule: "Achats marchandises (intrants)", utilise: true, solde: "29 400 000 Dt" },
+    { num: "602000", intitule: "Achats matières premières", utilise: false, solde: "—" },
+    { num: "621000", intitule: "Sous-traitance générale", utilise: false, solde: "—" },
+    { num: "641000", intitule: "Rémunérations du personnel", utilise: true, solde: "21 200 000 Dt" },
+    { num: "661000", intitule: "Charges d'intérêts", utilise: false, solde: "—" },
+    { num: "681000", intitule: "Dotations amortissements", utilise: true, solde: "9 200 000 Dt" },
+  ],
+  "7": [
+    { num: "701000", intitule: "Ventes cacao", utilise: true, solde: "101 200 000 Cr" },
+    { num: "702000", intitule: "Ventes anacarde", utilise: true, solde: "31 400 000 Cr" },
+    { num: "703000", intitule: "Subventions d'exploitation", utilise: true, solde: "24 200 000 Cr" },
+    { num: "704000", intitule: "Ventes vivrières", utilise: false, solde: "—" },
+    { num: "756000", intitule: "Produits divers", utilise: false, solde: "—" },
+  ],
+  "8": [
+    { num: "801000", intitule: "Résultat d'exploitation", utilise: false, solde: "—" },
+    { num: "802000", intitule: "Résultat hors activités ordinaires", utilise: false, solde: "—" },
+    { num: "891000", intitule: "Impôt sur le bénéfice (BIC)", utilise: false, solde: "—" },
+  ],
+};
 
-// ─── PAGE ────────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function fmtXOF(n: number) {
+  if (n === 0) return "—";
+  return n.toLocaleString("fr-FR");
+}
+
+const journalBadge: Record<string, string> = {
+  VTE: "bg-emerald-100 text-emerald-700",
+  ACH: "bg-orange-100 text-orange-700",
+  BNQ: "bg-blue-100 text-blue-700",
+  CAI: "bg-yellow-100 text-yellow-700",
+  OD:  "bg-purple-100 text-purple-700",
+};
+
+const classeLabels: Record<string, string> = {
+  "1": "Classe 1 — Ressources durables",
+  "2": "Classe 2 — Actif immobilisé",
+  "3": "Classe 3 — Stocks",
+  "4": "Classe 4 — Tiers",
+  "5": "Classe 5 — Trésorerie",
+  "6": "Classe 6 — Charges",
+  "7": "Classe 7 — Produits",
+  "8": "Classe 8 — Résultats",
+};
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 export default function ComptabilitePage() {
-  const [tab, setTab] = useState<Tab>("Journal");
+  const [tab, setTab] = useState<Tab>("journaux");
+  const [journalFilter, setJournalFilter] = useState<JournalFilter>("Tous");
+  const [classeFilter, setClasseFilter] = useState<ClasseFilter>("1");
+  const [glSearch, setGlSearch] = useState("411000 Clients");
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "journaux", label: "Journaux" },
+    { id: "balance", label: "Balance" },
+    { id: "grandlivre", label: "Grand Livre" },
+    { id: "plancomptable", label: "Plan comptable" },
+  ];
+
+  const journalFilters: JournalFilter[] = ["Tous", "VTE", "ACH", "BNQ", "CAI", "OD"];
+
+  const filteredEntries =
+    journalFilter === "Tous"
+      ? journalEntries
+      : journalEntries.filter((e) => e.journal === journalFilter);
+
+  const totalDebit = balanceData.reduce((a, r) => a + r.debit, 0);
+  const totalCredit = balanceData.reduce((a, r) => a + r.credit, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Topbar title="Comptabilité" breadcrumb={["Finance", "Comptabilité"]} />
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+      <Topbar title="Comptabilité SYSCOHADA" breadcrumb={["Finance", "Comptabilité"]} />
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Comptabilité SYSCOHADA Révisé</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Plan Comptable OHADA · AUDCIF 2017 · Exercice 2025</p>
-          </div>
-          <button
-            style={{ backgroundColor: "#2E7D32" }}
-            className="flex items-center gap-2 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow hover:opacity-90 transition"
-          >
-            <Plus size={16} />
-            Nouvelle écriture
-          </button>
+      <main className="flex-1 p-6 space-y-6">
+        {/* KPIs */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { label: "Exercice", val: "2025", color: "text-gray-800 dark:text-white" },
+            { label: "Dernière clôture", val: "30/06/2025", color: "text-blue-600 dark:text-blue-400" },
+            { label: "Écritures saisies", val: "1 247", color: "text-[#2E7D32]" },
+            { label: "Balance vérifiée", val: "✅ Équilibrée", color: "text-emerald-600" },
+          ].map((k) => (
+            <div key={k.label} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{k.label}</p>
+              <p className={`mt-1 text-xl font-bold ${k.color}`}>{k.val}</p>
+            </div>
+          ))}
         </div>
 
-        {/* KPI */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-          {kpis.map((k) => {
-            const Icon = k.icon;
-            return (
-              <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-col gap-2 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-500">{k.label}</span>
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: k.bg }}>
-                    <Icon size={18} style={{ color: k.accent }} />
-                  </div>
-                </div>
-                <p className="text-xl font-bold text-gray-900">{k.value}</p>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Tabs nav */}
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-          {TABS.map((t) => (
+        {/* Onglets */}
+        <div className="flex gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-1 w-fit">
+          {tabs.map((t) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                tab === t.id
+                  ? "bg-[#2E7D32] text-white shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
-              {t}
+              {t.label}
             </button>
           ))}
         </div>
 
-        {/* ── TAB: JOURNAL ─────────────────────────────────────────────── */}
-        {tab === "Journal" && (
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="font-semibold text-gray-900">Journal général</h2>
-              <p className="text-xs text-gray-400 mt-0.5">10 dernières écritures — Conforme SYSCOHADA Révisé</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
-                    {["N°", "Date", "Compte débit", "Compte crédit", "Libellé", "Montant (XOF)", "Pièce"].map((h) => (
-                      <th key={h} className={`px-4 py-3 font-medium ${h === "Montant (XOF)" ? "text-right" : "text-left"}`}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {journalEntries.map((e) => (
-                    <tr key={e.num} className="hover:bg-gray-50 transition">
-                      <td className="px-4 py-3 text-xs font-mono text-gray-500 whitespace-nowrap">{e.num}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{e.date}</td>
-                      <td className="px-4 py-3 text-xs text-blue-700 whitespace-nowrap">{e.compteD}</td>
-                      <td className="px-4 py-3 text-xs text-green-700 whitespace-nowrap">{e.compteC}</td>
-                      <td className="px-4 py-3 text-xs text-gray-800">{e.libelle}</td>
-                      <td className="px-4 py-3 text-xs font-semibold text-right text-gray-900 whitespace-nowrap">{e.montant}</td>
-                      <td className="px-4 py-3 text-xs font-mono text-gray-400 whitespace-nowrap">{e.piece}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* ── TAB: GRAND LIVRE ─────────────────────────────────────────── */}
-        {tab === "Grand Livre" && (
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="font-semibold text-gray-900 mb-1">Grand Livre</h2>
-            <p className="text-xs text-gray-400 mb-6">Détail des mouvements par compte · Au 09/07/2025</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { compte: "411 – Clients", debit: "10 264 500", credit: "2 192 250", solde: "8 072 250 Dt", color: "#1565C0" },
-                { compte: "512 – Banque SGBCI", debit: "20 500 000", credit: "56 272 400", solde: "28 450 000 Cr*", color: "#2E7D32" },
-                { compte: "601 – Achats marchandises", debit: "10 572 400", credit: "0", solde: "10 572 400 Dt", color: "#D32F2F" },
-                { compte: "641 – Charges de personnel", debit: "42 350 000", credit: "0", solde: "42 350 000 Dt", color: "#D32F2F" },
-                { compte: "701 – Ventes", debit: "0", credit: "5 072 250", solde: "5 072 250 Cr", color: "#2E7D32" },
-                { compte: "401 – Fournisseurs", debit: "8 122 400", credit: "10 572 400", solde: "2 450 000 Cr", color: "#6A1B9A" },
-              ].map((c) => (
-                <div key={c.compte} className="rounded-xl border border-gray-100 p-4">
-                  <p className="text-xs font-semibold text-gray-700 mb-3">{c.compte}</p>
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Débit</span><span className="font-mono">{c.debit} XOF</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-500 mb-2">
-                    <span>Crédit</span><span className="font-mono">{c.credit} XOF</span>
-                  </div>
-                  <div className="border-t border-gray-100 pt-2 flex justify-between text-xs font-bold">
-                    <span>Solde</span>
-                    <span style={{ color: c.color }}>{c.solde}</span>
-                  </div>
-                </div>
+        {/* ── JOURNAUX ── */}
+        {tab === "journaux" && (
+          <div className="space-y-4">
+            {/* Filtre journal */}
+            <div className="flex flex-wrap gap-2">
+              {journalFilters.map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setJournalFilter(f)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    journalFilter === f
+                      ? "bg-[#2E7D32] text-white"
+                      : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-[#2E7D32] hover:text-[#2E7D32]"
+                  }`}
+                >
+                  {f}
+                </button>
               ))}
             </div>
+
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Journal général — 15 dernières écritures</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Conforme SYSCOHADA Révisé · AUDCIF 2017</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs min-w-[900px]">
+                  <thead>
+                    <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wide">
+                      <th className="px-4 py-3 text-left">Date</th>
+                      <th className="px-4 py-3 text-left">N° pièce</th>
+                      <th className="px-4 py-3 text-left">Jnl</th>
+                      <th className="px-4 py-3 text-left">Compte débit</th>
+                      <th className="px-4 py-3 text-left">Libellé</th>
+                      <th className="px-4 py-3 text-right">Débit (XOF)</th>
+                      <th className="px-4 py-3 text-left">Compte crédit</th>
+                      <th className="px-4 py-3 text-right">Crédit (XOF)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                    {filteredEntries.map((e, i) => (
+                      <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                        <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400 whitespace-nowrap">{e.date}</td>
+                        <td className="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400 whitespace-nowrap">{e.piece}</td>
+                        <td className="px-4 py-2.5">
+                          <span className={`px-2 py-0.5 rounded-full font-semibold text-xs ${journalBadge[e.journal] ?? "bg-gray-100 text-gray-600"}`}>
+                            {e.journal}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-blue-700 dark:text-blue-400 whitespace-nowrap font-mono text-xs">{e.compteD}</td>
+                        <td className="px-4 py-2.5 text-gray-700 dark:text-gray-300 max-w-[200px] truncate">{e.libelle}</td>
+                        <td className="px-4 py-2.5 text-right font-semibold text-gray-900 dark:text-white whitespace-nowrap">{fmtXOF(e.debit)}</td>
+                        <td className="px-4 py-2.5 text-emerald-700 dark:text-emerald-400 whitespace-nowrap font-mono text-xs">{e.compteC}</td>
+                        <td className="px-4 py-2.5 text-right font-semibold text-gray-900 dark:text-white whitespace-nowrap">{fmtXOF(e.credit)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* ── TAB: BALANCE ─────────────────────────────────────────────── */}
-        {tab === "Balance" && (
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="font-semibold text-gray-900">Balance des comptes</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Au 09/07/2025 · Classement SYSCOHADA par classe</p>
+        {/* ── BALANCE ── */}
+        {tab === "balance" && (
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white">Balance générale au 30/06/2025</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Comptes principaux SYSCOHADA · AGRIFRIK</p>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-xs min-w-[750px]">
                 <thead>
-                  <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
-                    {["Classe", "Intitulé", "Total débit (XOF)", "Total crédit (XOF)", "Solde"].map((h) => (
-                      <th key={h} className={`px-4 py-3 font-medium ${h.includes("débit") || h.includes("crédit") || h === "Solde" ? "text-right" : "text-left"}`}>{h}</th>
-                    ))}
+                  <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left">Compte</th>
+                    <th className="px-4 py-3 text-left">Intitulé</th>
+                    <th className="px-4 py-3 text-right">Débit cumul</th>
+                    <th className="px-4 py-3 text-right">Crédit cumul</th>
+                    <th className="px-4 py-3 text-right">Solde débiteur</th>
+                    <th className="px-4 py-3 text-right">Solde créditeur</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {balanceClasses.map((b) => (
-                    <tr key={b.classe} className="hover:bg-gray-50 transition">
-                      <td className="px-4 py-3 font-semibold text-gray-700 text-xs">{b.classe}</td>
-                      <td className="px-4 py-3 text-gray-800 text-xs">{b.libelle}</td>
-                      <td className="px-4 py-3 text-right text-xs font-mono text-blue-700">{b.debit === "0" ? "—" : b.debit}</td>
-                      <td className="px-4 py-3 text-right text-xs font-mono text-green-700">{b.credit === "0" ? "—" : b.credit}</td>
-                      <td className="px-4 py-3 text-right text-xs font-semibold text-gray-800">{b.solde}</td>
-                    </tr>
-                  ))}
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {["1","2","3","4","5","6","7"].map((cls) => {
+                    const rows = balanceData.filter((r) => r.classe === cls);
+                    return (
+                      <>
+                        <tr key={`header-${cls}`} className="bg-gray-50 dark:bg-gray-800/50">
+                          <td colSpan={6} className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
+                            {classeLabels[cls]}
+                          </td>
+                        </tr>
+                        {rows.map((r) => (
+                          <tr key={r.compte} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                            <td className="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400">{r.compte}</td>
+                            <td className="px-4 py-2.5 text-gray-800 dark:text-gray-200">{r.intitule}</td>
+                            <td className="px-4 py-2.5 text-right text-blue-700 dark:text-blue-400">{r.debit ? fmtXOF(r.debit) : "—"}</td>
+                            <td className="px-4 py-2.5 text-right text-emerald-700 dark:text-emerald-400">{r.credit ? fmtXOF(r.credit) : "—"}</td>
+                            <td className="px-4 py-2.5 text-right font-semibold text-gray-800 dark:text-gray-200">{r.soldeDt ? fmtXOF(r.soldeDt) : "—"}</td>
+                            <td className="px-4 py-2.5 text-right font-semibold text-gray-800 dark:text-gray-200">{r.soldeCr ? fmtXOF(r.soldeCr) : "—"}</td>
+                          </tr>
+                        ))}
+                      </>
+                    );
+                  })}
                 </tbody>
                 <tfoot>
-                  <tr className="bg-gray-50 font-bold text-xs border-t-2 border-gray-200">
-                    <td className="px-4 py-3 text-gray-700" colSpan={2}>Totaux</td>
-                    <td className="px-4 py-3 text-right text-blue-700">{totalDebit}</td>
-                    <td className="px-4 py-3 text-right text-green-700">{totalCredit}</td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#FFF3E0", color: "#E65100" }}>
-                        Écart : 16 980 000
+                  <tr className="bg-[#1B5E20] text-white font-bold text-xs border-t-2 border-[#1B5E20]">
+                    <td className="px-4 py-3" colSpan={2}>Total général</td>
+                    <td className="px-4 py-3 text-right">{fmtXOF(totalDebit)}</td>
+                    <td className="px-4 py-3 text-right">{fmtXOF(totalCredit)}</td>
+                    <td className="px-4 py-3 text-right" colSpan={2}>
+                      <span className="bg-green-700 px-3 py-1 rounded-full text-white text-xs">
+                        {totalDebit === totalCredit ? "✅ Balance équilibrée" : "⚠️ Écart"}
                       </span>
                     </td>
                   </tr>
@@ -248,45 +355,135 @@ export default function ComptabilitePage() {
           </div>
         )}
 
-        {/* ── TAB: ÉTATS FINANCIERS ────────────────────────────────────── */}
-        {tab === "États financiers" && (
-          <div>
-            <h2 className="text-base font-semibold text-gray-800 mb-4">États financiers · Exercice 2025</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {etats.map((e) => (
-                <div key={e.titre} className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5 flex flex-col gap-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold text-gray-900">{e.titre}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{e.desc}</p>
-                    </div>
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: e.bg }}>
-                      <FileText size={16} style={{ color: e.accent }} />
-                    </div>
-                  </div>
-                  <ul className="space-y-1.5">
-                    {e.items.map((item) => (
-                      <li key={item} className="flex items-center gap-2 text-xs text-gray-600">
-                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: e.accent }} />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <a
-                    href={e.href}
-                    className="mt-auto flex items-center gap-1.5 text-xs font-semibold"
-                    style={{ color: e.accent }}
+        {/* ── GRAND LIVRE ── */}
+        {tab === "grandlivre" && (
+          <div className="space-y-4">
+            {/* Sélecteur compte */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm">
+              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Compte</label>
+              <input
+                type="text"
+                value={glSearch}
+                onChange={(e) => setGlSearch(e.target.value)}
+                className="w-full sm:w-72 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                placeholder="Ex: 411000 Clients"
+              />
+              <div className="flex flex-wrap gap-2 mt-2">
+                {["411000 Clients", "521000 BICICI", "701000 Ventes cacao", "641000 Salaires"].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setGlSearch(s)}
+                    className="text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-[#2E7D32] hover:text-white transition-colors"
                   >
-                    Voir complet
-                    <ExternalLink size={12} />
-                  </a>
-                </div>
-              ))}
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Fiche de compte : {glSearch}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Mouvements du 01/01/2025 au 30/06/2025</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs min-w-[700px]">
+                  <thead>
+                    <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wide">
+                      <th className="px-4 py-3 text-left">Date</th>
+                      <th className="px-4 py-3 text-left">N° pièce</th>
+                      <th className="px-4 py-3 text-left">Libellé</th>
+                      <th className="px-4 py-3 text-right">Débit</th>
+                      <th className="px-4 py-3 text-right">Crédit</th>
+                      <th className="px-4 py-3 text-right">Solde</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                    {grandLivreEntries.map((e, i) => (
+                      <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                        <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400 whitespace-nowrap">{e.date}</td>
+                        <td className="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400 whitespace-nowrap">{e.piece}</td>
+                        <td className="px-4 py-2.5 text-gray-700 dark:text-gray-300 max-w-[260px] truncate">{e.libelle}</td>
+                        <td className="px-4 py-2.5 text-right text-blue-700 dark:text-blue-400 font-semibold">{e.debit ? fmtXOF(e.debit) : "—"}</td>
+                        <td className="px-4 py-2.5 text-right text-emerald-700 dark:text-emerald-400 font-semibold">{e.credit ? fmtXOF(e.credit) : "—"}</td>
+                        <td className={`px-4 py-2.5 text-right font-bold ${e.solde >= 0 ? "text-gray-900 dark:text-white" : "text-red-600"}`}>
+                          {fmtXOF(Math.abs(e.solde))}{e.solde < 0 ? " Cr" : " Dt"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-[#1B5E20] text-white font-bold text-xs">
+                      <td className="px-4 py-3" colSpan={5}>Solde au 30/06/2025</td>
+                      <td className="px-4 py-3 text-right text-lg">24 600 000 XOF Débiteur</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
           </div>
         )}
 
-      </div>
+        {/* ── PLAN COMPTABLE ── */}
+        {tab === "plancomptable" && (
+          <div className="space-y-4">
+            {/* Chips classes */}
+            <div className="flex flex-wrap gap-2">
+              {(["1","2","3","4","5","6","7","8"] as ClasseFilter[]).map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setClasseFilter(c)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    classeFilter === c
+                      ? "bg-[#2E7D32] text-white"
+                      : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-[#2E7D32] hover:text-[#2E7D32]"
+                  }`}
+                >
+                  Classe {c}
+                </button>
+              ))}
+            </div>
+
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                  {classeLabels[classeFilter]} — Plan comptable SYSCOHADA révisé
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">Comptes AGRIFRIK · AUDCIF 2017</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[600px]">
+                  <thead>
+                    <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      <th className="px-4 py-3 text-left">Numéro</th>
+                      <th className="px-4 py-3 text-left">Intitulé SYSCOHADA</th>
+                      <th className="px-4 py-3 text-center">Utilisé</th>
+                      <th className="px-4 py-3 text-right">Solde actuel</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                    {(planComptable[classeFilter] ?? []).map((r) => (
+                      <tr key={r.num} className={`hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors ${!r.utilise ? "opacity-50" : ""}`}>
+                        <td className="px-4 py-3 font-mono text-gray-600 dark:text-gray-400 text-xs">{r.num}</td>
+                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200 font-medium">{r.intitule}</td>
+                        <td className="px-4 py-3 text-center">
+                          {r.utilise
+                            ? <span className="inline-flex items-center justify-center w-6 h-6 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-bold">✓</span>
+                            : <span className="inline-flex items-center justify-center w-6 h-6 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full text-xs">—</span>
+                          }
+                        </td>
+                        <td className={`px-4 py-3 text-right font-semibold text-sm ${r.utilise ? "text-gray-900 dark:text-white" : "text-gray-400"}`}>
+                          {r.solde}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

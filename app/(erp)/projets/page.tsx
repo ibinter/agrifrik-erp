@@ -7,498 +7,423 @@ import {
   Wallet,
   TrendingUp,
   AlertTriangle,
-  CheckCircle,
-  Circle,
-  Clock,
-  AlertCircle,
+  Users,
+  Calendar,
+  ChevronRight,
+  Filter,
 } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type EtapeStatut = "done" | "active" | "todo";
-
-interface Etape {
-  label: string;
-  statut: EtapeStatut;
-}
-
-interface Projet {
-  id: string;
-  titre: string;
-  emoji: string;
-  ref: string;
-  budget: number;
-  depense: number;
-  chef: string;
-  debut: string;
-  fin: string;
-  avancement: number;
-  statut: "actif" | "planifie" | "termine";
-  etapes: Etape[];
-  note?: string;
-  alerte?: string;
-  succes?: string;
-  badge?: string;
-  color: string;
-  ganttStart: number; // mois 1-12
-  ganttEnd: number;
-}
-
-// ─── Données ──────────────────────────────────────────────────────────────────
-
-const projets: Projet[] = [
-  {
-    id: "PRJ-2025-001",
-    titre: "Extension surface cacao",
-    emoji: "🌿",
-    ref: "PRJ-2025-001",
-    budget: 28400000,
-    depense: 14200000,
-    chef: "Ibrahim Sawadogo",
-    debut: "Jan 2025",
-    fin: "Déc 2025",
-    avancement: 52,
-    statut: "actif",
-    etapes: [
-      { label: "Acquisition terres", statut: "done" },
-      { label: "Défrichage", statut: "done" },
-      { label: "Plantation", statut: "active" },
-      { label: "Taille formation", statut: "todo" },
-      { label: "1ère récolte", statut: "todo" },
-    ],
-    note: "Ibrahim S. : Plantation PAR-F3 terminée (3,8 ha sur 8,5 ha)",
-    color: "#2E7D32",
-    ganttStart: 1,
-    ganttEnd: 12,
-  },
-  {
-    id: "PRJ-2025-002",
-    titre: "Système d'irrigation goutte-à-goutte",
-    emoji: "💧",
-    ref: "PRJ-2025-002",
-    budget: 18000000,
-    depense: 4200000,
-    chef: "Bamba Oumar",
-    debut: "Mar 2025",
-    fin: "Sep 2025",
-    avancement: 35,
-    statut: "actif",
-    etapes: [
-      { label: "Étude faisabilité", statut: "done" },
-      { label: "Commande matériels", statut: "done" },
-      { label: "Installation zone A", statut: "active" },
-      { label: "Zone B", statut: "todo" },
-      { label: "Tests", statut: "todo" },
-      { label: "Formation", statut: "todo" },
-    ],
-    alerte: "Livraison matériels retardée (fournisseur DHL — 15 jours de retard)",
-    color: "#1565C0",
-    ganttStart: 3,
-    ganttEnd: 9,
-  },
-  {
-    id: "PRJ-2025-003",
-    titre: "Construction entrepôt B",
-    emoji: "🏗️",
-    ref: "PRJ-2025-003",
-    budget: 12000000,
-    depense: 8400000,
-    chef: "Jean-Baptiste Koffi",
-    debut: "Fév 2025",
-    fin: "Aoû 2025",
-    avancement: 78,
-    statut: "actif",
-    etapes: [
-      { label: "Plans & permis", statut: "done" },
-      { label: "Fondations", statut: "done" },
-      { label: "Gros œuvre", statut: "done" },
-      { label: "Toiture", statut: "active" },
-      { label: "Finitions", statut: "todo" },
-      { label: "Réception", statut: "todo" },
-    ],
-    succes: "En avance de 2 semaines sur le planning",
-    color: "#E65100",
-    ganttStart: 2,
-    ganttEnd: 8,
-  },
-  {
-    id: "PRJ-2025-004",
-    titre: "Certification GlobalG.A.P.",
-    emoji: "📜",
-    ref: "PRJ-2025-004",
-    budget: 2400000,
-    depense: 2400000,
-    chef: "Jean-Baptiste Koffi",
-    debut: "Jan 2025",
-    fin: "Juin 2025",
-    avancement: 100,
-    statut: "termine",
-    etapes: [],
-    badge: "Certificat obtenu le 15/06/2025",
-    color: "#6A1B9A",
-    ganttStart: 1,
-    ganttEnd: 6,
-  },
-  {
-    id: "PRJ-2025-005",
-    titre: "Formation RH & Compétences",
-    emoji: "👥",
-    ref: "PRJ-2025-005",
-    budget: 1200000,
-    depense: 1200000,
-    chef: "Adjoa Koffi",
-    debut: "Jan 2025",
-    fin: "Mar 2025",
-    avancement: 100,
-    statut: "termine",
-    etapes: [],
-    badge: "145 personnes formées",
-    color: "#00695C",
-    ganttStart: 1,
-    ganttEnd: 3,
-  },
-  {
-    id: "PRJ-2025-006",
-    titre: "Drone surveillance parcellaire",
-    emoji: "🚁",
-    ref: "PRJ-2025-006",
-    budget: 6400000,
-    depense: 1800000,
-    chef: "Ibrahim Sawadogo",
-    debut: "Mai 2025",
-    fin: "Déc 2025",
-    avancement: 30,
-    statut: "actif",
-    etapes: [
-      { label: "Achat drone DJI T40", statut: "done" },
-      { label: "Formation pilote", statut: "done" },
-      { label: "Cartographie initiale", statut: "active" },
-      { label: "Protocole suivi", statut: "todo" },
-      { label: "Intégration IA", statut: "todo" },
-    ],
-    color: "#4527A0",
-    ganttStart: 5,
-    ganttEnd: 12,
-  },
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmt(n: number) {
-  if (n >= 1_000_000) return (n / 1_000_000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " M XOF";
-  return n.toLocaleString("fr-FR") + " XOF";
-}
-
-function pct(a: number, b: number) {
-  return Math.round((a / b) * 100);
-}
-
-// ─── Sous-composants ──────────────────────────────────────────────────────────
-
-function EtapeIcon({ statut }: { statut: EtapeStatut }) {
-  if (statut === "done") return <CheckCircle size={14} className="text-green-600 shrink-0" />;
-  if (statut === "active") return <Clock size={14} className="text-blue-500 shrink-0" />;
-  return <Circle size={14} className="text-gray-300 shrink-0" />;
-}
-
-function ProjetCard({ p }: { p: Projet }) {
-  const budgetPct = pct(p.depense, p.budget);
-  const isTermine = p.avancement === 100;
-
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm flex flex-col gap-4">
-      {/* En-tête */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-xl shrink-0">{p.emoji}</span>
-          <div className="min-w-0">
-            <p className="text-[10px] font-mono text-gray-400">{p.ref}</p>
-            <h3 className="text-sm font-bold text-gray-900 leading-tight">{p.titre}</h3>
-          </div>
-        </div>
-        {isTermine ? (
-          <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800">
-            <CheckCircle size={11} /> Terminé
-          </span>
-        ) : (
-          <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-            <Clock size={11} /> En cours
-          </span>
-        )}
-      </div>
-
-      {/* Infos chiffrées */}
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wide">Budget</p>
-          <p className="font-bold text-gray-900">{fmt(p.budget)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wide">Dépensé</p>
-          <p className="font-semibold" style={{ color: p.color }}>
-            {fmt(p.depense)}{" "}
-            <span className="text-xs font-normal text-gray-500">({budgetPct}%)</span>
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wide">Chef de projet</p>
-          <p className="font-medium text-gray-800">{p.chef}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wide">Période</p>
-          <p className="font-medium text-gray-800">
-            {p.debut} → {p.fin}
-          </p>
-        </div>
-      </div>
-
-      {/* Avancement */}
-      {!isTermine && (
-        <div>
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-            <span>Avancement global</span>
-            <span className="font-bold" style={{ color: p.color }}>
-              {p.avancement}%
-            </span>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-2.5">
-            <div
-              className="h-2.5 rounded-full transition-all"
-              style={{ width: `${p.avancement}%`, background: p.color }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Badge terminé */}
-      {p.badge && (
-        <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: p.color }}>
-          <CheckCircle size={16} />
-          {p.badge}
-        </div>
-      )}
-
-      {/* Étapes */}
-      {p.etapes.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">Étapes</p>
-          {p.etapes.map((e) => (
-            <div key={e.label} className="flex items-center gap-2 text-xs">
-              <EtapeIcon statut={e.statut} />
-              <span
-                className={
-                  e.statut === "done"
-                    ? "text-gray-500 line-through"
-                    : e.statut === "active"
-                    ? "font-semibold text-blue-700"
-                    : "text-gray-400"
-                }
-              >
-                {e.label}
-                {e.statut === "active" && (
-                  <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium no-underline">
-                    en cours
-                  </span>
-                )}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Alertes / succès / note */}
-      {p.alerte && (
-        <div className="flex items-start gap-2 text-xs p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
-          <AlertTriangle size={13} className="shrink-0 mt-0.5" />
-          {p.alerte}
-        </div>
-      )}
-      {p.succes && (
-        <div className="flex items-start gap-2 text-xs p-3 rounded-xl bg-green-50 border border-green-200 text-green-800">
-          <CheckCircle size={13} className="shrink-0 mt-0.5" />
-          {p.succes}
-        </div>
-      )}
-      {p.note && (
-        <div className="text-xs p-3 rounded-xl bg-gray-50 border border-gray-100 text-gray-600">
-          <span className="font-semibold">Dernière MàJ — </span>
-          {p.note}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Gantt simplifié ──────────────────────────────────────────────────────────
-
-const MOIS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
-
-function GanttChart() {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm overflow-x-auto">
-      <h3 className="text-base font-semibold text-gray-900 mb-4">Timeline des projets 2025</h3>
-      <div className="min-w-[640px]">
-        {/* En-tête mois */}
-        <div className="flex mb-2" style={{ paddingLeft: 176 }}>
-          {MOIS.map((m) => (
-            <div key={m} className="flex-1 text-center text-[10px] text-gray-400 font-semibold uppercase">
-              {m}
-            </div>
-          ))}
-        </div>
-        {/* Lignes */}
-        <div className="space-y-2">
-          {projets.map((p) => {
-            const left = ((p.ganttStart - 1) / 12) * 100;
-            const width = ((p.ganttEnd - p.ganttStart + 1) / 12) * 100;
-            return (
-              <div key={p.id} className="flex items-center gap-2">
-                <div className="w-44 shrink-0 text-xs font-medium text-gray-700 truncate flex items-center gap-1">
-                  <span>{p.emoji}</span>
-                  <span className="truncate">{p.titre}</span>
-                </div>
-                <div className="relative flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="absolute top-0 h-full rounded-full flex items-center justify-end pr-2"
-                    style={{ left: `${left}%`, width: `${width}%`, background: p.color }}
-                  >
-                    <span className="text-[10px] text-white font-bold">{p.avancement}%</span>
-                  </div>
-                  {/* Progress overlay */}
-                  <div
-                    className="absolute top-0 h-full rounded-full opacity-30"
-                    style={{
-                      left: `${left}%`,
-                      width: `${(width * p.avancement) / 100}%`,
-                      background: "#fff",
-                    }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── KPI ──────────────────────────────────────────────────────────────────────
+const TABS = ["Projets", "Gantt", "Tâches", "Ressources"] as const;
+type Tab = (typeof TABS)[number];
 
 const kpis = [
+  { label: "Projets actifs", value: "5", icon: FolderOpen, color: "text-green-700", bg: "bg-green-50" },
+  { label: "Budget total", value: "108 M XOF", icon: Wallet, color: "text-blue-700", bg: "bg-blue-50" },
+  { label: "Avancement moyen", value: "72%", icon: TrendingUp, color: "text-orange-700", bg: "bg-orange-50" },
+  { label: "Tâches en retard", value: "3", icon: AlertTriangle, color: "text-red-700", bg: "bg-red-50" },
+];
+
+const projets = [
   {
-    label: "Projets actifs",
-    value: "5",
-    sub: "en cours",
-    color: "#2E7D32",
-    icon: <FolderOpen size={20} />,
+    id: "P001",
+    nom: "Certification RA Collective 2025",
+    responsable: "Ibrahim Sawadogo",
+    equipe: 6,
+    budget: "4,0 M XOF",
+    depense: 3.6,
+    total: 4.0,
+    avancement: 78,
+    debut: "Jan 2025",
+    fin: "Sept 2025",
+    prochaine: "Audit externe RA — 15/09/2025",
+    color: "border-green-300 bg-green-50/40",
+    badge: "bg-green-100 text-green-800",
+    bar: "bg-green-500",
   },
   {
-    label: "Budget total projets",
-    value: "68,4 M XOF",
-    sub: "tous projets confondus",
-    color: "#1565C0",
-    icon: <Wallet size={20} />,
+    id: "P002",
+    nom: "FAO-AGRIFRIK-2023",
+    responsable: "Jean-Baptiste Kouassi",
+    equipe: 8,
+    budget: "48 M XOF",
+    depense: 37.4,
+    total: 48,
+    avancement: 78,
+    debut: "Jan 2023",
+    fin: "Déc 2025",
+    prochaine: "Rapport S1 2025 — 31/07/2025",
+    color: "border-blue-300 bg-blue-50/40",
+    badge: "bg-blue-100 text-blue-800",
+    bar: "bg-blue-500",
   },
   {
-    label: "Avancement moyen",
-    value: "58%",
-    sub: "projets actifs",
-    color: "#E65100",
-    icon: <TrendingUp size={20} />,
+    id: "P003",
+    nom: "Nouvelle exploitation Gagnoa",
+    responsable: "Admin",
+    equipe: 4,
+    budget: "12,4 M XOF",
+    depense: 5.2,
+    total: 12.4,
+    avancement: 42,
+    debut: "Sep 2023",
+    fin: "Déc 2026",
+    prochaine: "Titre foncier — délai incertain",
+    color: "border-orange-300 bg-orange-50/40",
+    badge: "bg-orange-100 text-orange-800",
+    bar: "bg-orange-500",
   },
   {
-    label: "Projets en retard",
-    value: "1",
-    sub: "irrigation — +15 jours",
-    color: "#C62828",
-    icon: <AlertCircle size={20} />,
+    id: "P004",
+    nom: "ANADER Coopérative",
+    responsable: "Mariam Kouyaté",
+    equipe: 5,
+    budget: "24 M XOF",
+    depense: 15.4,
+    total: 24,
+    avancement: 64,
+    debut: "Mar 2024",
+    fin: "Fév 2026",
+    prochaine: "Bureau coopérative livraison — Oct 2025",
+    color: "border-purple-300 bg-purple-50/40",
+    badge: "bg-purple-100 text-purple-800",
+    bar: "bg-purple-500",
+  },
+  {
+    id: "P005",
+    nom: "WB Agriculture Intelligente",
+    responsable: "Jean-Baptiste K.",
+    equipe: 6,
+    budget: "36 M XOF",
+    depense: 31.7,
+    total: 36,
+    avancement: 88,
+    debut: "Jan 2025",
+    fin: "Déc 2025",
+    prochaine: "Rapport final — Nov 2025",
+    color: "border-teal-300 bg-teal-50/40",
+    badge: "bg-teal-100 text-teal-800",
+    bar: "bg-teal-500",
   },
 ];
 
-type Onglet = "actifs" | "planifies" | "termines" | "tous";
+// Gantt: quarter columns from Q1'23 to Q4'25 = 12 quarters
+// Each project: startQ index, endQ index (0-based)
+const quarters = [
+  "Q1'23","Q2'23","Q3'23","Q4'23",
+  "Q1'24","Q2'24","Q3'24","Q4'24",
+  "Q1'25","Q2'25","Q3'25","Q4'25",
+];
+const ganttProjects = [
+  { id: "P001", label: "P001 — Certification RA", startQ: 8, endQ: 11, pct: 78, color: "#4CAF50", milestone: 10 },
+  { id: "P002", label: "P002 — FAO-AGRIFRIK", startQ: 0, endQ: 11, pct: 78, color: "#2196F3", milestone: null },
+  { id: "P003", label: "P003 — Exploit. Gagnoa", startQ: 2, endQ: 15, pct: 42, color: "#FF9800", milestone: null },
+  { id: "P004", label: "P004 — ANADER Coop.", startQ: 5, endQ: 13, pct: 64, color: "#9C27B0", milestone: null },
+  { id: "P005", label: "P005 — WB Agri. Int.", startQ: 8, endQ: 11, pct: 88, color: "#009688", milestone: null },
+];
+// today marker at Q10 (Q3'25 = index 10)
+const todayQ = 10;
 
-// ─── Page principale ──────────────────────────────────────────────────────────
+const taches = [
+  { tache: "Panneau sécurité PAR-C1", projet: "P001", resp: "Ibrahim S.", prio: "Haute", due: "01/09", statut: "En cours" },
+  { tache: "Analyse eau potable", projet: "P001", resp: "Ibrahim S.", prio: "Haute", due: "31/07", statut: "En retard" },
+  { tache: "Registre riverains 2025", projet: "P001", resp: "Ibrahim S.", prio: "Moyen", due: "01/08", statut: "En cours" },
+  { tache: "Rapport WB Q2", projet: "P002/P005", resp: "JB. Kouassi", prio: "Haute", due: "31/07", statut: "En cours" },
+  { tache: "Livraison bureau COOP", projet: "P004", resp: "Mariam K.", prio: "Moyen", due: "Oct 2025", statut: "À venir" },
+  { tache: "Évaluation mi-parcours FAO", projet: "P002", resp: "JB. Kouassi", prio: "Haute", due: "Aoû 2025", statut: "À venir" },
+  { tache: "Cartographie parcelles", projet: "P003", resp: "Admin", prio: "Moyen", due: "Sep 2025", statut: "En cours" },
+  { tache: "Formation agriculteurs IA", projet: "P005", resp: "JB. Kouassi", prio: "Moyen", due: "Oct 2025", statut: "À venir" },
+  { tache: "Rapport final WB", projet: "P005", resp: "JB. Kouassi", prio: "Haute", due: "Nov 2025", statut: "À venir" },
+  { tache: "Audit RA externe", projet: "P001", resp: "Ibrahim S.", prio: "Haute", due: "15/09", statut: "À venir" },
+  { tache: "Titre foncier Gagnoa", projet: "P003", resp: "Admin", prio: "Haute", due: "Indéfini", statut: "En retard" },
+  { tache: "Réunion CA COOP", projet: "P004", resp: "Mariam K.", prio: "Faible", due: "Aoû 2025", statut: "À venir" },
+  { tache: "Rapport annuel coopérative", projet: "P004", resp: "Mariam K.", prio: "Moyen", due: "Fév 2026", statut: "À venir" },
+  { tache: "Clôture administrative FAO", projet: "P002", resp: "JB. Kouassi", prio: "Haute", due: "Déc 2025", statut: "À venir" },
+  { tache: "Démo drone agricole", projet: "P005", resp: "JB. Kouassi", prio: "Faible", due: "Sep 2025", statut: "En cours" },
+];
+
+const ressources = [
+  { nom: "Ibrahim Sawadogo", p1: 12, p2: 4, p3: 2, p4: 0, p5: 2, charge: "Élevé" },
+  { nom: "Jean-Baptiste K.", p1: 0, p2: 8, p3: 0, p4: 2, p5: 8, charge: "Élevé" },
+  { nom: "Mariam Kouyaté", p1: 0, p2: 2, p3: 0, p4: 12, p5: 0, charge: "Normal" },
+  { nom: "Admin", p1: 2, p2: 0, p3: 8, p4: 0, p5: 0, charge: "Normal" },
+  { nom: "Konan Yao", p1: 6, p2: 0, p3: 0, p4: 2, p5: 0, charge: "Normal" },
+];
+
+const pctColor = (pct: number) => {
+  if (pct >= 80) return "text-green-600";
+  if (pct >= 50) return "text-blue-600";
+  return "text-orange-600";
+};
+
+const statutStyle = (s: string) => {
+  if (s === "En retard") return "bg-red-50 text-red-700";
+  if (s === "En cours") return "bg-yellow-50 text-yellow-700";
+  if (s === "À venir") return "bg-blue-50 text-blue-700";
+  return "bg-gray-50 text-gray-700";
+};
+
+const prioStyle = (p: string) => {
+  if (p === "Haute") return "text-red-600";
+  if (p === "Moyen") return "text-yellow-600";
+  return "text-gray-400";
+};
 
 export default function ProjetsPage() {
-  const [onglet, setOnglet] = useState<Onglet>("actifs");
-
-  const filtres: Record<Onglet, Projet[]> = {
-    actifs: projets.filter((p) => p.statut === "actif"),
-    planifies: projets.filter((p) => p.statut === "planifie"),
-    termines: projets.filter((p) => p.statut === "termine"),
-    tous: projets,
-  };
-
-  const displayed = filtres[onglet];
-
-  const tabs: { key: Onglet; label: string; count: number }[] = [
-    { key: "actifs", label: "Actifs", count: filtres.actifs.length },
-    { key: "planifies", label: "Planifiés", count: filtres.planifies.length },
-    { key: "termines", label: "Terminés", count: filtres.termines.length },
-    { key: "tous", label: "Tous", count: filtres.tous.length },
-  ];
+  const [activeTab, setActiveTab] = useState<Tab>("Projets");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Topbar title="Projets" breadcrumb={["Administration", "Projets"]} />
+    <div className="flex-1 flex flex-col min-h-0 bg-[#F8FBF8]">
+      <Topbar title="Gestion de Projets" breadcrumb={["RH & Social", "Projets"]} />
 
-      <div className="p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {kpis.map((k) => (
-            <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-gray-500">{k.label}</p>
-                <span style={{ color: k.color }}>{k.icon}</span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {kpis.map((k, i) => (
+            <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5">
+              <div className={`w-9 h-9 rounded-xl ${k.bg} flex items-center justify-center mb-3`}>
+                <k.icon className={`w-4 h-4 ${k.color}`} />
               </div>
-              <p className="text-2xl font-bold" style={{ color: k.color }}>
-                {k.value}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">{k.sub}</p>
+              <p className="text-xs text-gray-500">{k.label}</p>
+              <p className="text-lg font-bold text-gray-800 mt-0.5">{k.value}</p>
             </div>
           ))}
         </div>
 
-        {/* Onglets */}
-        <div className="flex items-center gap-2 border-b border-gray-200">
-          {tabs.map((t) => (
+        {/* Tabs */}
+        <div className="flex gap-1 bg-white rounded-xl border border-gray-100 p-1 w-fit">
+          {TABS.map((t) => (
             <button
-              key={t.key}
-              onClick={() => setOnglet(t.key)}
-              className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
-                onglet === t.key
-                  ? "border-green-700 text-green-700"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+              key={t}
+              onClick={() => setActiveTab(t)}
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
+                activeTab === t ? "bg-[#2E7D32] text-white" : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              {t.label}
-              <span
-                className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                  onglet === t.key ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-500"
-                }`}
-              >
-                {t.count}
-              </span>
+              {t}
             </button>
           ))}
         </div>
 
-        {/* Grille projets */}
-        {displayed.length > 0 ? (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-            {displayed.map((p) => (
-              <ProjetCard key={p.id} p={p} />
+        {/* PROJETS */}
+        {activeTab === "Projets" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {projets.map((p, i) => (
+              <div key={i} className={`rounded-2xl border-2 bg-white p-5 ${p.color}`}>
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded-lg mb-1 ${p.badge}`}>{p.id}</span>
+                    <h3 className="text-sm font-bold text-gray-800">{p.nom}</h3>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0 mt-1" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mb-3 text-xs text-gray-600">
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-gray-400" />
+                    <span>{p.responsable}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-gray-400" />
+                    <span>{p.equipe} personnes</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Wallet className="w-3.5 h-3.5 text-gray-400" />
+                    <span>Budget : {p.budget}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                    <span>{p.debut} → {p.fin}</span>
+                  </div>
+                </div>
+
+                {/* Progress */}
+                <div className="mb-3">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-gray-500">Avancement</span>
+                    <span className={`font-bold ${pctColor(p.avancement)}`}>{p.avancement}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full">
+                    <div className={`h-2 rounded-full ${p.bar}`} style={{ width: `${p.avancement}%` }} />
+                  </div>
+                </div>
+
+                {/* Budget bar */}
+                <div className="mb-3">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-gray-500">Budget dépensé</span>
+                    <span className="font-medium text-gray-700">{Math.round((p.depense / p.total) * 100)}%</span>
+                  </div>
+                  <div className="h-1.5 bg-gray-100 rounded-full">
+                    <div className="h-1.5 bg-gray-400 rounded-full" style={{ width: `${Math.min(100, (p.depense / p.total) * 100)}%` }} />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+                  <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                  <span>Prochaine étape : <span className="font-medium text-gray-700">{p.prochaine}</span></span>
+                </div>
+              </div>
             ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center text-gray-400">
-            Aucun projet dans cette catégorie.
           </div>
         )}
 
-        {/* Gantt */}
-        <GanttChart />
+        {/* GANTT */}
+        {activeTab === "Gantt" && (
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <h2 className="text-sm font-semibold text-gray-800 mb-4">Diagramme Gantt — 2023 à 2025</h2>
+            <div className="overflow-x-auto">
+              <svg width={860} height={220} viewBox="0 0 860 220" className="min-w-[700px]">
+                {/* Header */}
+                {quarters.map((q, i) => (
+                  <g key={i}>
+                    <rect x={160 + i * 58} y={0} width={58} height={28} fill={i % 4 === 0 ? "#E8F5E9" : "#F8FBF8"} />
+                    <text x={160 + i * 58 + 29} y={18} textAnchor="middle" fontSize={9} fill="#666" fontWeight={i % 4 === 0 ? "600" : "400"}>{q}</text>
+                    <line x1={160 + i * 58} y1={0} x2={160 + i * 58} y2={220} stroke="#e5e7eb" strokeWidth={0.5} />
+                  </g>
+                ))}
+                {/* Today marker */}
+                <line x1={160 + todayQ * 58 + 29} y1={0} x2={160 + todayQ * 58 + 29} y2={220} stroke="#ef4444" strokeWidth={1.5} strokeDasharray="4,3" />
+                <text x={160 + todayQ * 58 + 32} y={12} fontSize={8} fill="#ef4444" fontWeight="600">Auj.</text>
+
+                {ganttProjects.map((gp, i) => {
+                  const y = 40 + i * 34;
+                  const startX = 160 + gp.startQ * 58;
+                  const visibleEnd = Math.min(gp.endQ, 11);
+                  const endX = 160 + (visibleEnd + 1) * 58;
+                  const width = endX - startX;
+                  const doneWidth = (gp.pct / 100) * width;
+                  return (
+                    <g key={i}>
+                      {/* Project label */}
+                      <text x={155} y={y + 13} textAnchor="end" fontSize={9} fill="#374151" fontWeight="500">{gp.label}</text>
+                      {/* Background bar */}
+                      <rect x={startX} y={y} width={width} height={22} rx={4} fill={gp.color} opacity={0.2} />
+                      {/* Progress bar */}
+                      <rect x={startX} y={y} width={doneWidth} height={22} rx={4} fill={gp.color} opacity={0.8} />
+                      {/* % label */}
+                      <text x={startX + doneWidth / 2} y={y + 14} textAnchor="middle" fontSize={9} fill="white" fontWeight="600">{gp.pct}%</text>
+                      {/* Milestone diamond */}
+                      {gp.milestone !== null && (
+                        <g transform={`translate(${160 + gp.milestone * 58 + 29}, ${y + 11})`}>
+                          <polygon points="0,-7 7,0 0,7 -7,0" fill="#1B5E20" />
+                          <text x={0} y={18} textAnchor="middle" fontSize={7} fill="#1B5E20" fontWeight="600">AUDIT</text>
+                        </g>
+                      )}
+                      {/* Overflow arrow if project extends beyond Q4'25 */}
+                      {gp.endQ > 11 && (
+                        <text x={160 + 12 * 58 + 4} y={y + 15} fontSize={10} fill={gp.color}>→</text>
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+            <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+              <div className="flex items-center gap-1.5"><span className="w-6 h-2 bg-green-400 rounded-full inline-block" /> Réalisé</div>
+              <div className="flex items-center gap-1.5"><span className="w-6 h-2 bg-gray-200 rounded-full inline-block" /> Planifié</div>
+              <div className="flex items-center gap-1.5"><span className="w-0.5 h-4 bg-red-500 inline-block" /> Aujourd'hui</div>
+              <div className="flex items-center gap-1.5">
+                <svg width={12} height={12}><polygon points="6,0 12,6 6,12 0,6" fill="#1B5E20" /></svg>
+                Jalon
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TACHES */}
+        {activeTab === "Tâches" && (
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              {["Projet", "Responsable", "Statut", "Priorité"].map((f, i) => (
+                <button key={i} className="flex items-center gap-1.5 px-3 py-2 text-xs border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+                  <Filter className="w-3.5 h-3.5" /> {f}
+                </button>
+              ))}
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-[#F8FBF8]">
+                    {["Tâche", "Projet", "Responsable", "Priorité", "Échéance", "Statut"].map((h, i) => (
+                      <th key={i} className="text-left px-3 py-2 font-semibold text-gray-600">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {taches.map((t, i) => (
+                    <tr key={i} className="border-t border-gray-50 hover:bg-gray-50/50">
+                      <td className="px-3 py-2.5 font-medium text-gray-800">{t.tache}</td>
+                      <td className="px-3 py-2.5">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700">{t.projet}</span>
+                      </td>
+                      <td className="px-3 py-2.5 text-gray-600">{t.resp}</td>
+                      <td className={`px-3 py-2.5 font-semibold ${prioStyle(t.prio)}`}>
+                        {t.prio === "Haute" ? "🔴" : t.prio === "Moyen" ? "🟡" : "⚪"} {t.prio}
+                      </td>
+                      <td className="px-3 py-2.5 text-gray-500">{t.due}</td>
+                      <td className="px-3 py-2.5">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statutStyle(t.statut)}`}>
+                          {t.statut === "En retard" ? "🔴" : t.statut === "En cours" ? "🟡" : "🔵"} {t.statut}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* RESSOURCES */}
+        {activeTab === "Ressources" && (
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <h2 className="text-sm font-semibold text-gray-800 mb-4">Matrice de charge — heures/semaine par projet</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-[#F8FBF8]">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600 rounded-l-lg">Personne</th>
+                    {["P001", "P002", "P003", "P004", "P005"].map((p) => (
+                      <th key={p} className="text-center px-3 py-2 font-semibold text-gray-600">{p}</th>
+                    ))}
+                    <th className="text-center px-3 py-2 font-semibold text-gray-600">Total h/sem</th>
+                    <th className="text-center px-3 py-2 font-semibold text-gray-600 rounded-r-lg">Charge</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ressources.map((r, i) => {
+                    const total = r.p1 + r.p2 + r.p3 + r.p4 + r.p5;
+                    return (
+                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50/50">
+                        <td className="px-3 py-2.5 font-medium text-gray-800">{r.nom}</td>
+                        {[r.p1, r.p2, r.p3, r.p4, r.p5].map((h, j) => (
+                          <td key={j} className="px-3 py-2.5 text-center">
+                            {h > 0 ? (
+                              <span className="inline-block px-2 py-0.5 rounded-lg bg-green-50 text-green-700 font-medium">{h}h</span>
+                            ) : (
+                              <span className="text-gray-300">—</span>
+                            )}
+                          </td>
+                        ))}
+                        <td className="px-3 py-2.5 text-center font-bold text-gray-800">{total}h</td>
+                        <td className="px-3 py-2.5 text-center">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${r.charge === "Élevé" ? "bg-yellow-50 text-yellow-700" : "bg-green-50 text-green-700"}`}>
+                            {r.charge === "Élevé" ? "🟡" : "✅"} {r.charge}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Heatmap legend */}
+            <div className="mt-4 p-3 bg-[#F8FBF8] rounded-xl">
+              <p className="text-xs text-gray-500">Charge normale : &lt; 15h/sem · Élevé : 15-25h/sem · Critique : &gt; 25h/sem</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
