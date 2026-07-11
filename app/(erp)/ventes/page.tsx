@@ -2,627 +2,697 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
-import ModalCommande from "../../components/modals/ModalCommande";
-import ExportButton from "../../components/ui/ExportButton";
 import {
-  ShoppingCart,
-  FileText,
   TrendingUp,
-  Plus,
-  Filter,
-  Search,
-  Eye,
+  ShoppingCart,
+  Users,
+  Package,
+  Target,
   CheckCircle,
   Clock,
-  XCircle,
   Truck,
   Star,
-  AlertCircle,
+  ChevronRight,
+  Send,
+  MessageSquare,
 } from "lucide-react";
 
 // ─── KPIs ──────────────────────────────────────────────────────────────────────
 const kpis = [
   {
-    label: "CA YTD 2025",
+    label: "CA 2025 YTD",
     value: "145,2 M",
     unit: "XOF",
-    trend: "↑ +18,4% vs 2024",
-    trendUp: true,
-    sub: "Volume : 94,2 t",
+    sub: "Objectif annuel : 280 M XOF",
+    progress: 51.9,
     icon: TrendingUp,
-    iconColor: "#2E7D32",
-    iconBg: "#E8F5E9",
+    color: "#2E7D32",
+    bg: "#E8F5E9",
   },
   {
     label: "Commandes en cours",
-    value: "8",
+    value: "3",
     unit: "",
-    trend: "Valeur : 42,8 M XOF",
-    trendUp: true,
-    sub: "+2 cette semaine",
+    sub: "Valeur : 114,7 M XOF",
+    progress: null,
     icon: ShoppingCart,
-    iconColor: "#1565C0",
-    iconBg: "#E3F2FD",
+    color: "#1565C0",
+    bg: "#E3F2FD",
   },
   {
-    label: "Taux de paiement",
-    value: "96,8%",
+    label: "Nouveaux clients 2025",
+    value: "2",
     unit: "",
-    trend: "Impayés : 1,6 M XOF",
-    trendUp: false,
-    sub: "3 factures en attente",
-    icon: FileText,
-    iconColor: "#6A1B9A",
-    iconBg: "#F3E5F5",
+    sub: "JDE + Maison Jacques-Vabre",
+    progress: null,
+    icon: Users,
+    color: "#6A1B9A",
+    bg: "#F3E5F5",
   },
   {
-    label: "Client principal",
-    value: "29,2%",
-    unit: "du CA",
-    trend: "Barry Callebaut France",
-    trendUp: true,
-    sub: "Contrat renouvelé 2025",
-    icon: Star,
-    iconColor: "#E65100",
-    iconBg: "#FFF3E0",
+    label: "Marge brute moyenne",
+    value: "56%",
+    unit: "",
+    sub: "Cible : 55%+ ✅",
+    progress: null,
+    icon: Target,
+    color: "#E65100",
+    bg: "#FFF3E0",
   },
 ];
 
-// ─── Top clients ───────────────────────────────────────────────────────────────
+// ─── Données CA mensuel ─────────────────────────────────────────────────────────
+const caData = [
+  { mois: "Jan", v2024: 38.4, v2025: 42.4 },
+  { mois: "Fév", v2024: 16.2, v2025: 18.2 },
+  { mois: "Mar", v2024: 22.8, v2025: 28.6 },
+  { mois: "Avr", v2024: 26.4, v2025: 28.8 },
+  { mois: "Mai", v2024: 24.2, v2025: 31.6 },
+  { mois: "Jun", v2024: 34.8, v2025: 38.6 }, // dernier mois réalisé 2025
+  { mois: "Jul", v2024: 28.4, v2025: null },
+  { mois: "Aoû", v2024: 32.1, v2025: null },
+  { mois: "Sep", v2024: 38.6, v2025: null },
+  { mois: "Oct", v2024: 44.2, v2025: null },
+  { mois: "Nov", v2024: 52.8, v2025: null },
+  { mois: "Déc", v2024: 48.4, v2025: null },
+];
+
+// ─── Top clients S1 2025 ───────────────────────────────────────────────────────
 const topClients = [
+  { client: "Barry Callebaut", pays: "CH/CI", ca: "46,1 M", produits: "Cacao AA", pct: 31.7, trend: "↑ +8%", up: true },
+  { client: "Cargill", pays: "NL", ca: "35,2 M", produits: "Cacao AA", pct: 24.2, trend: "→ stable", up: null },
+  { client: "Olam International", pays: "SG", ca: "33,4 M", produits: "Cacao AA+A", pct: 23.0, trend: "↑ +12%", up: true },
+  { client: "Nestlé CI", pays: "CI", ca: "18,6 M", produits: "Anacarde", pct: 12.8, trend: "↑ +5%", up: true },
+  { client: "Touton SA", pays: "FR", ca: "11,9 M", produits: "Cacao A", pct: 8.2, trend: "↓ -3%", up: false },
+];
+
+// ─── Performance produits ──────────────────────────────────────────────────────
+const produitsPerf = [
+  { produit: "Cacao Grade AA", volume: "62,4 t", ca: "68,6 M", prix: "1 100 XOF/kg", marge: "61%" },
+  { produit: "Cacao Grade A", volume: "28,6 t", ca: "29,7 M", prix: "1 040 XOF/kg", marge: "54%" },
+  { produit: "Anacarde WW240", volume: "28,4 t", ca: "19,3 M", prix: "680 XOF/kg", marge: "48%" },
+  { produit: "Anacarde RW180", volume: "12,8 t", ca: "7,6 M", prix: "594 XOF/kg", marge: "42%" },
+  { produit: "Vivrières (maïs/riz)", volume: "—", ca: "3,8 M", prix: "Variable", marge: "35%" },
+];
+
+// ─── Opportunités pipeline ─────────────────────────────────────────────────────
+const opportunites = [
   {
-    rang: 1,
-    client: "Barry Callebaut France",
-    pays: "🇫🇷",
-    commandes: 4,
-    volume: "42,4 t",
-    ca: 42.4,
-    caLabel: "42,4 M",
-    pct: 29.2,
-    delai: "18 jours",
+    id: "OPP-001",
+    title: "Barry Callebaut — Contrat annuel 2025-2026",
+    produit: "Cacao AA — 120 t",
+    valeur: "132 M XOF",
+    proba: 85,
+    ponderee: "112,2 M",
+    contact: "M. Laurent Petit (acheteur senior BC)",
+    etape: "Envoi échantillons + visite site 25/07",
+    stade: "Négociation",
   },
   {
-    rang: 2,
-    client: "Marché local (grossistes CI)",
-    pays: "🇨🇮",
-    commandes: 12,
-    volume: "28,2 t",
-    ca: 32.4,
-    caLabel: "32,4 M",
-    pct: 22.3,
-    delai: "7 jours",
+    id: "OPP-002",
+    title: "Jacobs Douwe Egberts (nouveau client)",
+    produit: "Cacao AA premium — 20 t",
+    valeur: "24 M XOF",
+    proba: 60,
+    ponderee: "14,4 M",
+    contact: "Via Rainforest Alliance network",
+    etape: "Validation qualité échantillon DEG-2025-048",
+    stade: "Négociation",
   },
   {
-    rang: 3,
-    client: "Olam International",
-    pays: "🇸🇬",
-    commandes: 3,
-    volume: "14,1 t",
-    ca: 28.8,
-    caLabel: "28,8 M",
-    pct: 19.8,
-    delai: "30 jours",
-  },
-  {
-    rang: 4,
-    client: "Cemoi Chocolatier",
-    pays: "🇫🇷",
-    commandes: 2,
-    volume: "8,4 t",
-    ca: 18.2,
-    caLabel: "18,2 M",
-    pct: 12.5,
-    delai: "21 jours",
-  },
-  {
-    rang: 5,
-    client: "Ritter Sport",
-    pays: "🇩🇪",
-    commandes: 1,
-    volume: "9,4 t",
-    ca: 12.8,
-    caLabel: "12,8 M",
-    pct: 8.8,
-    delai: "45 jours",
-  },
-  {
-    rang: 6,
-    client: "Autres (3 clients)",
-    pays: "🌍",
-    commandes: 2,
-    volume: "—",
-    ca: 10.6,
-    caLabel: "10,6 M",
-    pct: 7.3,
-    delai: "—",
+    id: "OPP-003",
+    title: "Ferrero Import",
+    produit: "Cacao bio AA (conversion AB 2026) — 10 t",
+    valeur: "18 M XOF",
+    proba: 40,
+    ponderee: "7,2 M",
+    contact: "En attente certification AB Jan 2026",
+    etape: "Attente certification AB",
+    stade: "Négociation",
   },
 ];
 
-// ─── Saisonnalité 12 mois ──────────────────────────────────────────────────────
-const saisonnalite = [
-  { mois: "Jan", valeur: 8.2 },
-  { mois: "Fév", valeur: 7.4 },
-  { mois: "Mar", valeur: 9.1 },
-  { mois: "Avr", valeur: 10.5 },
-  { mois: "Mai", valeur: 11.2 },
-  { mois: "Juin", valeur: 9.8 },
-  { mois: "Juil", valeur: 11.4 },
-  { mois: "Août", valeur: 12.1 },
-  { mois: "Sep", valeur: 14.3 },
-  { mois: "Oct", valeur: 18.7 },
-  { mois: "Nov", valeur: 22.4 },
-  { mois: "Déc", valeur: 20.1 },
+// ─── Clients complets ──────────────────────────────────────────────────────────
+const clients = [
+  { client: "Barry Callebaut", pays: "Suisse/CI", categorie: "Chocolatier", depuis: "Jan 2020", ca2025: "46,1 M", ca2024: "42,6 M", evol: "↑ +8%", up: true, incoterm: "FOB San-Pédro", paiement: "30j net" },
+  { client: "Cargill Int.", pays: "Pays-Bas", categorie: "Négociant", depuis: "Mar 2021", ca2025: "35,2 M", ca2024: "35,2 M", evol: "→ 0%", up: null, incoterm: "FOB", paiement: "30j net" },
+  { client: "Olam International", pays: "Singapour", categorie: "Négociant", depuis: "Jun 2021", ca2025: "33,4 M", ca2024: "29,8 M", evol: "↑ +12%", up: true, incoterm: "EXW Soubré", paiement: "21j net" },
+  { client: "Nestlé CI", pays: "Côte d'Ivoire", categorie: "Transformation", depuis: "Jan 2022", ca2025: "18,6 M", ca2024: "17,7 M", evol: "↑ +5%", up: true, incoterm: "EXW", paiement: "Comptant" },
+  { client: "Touton SA", pays: "France", categorie: "Négoce", depuis: "Mar 2022", ca2025: "11,9 M", ca2024: "12,3 M", evol: "↓ -3%", up: false, incoterm: "FOB", paiement: "45j net" },
+  { client: "Olam CI (local)", pays: "Côte d'Ivoire", categorie: "Transformation", depuis: "Jan 2023", ca2025: "8,2 M", ca2024: "4,8 M", evol: "↑ +71%", up: true, incoterm: "EXW", paiement: "Comptant" },
+  { client: "SIPEF Trading", pays: "Belgique", categorie: "Export", depuis: "Avr 2023", ca2025: "5,4 M", ca2024: "3,2 M", evol: "↑ +69%", up: true, incoterm: "FOB", paiement: "30j" },
+  { client: "JDE (Jacobs D.E.)", pays: "Pays-Bas", categorie: "Chocolatier", depuis: "Jan 2025", ca2025: "11,2 M", ca2024: "—", evol: "Nouveau", up: true, incoterm: "FOB", paiement: "30j" },
+  { client: "Coop. Burkina", pays: "Burkina Faso", categorie: "Coopérative", depuis: "Jun 2024", ca2025: "2,4 M", ca2024: "0,8 M", evol: "↑", up: true, incoterm: "EXW", paiement: "Comptant" },
+  { client: "Maison Jacques-Vabre", pays: "France", categorie: "Premium", depuis: "Mar 2025", ca2025: "12,4 M", ca2024: "—", evol: "Nouveau", up: true, incoterm: "CIF Marseille", paiement: "60j" },
+  { client: "Ferrero", pays: "Italie", categorie: "Chocolatier", depuis: "Prospect 2026", ca2025: "—", ca2024: "—", evol: "Prospect", up: null, incoterm: "—", paiement: "—" },
+  { client: "Grand Chocolatier Lyon", pays: "France", categorie: "Artisan", depuis: "Mai 2025", ca2025: "—", ca2024: "—", evol: "Prospect", up: null, incoterm: "—", paiement: "—" },
 ];
 
-// ─── Commandes ─────────────────────────────────────────────────────────────────
-const commandes = [
+// ─── Commandes en cours ────────────────────────────────────────────────────────
+const commandesEnCours = [
+  { id: "CMD-2025-018", client: "Cargill Rotterdam", lot: "LOT-045", produit: "Cacao AA", qte: "24,9 t", valeur: "27,4 M", livraison: "05/08 ETA Rotterdam", statut: "En transit", color: "#1565C0", bg: "#E3F2FD" },
+  { id: "CMD-2025-019", client: "Nestlé CI", lot: "LOT-046", produit: "Cacao AA 20t + A 15t", qte: "35 t", valeur: "54,3 M", livraison: "15/07 EXW Soubré", statut: "Conditionnement", color: "#E65100", bg: "#FFF3E0" },
+  { id: "CMD-2025-020", client: "Barry Callebaut", lot: "LOT-048", produit: "Cacao AA 30t (partiel)", qte: "30 t", valeur: "33,0 M", livraison: "30/07 FOB San-Pédro", statut: "Fermentation", color: "#E65100", bg: "#FFF3E0" },
+];
+
+// ─── Historique commandes S1 2025 ─────────────────────────────────────────────
+const historiqueCommandes = [
+  { id: "CMD-2025-001", client: "Barry Callebaut", produit: "Cacao AA", qte: "18 t", valeur: "19,8 M", date: "10/01", statut: "Livré" },
+  { id: "CMD-2025-002", client: "Cargill", produit: "Cacao AA", qte: "22 t", valeur: "24,2 M", date: "18/01", statut: "Livré" },
+  { id: "CMD-2025-003", client: "Olam International", produit: "Cacao A", qte: "14 t", valeur: "14,6 M", date: "05/02", statut: "Livré" },
+  { id: "CMD-2025-004", client: "Nestlé CI", produit: "Anacarde WW240", qte: "10 t", valeur: "6,8 M", date: "12/02", statut: "Livré" },
+  { id: "CMD-2025-005", client: "JDE", produit: "Cacao AA", qte: "20 t", valeur: "22,0 M", date: "03/03", statut: "Livré" },
+  { id: "CMD-2025-006", client: "Barry Callebaut", produit: "Cacao AA", qte: "25 t", valeur: "27,5 M", date: "15/03", statut: "Livré" },
+  { id: "CMD-2025-007", client: "Touton SA", produit: "Cacao A", qte: "12 t", valeur: "12,5 M", date: "02/04", statut: "Livré" },
+  { id: "CMD-2025-008", client: "Maison Jacques-Vabre", produit: "Cacao AA", qte: "8 t", valeur: "8,8 M", date: "18/04", statut: "Livré" },
+  { id: "CMD-2025-009", client: "Olam International", produit: "Cacao AA", qte: "16 t", valeur: "17,6 M", date: "08/05", statut: "Livré" },
+  { id: "CMD-2025-010", client: "SIPEF Trading", produit: "Cacao A", qte: "8 t", valeur: "8,3 M", date: "20/05", statut: "Livré" },
+  { id: "CMD-2025-011", client: "Maison Jacques-Vabre", produit: "Cacao AA premium", qte: "10 t", valeur: "11,0 M", date: "10/06", statut: "Livré" },
+  { id: "CMD-2025-012", client: "Cargill", produit: "Cacao AA", qte: "20 t", valeur: "22,0 M", date: "25/06", statut: "Livré" },
+];
+
+// ─── Produits catalogue ────────────────────────────────────────────────────────
+const catalogue = [
   {
-    numero: "CMD-2025-0341",
-    client: "Barry Callebaut France",
-    date: "09/07/2025",
-    produit: "Cacao brut grade 1",
-    quantite: "12 400 kg",
-    prixUnitaire: "1 200 XOF/kg",
-    total: "14 880 000",
-    statut: "En cours",
+    nom: "Cacao Grade AA",
+    badge: "Produit phare",
+    badgeColor: "#2E7D32",
+    badgeBg: "#E8F5E9",
+    norme: "ICCO/BCC Grade AA",
+    carac: ["Humidité ≤ 8%", "Cut test ≥ 95 brunes", "Grains/100g ≤ 100"],
+    certs: ["RA ✅", "GlobalG.A.P. ✅", "AB (2026)"],
+    prix: "1 100 XOF/kg",
+    production: "62,4 t (YTD)",
+    clients: "Barry Callebaut, Cargill, Olam, JDE, Jacobs-Vabre",
   },
   {
-    numero: "CMD-2025-0340",
-    client: "Olam International",
-    date: "08/07/2025",
-    produit: "Cacao brut grade 1",
-    quantite: "8 500 kg",
-    prixUnitaire: "1 200 XOF/kg",
-    total: "10 200 000",
-    statut: "Livrée",
+    nom: "Cacao Grade A",
+    badge: "Standard",
+    badgeColor: "#1565C0",
+    badgeBg: "#E3F2FD",
+    norme: "ICCO/BCC Grade A",
+    carac: ["Humidité ≤ 8%", "Cut test ≥ 90 brunes"],
+    certs: ["RA ✅", "GlobalG.A.P. ✅"],
+    prix: "1 040 XOF/kg",
+    production: "28,6 t (YTD)",
+    clients: "Touton SA, Nestlé CI, SIPEF",
   },
   {
-    numero: "CMD-2025-0339",
-    client: "Cemoi Chocolatier",
-    date: "07/07/2025",
-    produit: "Cacao fermenté séché",
-    quantite: "6 200 kg",
-    prixUnitaire: "1 350 XOF/kg",
-    total: "8 370 000",
-    statut: "Confirmée",
+    nom: "Anacarde WW240",
+    badge: "Export",
+    badgeColor: "#E65100",
+    badgeBg: "#FFF3E0",
+    norme: "SOQC CI — WW240",
+    carac: ["180 noix/livre", "Taux brisures ≤ 5%"],
+    certs: ["SOQC CI ✅"],
+    prix: "680 XOF/kg",
+    production: "28,4 t (YTD)",
+    clients: "Nestlé CI, Olam CI",
   },
   {
-    numero: "CMD-2025-0338",
-    client: "Marché local (grossistes CI)",
-    date: "06/07/2025",
-    produit: "Anacarde brut",
-    quantite: "5 200 kg",
-    prixUnitaire: "900 XOF/kg",
-    total: "4 680 000",
-    statut: "Livrée",
+    nom: "Anacarde RW180",
+    badge: "Premium",
+    badgeColor: "#6A1B9A",
+    badgeBg: "#F3E5F5",
+    norme: "SOQC CI — RW180",
+    carac: ["Plus gros calibre", "Taux brisures ≤ 3%"],
+    certs: ["SOQC CI ✅"],
+    prix: "594 XOF/kg",
+    production: "12,8 t (YTD)",
+    clients: "Coop. Burkina, local",
   },
   {
-    numero: "CMD-2025-0337",
-    client: "Ritter Sport",
-    date: "05/07/2025",
-    produit: "Cacao brut grade 1",
-    quantite: "9 400 kg",
-    prixUnitaire: "1 185 XOF/kg",
-    total: "11 139 000",
-    statut: "En cours",
+    nom: "Maïs grain sec",
+    badge: "Local",
+    badgeColor: "#795548",
+    badgeBg: "#EFEBE9",
+    norme: "Standard marché local",
+    carac: ["Humidité ≤ 13%", "Sans moisissures"],
+    certs: [],
+    prix: "180 XOF/kg",
+    production: "— (vivrier)",
+    clients: "Marchés locaux CI",
   },
   {
-    numero: "CMD-2025-0336",
-    client: "Barry Callebaut France",
-    date: "04/07/2025",
-    produit: "Cacao brut grade 2",
-    quantite: "7 800 kg",
-    prixUnitaire: "1 050 XOF/kg",
-    total: "8 190 000",
-    statut: "Livrée",
-  },
-  {
-    numero: "CMD-2025-0335",
-    client: "Marché local (grossistes CI)",
-    date: "03/07/2025",
-    produit: "Maïs grain sec",
-    quantite: "20 000 kg",
-    prixUnitaire: "185 XOF/kg",
-    total: "3 700 000",
-    statut: "Livrée",
-  },
-  {
-    numero: "CMD-2025-0334",
-    client: "Olam International",
-    date: "02/07/2025",
-    produit: "Cacao brut grade 1",
-    quantite: "5 700 kg",
-    prixUnitaire: "1 200 XOF/kg",
-    total: "6 840 000",
-    statut: "Confirmée",
-  },
-  {
-    numero: "CMD-2025-0333",
-    client: "Marché local (grossistes CI)",
-    date: "01/07/2025",
-    produit: "Riz paddy",
-    quantite: "3 000 kg",
-    prixUnitaire: "320 XOF/kg",
-    total: "960 000",
-    statut: "Annulée",
-  },
-  {
-    numero: "CMD-2025-0332",
-    client: "Cemoi Chocolatier",
-    date: "30/06/2025",
-    produit: "Cacao brut grade 1",
-    quantite: "4 600 kg",
-    prixUnitaire: "1 200 XOF/kg",
-    total: "5 520 000",
-    statut: "Livrée",
+    nom: "Riz paddy",
+    badge: "Local",
+    badgeColor: "#795548",
+    badgeBg: "#EFEBE9",
+    norme: "Standard marché local",
+    carac: ["Humidité ≤ 14%"],
+    certs: [],
+    prix: "220 XOF/kg",
+    production: "— (vivrier)",
+    clients: "Marchés locaux CI",
   },
 ];
 
-type Statut = "Livrée" | "En cours" | "Confirmée" | "Annulée";
+const TABS = ["Tableau de bord", "Pipeline", "Clients", "Commandes", "Produits"] as const;
+type Tab = typeof TABS[number];
 
-function statutStyle(statut: string): { bg: string; text: string; icon: React.ReactNode } {
-  switch (statut) {
-    case "Livrée":
-      return { bg: "#E8F5E9", text: "#2E7D32", icon: <Truck size={12} /> };
-    case "En cours":
-      return { bg: "#E3F2FD", text: "#1565C0", icon: <Clock size={12} /> };
-    case "Confirmée":
-      return { bg: "#FFF3E0", text: "#E65100", icon: <CheckCircle size={12} /> };
-    case "Annulée":
-      return { bg: "#F5F5F5", text: "#757575", icon: <XCircle size={12} /> };
-    default:
-      return { bg: "#F5F5F5", text: "#757575", icon: null };
-  }
-}
-
-const maxCA = Math.max(...saisonnalite.map((s) => s.valeur));
+const maxCA = Math.max(...caData.map((d) => Math.max(d.v2024, d.v2025 ?? 0)));
 
 export default function VentesPage() {
-  const [showModal, setShowModal] = useState(false);
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("Commandes");
-  const [statutFilter, setStatutFilter] = useState("Tous");
-
-  const statutOptions = ["Tous", "Livrée", "En cours", "Confirmée", "Annulée"];
-
-  const filteredCommandes = commandes.filter((c) => {
-    const matchSearch =
-      search === "" ||
-      c.numero.toLowerCase().includes(search.toLowerCase()) ||
-      c.client.toLowerCase().includes(search.toLowerCase()) ||
-      c.produit.toLowerCase().includes(search.toLowerCase());
-    const matchStatut = statutFilter === "Tous" || c.statut === statutFilter;
-    return matchSearch && matchStatut;
-  });
+  const [tab, setTab] = useState<Tab>("Tableau de bord");
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar
-        title="Ventes & Commercialisation"
-        breadcrumb={["Commerce", "Ventes"]}
-      />
+      <Topbar title="Ventes & CRM" breadcrumb={["Commerce", "Ventes"]} />
 
-      <main className="flex-1 p-6 space-y-6">
+      <main className="flex-1 p-4 md:p-6 space-y-6 max-w-[1400px] mx-auto w-full">
 
-        {/* KPI Cards */}
+        {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {kpis.map((kpi) => {
             const Icon = kpi.icon;
             return (
-              <div
-                key={kpi.label}
-                className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-col gap-2"
-              >
+              <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-gray-500">{kpi.label}</span>
-                  <span
-                    style={{ background: kpi.iconBg, color: kpi.iconColor }}
-                    className="rounded-xl p-2 flex items-center justify-center"
-                  >
-                    <Icon size={18} />
+                  <span className="rounded-xl p-2" style={{ background: kpi.bg }}>
+                    <Icon size={18} style={{ color: kpi.color }} />
                   </span>
                 </div>
                 <div className="flex items-end gap-1">
                   <span className="text-2xl font-bold text-gray-900">{kpi.value}</span>
-                  {kpi.unit && (
-                    <span className="text-xs text-gray-400 mb-1 ml-1">{kpi.unit}</span>
-                  )}
+                  {kpi.unit && <span className="text-xs text-gray-400 mb-1 ml-1">{kpi.unit}</span>}
                 </div>
-                <span
-                  className="text-xs font-medium"
-                  style={{ color: kpi.trendUp ? "#2E7D32" : "#E65100" }}
-                >
-                  {kpi.trend}
-                </span>
+                {kpi.progress !== null && (
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-400 mb-1">
+                      <span>Progression</span>
+                      <span className="font-semibold" style={{ color: kpi.color }}>{kpi.progress}%</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-gray-100">
+                      <div className="h-1.5 rounded-full" style={{ width: `${kpi.progress}%`, background: kpi.color }} />
+                    </div>
+                  </div>
+                )}
                 <span className="text-xs text-gray-400">{kpi.sub}</span>
               </div>
             );
           })}
         </div>
 
-        {/* Top clients + Saisonnalité */}
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+        {/* Onglets */}
+        <div className="border-b border-gray-200 overflow-x-auto">
+          <nav className="flex gap-0 whitespace-nowrap">
+            {TABS.map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  tab === t
+                    ? "border-[#2E7D32] text-[#2E7D32]"
+                    : "border-transparent text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </nav>
+        </div>
 
-          {/* Top clients — tableau */}
-          <div className="xl:col-span-3 rounded-2xl border border-gray-100 bg-white p-5">
+        {/* ══════════ ONGLET TABLEAU DE BORD ══════════ */}
+        {tab === "Tableau de bord" && (
+          <div className="space-y-6">
+
+            {/* Bar chart CA mensuel */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">CA mensuel 2025 vs 2024</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">Juillet–Décembre 2025 : données 2024 seulement (prévision 2025 en pointillés)</p>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-gray-300" /> 2024</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[#4CAF50]" /> 2025 réalisé</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm border border-dashed border-[#4CAF50]" /> 2025 prév.</span>
+                </div>
+              </div>
+              <svg viewBox="0 0 700 180" className="w-full" aria-label="CA mensuel 2025 vs 2024">
+                {/* grille */}
+                {[0, 20, 40, 60].map((v) => {
+                  const y = 155 - (v / 60) * 130;
+                  return (
+                    <g key={v}>
+                      <line x1={40} y1={y} x2={695} y2={y} stroke="#F0F0F0" strokeWidth={1} />
+                      <text x={36} y={y + 4} textAnchor="end" fontSize={9} fill="#BDBDBD">{v}M</text>
+                    </g>
+                  );
+                })}
+                {caData.map((d, i) => {
+                  const slotW = 54;
+                  const x0 = 42 + i * slotW;
+                  const barW = 20;
+                  const gap = 3;
+                  const h24 = (d.v2024 / 60) * 130;
+                  const h25 = d.v2025 ? (d.v2025 / 60) * 130 : 0;
+                  const isProjected = d.v2025 === null;
+                  const projH = isProjected ? (d.v2024 * 1.06 / 60) * 130 : 0;
+                  return (
+                    <g key={d.mois}>
+                      {/* 2024 bar */}
+                      <rect x={x0} y={155 - h24} width={barW} height={h24} rx={2} fill="#D0D0D0" />
+                      {/* 2025 bar ou prévision en pointillés */}
+                      {!isProjected && h25 > 0 && (
+                        <rect x={x0 + barW + gap} y={155 - h25} width={barW} height={h25} rx={2} fill="#4CAF50" />
+                      )}
+                      {isProjected && (
+                        <rect
+                          x={x0 + barW + gap} y={155 - projH} width={barW} height={projH}
+                          rx={2} fill="none" stroke="#4CAF50" strokeWidth={1.5} strokeDasharray="3,2"
+                        />
+                      )}
+                      <text x={x0 + barW + 1.5} y={168} textAnchor="middle" fontSize={8} fill="#9E9E9E">{d.mois}</text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+
+            {/* Top 5 clients S1 */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">Top 5 clients S1 2025</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{ background: "#F8FBF8" }}>
+                      {["Client", "Pays", "CA S1 (XOF)", "Produits", "Part (%)", "Tendance"].map((h) => (
+                        <th key={h} className="text-left text-gray-500 font-semibold px-4 py-2.5 whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {topClients.map((c) => (
+                      <tr key={c.client} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">{c.client}</td>
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{c.pays}</td>
+                        <td className="px-4 py-3 font-semibold text-[#2E7D32] whitespace-nowrap">{c.ca} M</td>
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.produits}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-gray-800">{c.pct}%</span>
+                            <div className="w-16 h-1.5 rounded-full bg-gray-100">
+                              <div className="h-1.5 rounded-full bg-[#4CAF50]" style={{ width: `${c.pct / 35 * 100}%` }} />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span
+                            className="font-semibold text-xs"
+                            style={{ color: c.up === true ? "#2E7D32" : c.up === false ? "#E53935" : "#757575" }}
+                          >
+                            {c.trend}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Performance par produit */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">Performance par produit — S1 2025</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{ background: "#F8FBF8" }}>
+                      {["Produit", "Volume S1", "CA S1 (M XOF)", "Prix moyen", "Marge brute"].map((h) => (
+                        <th key={h} className="text-left text-gray-500 font-semibold px-4 py-2.5 whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {produitsPerf.map((p) => (
+                      <tr key={p.produit} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">{p.produit}</td>
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{p.volume}</td>
+                        <td className="px-4 py-3 font-semibold text-[#2E7D32] whitespace-nowrap">{p.ca}</td>
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{p.prix}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-1.5 rounded-full bg-gray-100">
+                              <div className="h-1.5 rounded-full bg-[#4CAF50]" style={{ width: p.marge }} />
+                            </div>
+                            <span className="font-semibold text-gray-800">{p.marge}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════ ONGLET PIPELINE ══════════ */}
+        {tab === "Pipeline" && (
+          <div className="space-y-6">
+
+            {/* Funnel SVG */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-base font-semibold text-gray-900 mb-5">Entonnoir de vente</h2>
+              <div className="overflow-x-auto">
+                <svg viewBox="0 0 600 120" className="w-full max-w-2xl mx-auto" aria-label="Entonnoir de vente">
+                  {[
+                    { label: "Qualification", count: 52, w: 600, x: 0 },
+                    { label: "Devis envoyé", count: 12, w: 480, x: 60 },
+                    { label: "Négociation", count: 4, w: 340, x: 130 },
+                    { label: "Contrat signé", count: 3, w: 200, x: 200 },
+                    { label: "Livraison", count: 1, w: 100, x: 250 },
+                  ].map((s, i) => {
+                    const h = 18;
+                    const y = i * 22 + 4;
+                    const opacity = 1 - i * 0.12;
+                    return (
+                      <g key={s.label}>
+                        <rect x={s.x} y={y} width={s.w} height={h} rx={4} fill="#2E7D32" fillOpacity={opacity} />
+                        <text x={s.x + 8} y={y + 12} fontSize={9} fill="white" fontWeight="600">{s.label}</text>
+                        <text x={s.x + s.w - 6} y={y + 12} fontSize={10} fill="white" fontWeight="700" textAnchor="end">{s.count}</text>
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+            </div>
+
+            {/* Opportunités en négociation */}
+            <div className="space-y-4">
+              <h2 className="text-base font-semibold text-gray-900">Opportunités en cours de négociation</h2>
+              {opportunites.map((opp) => (
+                <div key={opp.id} className="rounded-2xl border border-gray-100 bg-white p-5 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-mono text-gray-400">{opp.id}</span>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">{opp.stade}</span>
+                      </div>
+                      <p className="text-sm font-bold text-gray-900">{opp.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{opp.produit}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-lg font-bold text-gray-900">{opp.valeur}</p>
+                      <p className="text-xs text-gray-500">Pondérée : <span className="font-semibold text-[#2E7D32]">{opp.ponderee} M</span></p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-400 mb-1">
+                      <span>Probabilité</span>
+                      <span className="font-semibold text-gray-700">{opp.proba}%</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-100">
+                      <div className="h-2 rounded-full" style={{ width: `${opp.proba}%`, background: opp.proba >= 80 ? "#2E7D32" : opp.proba >= 60 ? "#F9A825" : "#E65100" }} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="rounded-xl bg-gray-50 px-3 py-2">
+                      <p className="text-gray-400 mb-0.5">Contact</p>
+                      <p className="font-medium text-gray-700">{opp.contact}</p>
+                    </div>
+                    <div className="rounded-xl bg-green-50 px-3 py-2">
+                      <p className="text-green-600 mb-0.5">Prochaine étape</p>
+                      <p className="font-medium text-green-800 flex items-center gap-1"><ChevronRight size={12} />{opp.etape}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════ ONGLET CLIENTS ══════════ */}
+        {tab === "Clients" && (
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-gray-900">Top clients 2025</h2>
-              <span className="text-xs text-gray-400">Par CA annuel</span>
+              <h2 className="text-base font-semibold text-gray-900">Carnet de clients — 12 actifs & prospects</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
                   <tr style={{ background: "#F8FBF8" }}>
-                    {["#", "Client", "Cmd", "Volume", "CA (M XOF)", "% CA", "Délai pmt"].map((col) => (
-                      <th
-                        key={col}
-                        className="text-left text-gray-500 font-semibold px-3 py-2.5 whitespace-nowrap first:rounded-l-xl last:rounded-r-xl"
-                      >
-                        {col}
-                      </th>
+                    {["Client", "Pays", "Catégorie", "Depuis", "CA 2025", "CA 2024", "Évol.", "Incoterm", "Paiement"].map((h) => (
+                      <th key={h} className="text-left text-gray-500 font-semibold px-3 py-2.5 whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {topClients.map((c) => (
-                    <tr key={c.rang} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-3 py-3 font-bold text-gray-400">{c.rang}</td>
-                      <td className="px-3 py-3 font-medium text-gray-800 whitespace-nowrap">
-                        <span className="mr-1">{c.pays}</span>
-                        {c.client}
+                  {clients.map((c) => (
+                    <tr key={c.client} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-3 py-2.5 font-semibold text-gray-900 whitespace-nowrap">{c.client}</td>
+                      <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{c.pays}</td>
+                      <td className="px-3 py-2.5 whitespace-nowrap">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{c.categorie}</span>
                       </td>
-                      <td className="px-3 py-3 text-gray-600 text-center">{c.commandes}</td>
-                      <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{c.volume}</td>
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-gray-900">{c.caLabel}</span>
-                          <div className="flex-1 h-1.5 rounded-full bg-gray-100 min-w-[40px] max-w-[60px]">
-                            <div
-                              className="h-1.5 rounded-full"
-                              style={{ width: `${(c.ca / 42.4) * 100}%`, background: "#2E7D32" }}
-                            />
-                          </div>
-                        </div>
+                      <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{c.depuis}</td>
+                      <td className="px-3 py-2.5 font-semibold text-[#2E7D32] whitespace-nowrap">{c.ca2025 !== "—" ? `${c.ca2025} M` : "—"}</td>
+                      <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{c.ca2024 !== "—" ? `${c.ca2024} M` : "—"}</td>
+                      <td className="px-3 py-2.5 whitespace-nowrap">
+                        <span
+                          className="font-semibold"
+                          style={{ color: c.up === true ? "#2E7D32" : c.up === false ? "#E53935" : "#9E9E9E" }}
+                        >
+                          {c.evol}
+                        </span>
                       </td>
-                      <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{c.pct}%</td>
-                      <td className="px-3 py-3 text-gray-500 whitespace-nowrap">{c.delai}</td>
+                      <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{c.incoterm}</td>
+                      <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{c.paiement}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
+        )}
 
-          {/* Saisonnalité — bar chart SVG */}
-          <div className="xl:col-span-2 rounded-2xl border border-gray-100 bg-white p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-semibold text-gray-900">Saisonnalité des ventes</h2>
-              <span className="text-xs text-gray-400">M XOF / mois</span>
-            </div>
-            <p className="text-xs text-gray-400 mb-4">Pic Oct–Déc (récolte principale cacao)</p>
-            <svg viewBox="0 0 280 140" className="w-full" aria-label="Saisonnalité ventes 2025">
-              {saisonnalite.map((s, i) => {
-                const barH = (s.valeur / maxCA) * 110;
-                const x = i * 23 + 2;
-                const isPeak = s.valeur >= 18;
-                return (
-                  <g key={s.mois}>
-                    <rect
-                      x={x}
-                      y={120 - barH}
-                      width={18}
-                      height={barH}
-                      rx={3}
-                      fill={isPeak ? "#2E7D32" : "#A5D6A7"}
-                    />
-                    <text
-                      x={x + 9}
-                      y={136}
-                      textAnchor="middle"
-                      fontSize="7"
-                      fill="#9E9E9E"
-                    >
-                      {s.mois}
-                    </text>
-                    {isPeak && (
-                      <text
-                        x={x + 9}
-                        y={120 - barH - 3}
-                        textAnchor="middle"
-                        fontSize="7"
-                        fill="#2E7D32"
-                        fontWeight="600"
-                      >
-                        {s.valeur}
-                      </text>
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
-          </div>
-        </div>
+        {/* ══════════ ONGLET COMMANDES ══════════ */}
+        {tab === "Commandes" && (
+          <div className="space-y-6">
 
-        {/* Tableau commandes */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900">Commandes</h2>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {filteredCommandes.length} commande{filteredCommandes.length > 1 ? "s" : ""} affichée{filteredCommandes.length > 1 ? "s" : ""}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <ExportButton
-                data={commandes.map((c) => ({
-                  Numero: c.numero,
-                  Client: c.client,
-                  Date: c.date,
-                  Produit: c.produit,
-                  Quantite: c.quantite,
-                  PrixUnitaire: c.prixUnitaire,
-                  Total_XOF: c.total,
-                  Statut: c.statut,
-                }))}
-                filename="ventes-commandes"
-                label="Exporter CSV"
-              />
-              {/* Search */}
-              <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-gray-50">
-                <Search size={13} className="text-gray-400" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher..."
-                  className="text-xs bg-transparent outline-none text-gray-600 w-32 placeholder-gray-400"
-                />
-              </div>
-              {/* Statut filter */}
-              <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-1">
-                {statutOptions.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setStatutFilter(s)}
-                    className="px-2.5 py-1 rounded text-xs font-medium transition-colors"
-                    style={
-                      statutFilter === s
-                        ? { background: "#2E7D32", color: "#fff" }
-                        : { color: "#9E9E9E" }
-                    }
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-              {/* New order */}
-              <button
-                onClick={() => setShowModal(true)}
-                className="text-white rounded-xl text-xs font-medium px-3 py-1.5 flex items-center gap-1.5"
-                style={{ background: "#2E7D32" }}
-              >
-                <Plus size={13} />
-                Nouvelle commande
-              </button>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-1 mb-4 border-b border-gray-100">
-            {["Commandes", "Devis", "Livraisons", "Retours"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className="px-4 py-2 text-xs font-medium rounded-t-lg transition-colors"
-                style={
-                  activeTab === tab
-                    ? { color: "#2E7D32", borderBottom: "2px solid #2E7D32", marginBottom: "-1px" }
-                    : { color: "#9E9E9E" }
-                }
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr style={{ background: "#F8FBF8" }}>
-                  {["N° Commande", "Client", "Date", "Produit", "Quantité", "Prix unitaire", "Total (XOF)", "Statut", "Actions"].map(
-                    (col) => (
-                      <th
-                        key={col}
-                        className="text-left text-gray-500 font-semibold px-4 py-3 whitespace-nowrap first:rounded-l-xl last:rounded-r-xl"
-                      >
-                        {col}
-                      </th>
-                    )
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filteredCommandes.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="text-center py-8 text-gray-400 text-xs">
-                      Aucune commande ne correspond aux filtres.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredCommandes.map((cmd) => {
-                    const style = statutStyle(cmd.statut);
-                    return (
-                      <tr key={cmd.numero} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-mono font-semibold text-[#2E7D32] whitespace-nowrap">
-                          {cmd.numero}
-                        </td>
-                        <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">
-                          {cmd.client}
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{cmd.date}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{cmd.produit}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{cmd.quantite}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{cmd.prixUnitaire}</td>
-                        <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">
-                          {parseInt(cmd.total).toLocaleString("fr-FR")}
-                        </td>
+            {/* En cours */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">Commandes en cours (3)</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{ background: "#F8FBF8" }}>
+                      {["Commande", "Client", "Lot", "Produit", "Qté", "Valeur", "Livraison prévue", "Statut"].map((h) => (
+                        <th key={h} className="text-left text-gray-500 font-semibold px-4 py-2.5 whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {commandesEnCours.map((c) => (
+                      <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 font-mono font-semibold text-[#2E7D32] whitespace-nowrap">{c.id}</td>
+                        <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{c.client}</td>
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{c.lot}</td>
+                        <td className="px-4 py-3 text-gray-700">{c.produit}</td>
+                        <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">{c.qte}</td>
+                        <td className="px-4 py-3 font-semibold text-[#2E7D32] whitespace-nowrap">{c.valeur} M XOF</td>
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.livraison}</td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-medium text-xs"
-                            style={{ background: style.bg, color: style.text }}
-                          >
-                            {style.icon}
-                            {cmd.statut}
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-medium text-xs" style={{ background: c.bg, color: c.color }}>
+                            <Truck size={10} />
+                            {c.statut}
                           </span>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <button className="border border-gray-200 text-gray-600 rounded-lg text-xs px-3 py-1.5 hover:bg-gray-50 flex items-center gap-1">
-                            <Eye size={11} />
-                            Voir
-                          </button>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Historique S1 */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">Historique commandes livrées — S1 2025 (12 lignes)</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{ background: "#F8FBF8" }}>
+                      {["Commande", "Client", "Produit", "Qté", "Valeur", "Date livraison", "Statut"].map((h) => (
+                        <th key={h} className="text-left text-gray-500 font-semibold px-4 py-2.5 whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {historiqueCommandes.map((c) => (
+                      <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-2.5 font-mono font-semibold text-gray-600 whitespace-nowrap">{c.id}</td>
+                        <td className="px-4 py-2.5 font-medium text-gray-800 whitespace-nowrap">{c.client}</td>
+                        <td className="px-4 py-2.5 text-gray-600 whitespace-nowrap">{c.produit}</td>
+                        <td className="px-4 py-2.5 text-gray-700 whitespace-nowrap">{c.qte}</td>
+                        <td className="px-4 py-2.5 font-semibold text-[#2E7D32] whitespace-nowrap">{c.valeur} M XOF</td>
+                        <td className="px-4 py-2.5 text-gray-500 whitespace-nowrap">{c.date}/2025</td>
+                        <td className="px-4 py-2.5 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E8F5E9] text-[#2E7D32]">
+                            <CheckCircle size={10} />
+                            {c.statut}
+                          </span>
                         </td>
                       </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Prévisions S2 2025 */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertCircle size={16} className="text-[#2E7D32]" />
-            <h2 className="text-base font-semibold text-gray-900">Prévisions de ventes — S2 2025</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="rounded-xl bg-green-50 border border-green-100 p-4">
-              <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Scénario attendu</p>
-              <p className="text-2xl font-bold text-gray-900">82 – 95 M</p>
-              <p className="text-xs text-gray-500 mt-1">XOF | Juillet – Décembre 2025</p>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div className="sm:col-span-2 space-y-3">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Facteurs favorables</p>
-              {[
-                "Prix cacao international favorable (+8% vs S2 2024)",
-                "Récolte principale Oct–Déc : volume estimé 45–52 t",
-                "Contrat Barry Callebaut renouvelé — volume garanti 40 t S2",
-              ].map((f, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <CheckCircle size={14} className="text-[#2E7D32] mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-gray-700">{f}</p>
+          </div>
+        )}
+
+        {/* ══════════ ONGLET PRODUITS ══════════ */}
+        {tab === "Produits" && (
+          <div className="space-y-4">
+            <h2 className="text-base font-semibold text-gray-900">Catalogue produits AGRIFRIK</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {catalogue.map((p) => (
+                <div key={p.nom} className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-bold text-gray-900">{p.nom}</p>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ background: p.badgeBg, color: p.badgeColor }}>
+                      {p.badge}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400">Norme : {p.norme}</p>
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Caractéristiques</p>
+                    {p.carac.map((c) => (
+                      <div key={c} className="flex items-center gap-1.5 text-xs text-gray-700">
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: p.badgeColor }} />
+                        {c}
+                      </div>
+                    ))}
+                  </div>
+                  {p.certs.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {p.certs.map((cert) => (
+                        <span key={cert} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">{cert}</span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="border-t border-gray-50 pt-3 grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <p className="text-gray-400">Prix de référence</p>
+                      <p className="font-bold text-gray-900">{p.prix}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Production YTD</p>
+                      <p className="font-semibold text-[#2E7D32]">{p.production}</p>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 rounded-xl bg-gray-50 px-3 py-2">
+                    <span className="font-semibold text-gray-600">Clients : </span>{p.clients}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        )}
 
       </main>
-
-      <ModalCommande isOpen={showModal} onClose={() => setShowModal(false)} />
     </div>
   );
 }

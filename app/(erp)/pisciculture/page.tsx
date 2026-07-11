@@ -11,6 +11,8 @@ import {
   CheckCircle,
   Thermometer,
   Wind,
+  Activity,
+  ShieldCheck,
 } from "lucide-react";
 
 /* ─── TYPES ─── */
@@ -269,6 +271,22 @@ const historiqueVentes = [
   { date: "20/10/2024", bassin: "BAS-02 (clôturé)", espece: "Clarias silure", masse: "640 kg",   prix: "1 800 XOF/kg", ca: "1 152 000 XOF" },
 ];
 
+/* Ventes 2024 par mois (avec clients) */
+const ventes2024 = [
+  { mois: "Avr 2024", espece: "Tilapia (récolte BAS-01)", qte: "1 240 kg", prix: "1 800 XOF/kg", ca: "2 232 000 XOF", client: "Poissonneries Soubré" },
+  { mois: "Jun 2024", espece: "Carpe (récolte BAS-02)",   qte: "980 kg",   prix: "2 100 XOF/kg", ca: "2 058 000 XOF", client: "Hôtels Abidjan" },
+  { mois: "Sep 2024", espece: "Tilapia (récolte BAS-03)", qte: "1 560 kg", prix: "1 850 XOF/kg", ca: "2 886 000 XOF", client: "Marché Méagui" },
+  { mois: "Déc 2024", espece: "Tilapia + Silure",         qte: "2 100 kg", prix: "1 920 XOF/kg", ca: "4 032 000 XOF", client: "Multi-clients" },
+];
+
+/* Prévisions récoltes 2025 détaillées */
+const previsions2025 = [
+  { bassin: "BAS-01", espece: "Tilapia",           ensemencement: "Jan 2025", recolte: "Oct 2025",  qte: "1 400 kg", ca: "2 520 000 XOF" },
+  { bassin: "BAS-02", espece: "Carpe commune",     ensemencement: "Mar 2025", recolte: "Nov 2025",  qte: "1 200 kg", ca: "2 520 000 XOF" },
+  { bassin: "BAS-03", espece: "Tilapia + Silure",  ensemencement: "Avr 2025", recolte: "Jan 2026",  qte: "1 650 kg", ca: "3 135 000 XOF" },
+  { bassin: "BAS-04", espece: "Tilapia Nile",      ensemencement: "Mai 2025", recolte: "Fév 2026",  qte: "1 600 kg", ca: "2 880 000 XOF" },
+];
+
 function ContenuProductions() {
   return (
     <div className="space-y-6">
@@ -332,6 +350,84 @@ function ContenuProductions() {
           </table>
         </div>
       </div>
+
+      {/* Ventes 2024 par mois avec clients */}
+      <div className="bg-white rounded-2xl border border-gray-100">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900">Ventes 2024 — Détail par mois</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ backgroundColor: "#F8FBF8" }}>
+                {["Mois", "Espèce", "Qté (kg)", "Prix moy.", "CA", "Client"].map((h) => (
+                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {ventes2024.map((v, i) => (
+                <tr key={i} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 text-xs font-medium text-gray-900">{v.mois}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600">{v.espece}</td>
+                  <td className="px-4 py-3 text-xs font-semibold text-gray-900">{v.qte}</td>
+                  <td className="px-4 py-3 text-xs text-gray-500">{v.prix}</td>
+                  <td className="px-4 py-3 text-xs font-bold" style={{ color: "#2E7D32" }}>{v.ca}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600">{v.client}</td>
+                </tr>
+              ))}
+              {/* Ligne total */}
+              <tr className="bg-green-50 font-semibold">
+                <td className="px-4 py-3 text-xs font-bold text-gray-900">Total 2024</td>
+                <td className="px-4 py-3 text-xs text-gray-500">—</td>
+                <td className="px-4 py-3 text-xs font-bold text-gray-900">5 880 kg</td>
+                <td className="px-4 py-3 text-xs text-gray-500">—</td>
+                <td className="px-4 py-3 text-xs font-bold" style={{ color: "#2E7D32" }}>11 208 000 XOF</td>
+                <td className="px-4 py-3 text-xs text-gray-500">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Prévisions récoltes 2025 détaillées */}
+      <div className="bg-white rounded-2xl border border-gray-100">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900">Prévisions récoltes 2025 — Par bassin</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ backgroundColor: "#F8FBF8" }}>
+                {["Bassin", "Espèce", "Ensemencement", "Récolte prévue", "Qté prévue", "CA estimé"].map((h) => (
+                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {previsions2025.map((p) => (
+                <tr key={p.bassin} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 text-xs font-mono font-semibold text-gray-900">{p.bassin}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600">{p.espece}</td>
+                  <td className="px-4 py-3 text-xs text-gray-500">{p.ensemencement}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600">{p.recolte}</td>
+                  <td className="px-4 py-3 text-xs font-semibold text-gray-900">{p.qte}</td>
+                  <td className="px-4 py-3 text-xs font-bold" style={{ color: "#2E7D32" }}>{p.ca}</td>
+                </tr>
+              ))}
+              {/* Ligne total */}
+              <tr className="bg-green-50 font-semibold">
+                <td className="px-4 py-3 text-xs font-bold text-gray-900">TOTAL 2025</td>
+                <td className="px-4 py-3 text-xs text-gray-500">—</td>
+                <td className="px-4 py-3 text-xs text-gray-500">—</td>
+                <td className="px-4 py-3 text-xs text-gray-500">—</td>
+                <td className="px-4 py-3 text-xs font-bold text-gray-900">5 850 kg</td>
+                <td className="px-4 py-3 text-xs font-bold" style={{ color: "#2E7D32" }}>11 055 000 XOF</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
@@ -355,11 +451,13 @@ export default function PisciculturePage() {
       <div className="p-6 space-y-6">
 
         {/* KPI */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Kpi label="Bassins actifs"     value="4"          icon={Fish}       color="#1565C0" bg="#E3F2FD" />
-          <Kpi label="Poissons total"     value="8 240"      icon={Waves}      color="#0277BD" bg="#E1F5FE" />
-          <Kpi label="Production prévue"  value="3,2 t"      icon={TrendingUp} color="#2E7D32" bg="#E8F5E9" />
-          <Kpi label="CA estimé"          value="4,8 M XOF"  icon={DollarSign} color="#E65100" bg="#FFF3E0" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <Kpi label="Bassins actifs"     value="4"          icon={Fish}        color="#1565C0" bg="#E3F2FD" />
+          <Kpi label="Poissons total"     value="8 240"      icon={Waves}       color="#0277BD" bg="#E1F5FE" />
+          <Kpi label="Production prévue"  value="3,2 t"      icon={TrendingUp}  color="#2E7D32" bg="#E8F5E9" />
+          <Kpi label="CA estimé"          value="4,8 M XOF"  icon={DollarSign}  color="#E65100" bg="#FFF3E0" />
+          <Kpi label="FCR moyen"          value="1,8"        icon={Activity}    color="#6A1B9A" bg="#F3E5F5" />
+          <Kpi label="Taux de survie"     value="91%"        icon={ShieldCheck} color="#00838F" bg="#E0F7FA" />
         </div>
 
         {/* Onglets */}

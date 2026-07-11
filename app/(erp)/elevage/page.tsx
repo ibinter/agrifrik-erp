@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 /* ─── TYPES ─── */
-type TabId = "volailles" | "bovins" | "porcs" | "sante" | "productions";
+type TabId = "volailles" | "bovins" | "porcs" | "sante" | "productions" | "valorisation";
 
 /* ─── KPI ─── */
 function Kpi({ label, value, sub, icon: Icon, color, bg }: {
@@ -337,6 +337,215 @@ function ContenuProductions() {
   );
 }
 
+/* ─── ONGLET VALORISATION & VENTES ─── */
+function ContenuValorisation() {
+  const charges = [
+    { poste: "Aliment volailles", montant: 1240000 },
+    { poste: "Aliment bovins (compléments)", montant: 680000 },
+    { poste: "Vétérinaire + vaccins", montant: 420000 },
+    { poste: "Électricité poulaillers", montant: 180000 },
+  ];
+  const totalCharges = 2520000;
+  const ca = 11497000;
+  const marge = ca - totalCharges;
+  const txMarge = ((marge / ca) * 100).toFixed(1);
+
+  const fmt = (n: number) => n.toLocaleString("fr-FR") + " XOF";
+
+  const expansion = [
+    {
+      label: "Poulailler C (2 000 poulets)",
+      periode: "Construction Aoû–Sep 2025",
+      budget: "2 400 000 XOF",
+      statut: "Planifié",
+      color: "bg-blue-50 text-blue-700 border-blue-200",
+    },
+    {
+      label: "Porcins — porcherie 20 truies",
+      periode: "Étude de faisabilité en cours",
+      budget: "—",
+      statut: "Étude",
+      color: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    },
+    {
+      label: "Laiterie artisanale (fromage frais, yaourt)",
+      periode: "Pilote Jan 2026",
+      budget: "À définir",
+      statut: "Pilote",
+      color: "bg-purple-50 text-purple-700 border-purple-200",
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Résumé CA */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="text-xs text-gray-500 mb-1">CA élevage YTD 2025</div>
+          <div className="text-2xl font-bold" style={{ color: "#2E7D32" }}>{fmt(ca)}</div>
+          <div className="text-xs text-gray-400 mt-0.5">Jan – Jul 11, 2025</div>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="text-xs text-gray-500 mb-1">Charges directes</div>
+          <div className="text-2xl font-bold text-red-600">{fmt(totalCharges)}</div>
+          <div className="text-xs text-gray-400 mt-0.5">4 postes de charges</div>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="text-xs text-gray-500 mb-1">Marge brute</div>
+          <div className="text-2xl font-bold" style={{ color: "#1B5E20" }}>{fmt(marge)}</div>
+          <div className="text-xs font-semibold mt-0.5" style={{ color: "#2E7D32" }}>Taux : {txMarge}%</div>
+        </div>
+      </div>
+
+      {/* Volailles */}
+      <div className="bg-white rounded-2xl border border-gray-100">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900">Valorisation Volailles — Jan–Jul 2025</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ backgroundColor: "#F8FBF8" }}>
+                {["Produit", "Volume", "Prix moyen", "CA"].map((h) => (
+                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              <tr className="hover:bg-gray-50">
+                <td className="px-4 py-3 text-xs font-medium text-gray-900">Œufs frais (Jan–Jun, 6 mois)</td>
+                <td className="px-4 py-3 text-xs text-gray-600">18 400 unités</td>
+                <td className="px-4 py-3 text-xs text-gray-600">185 XOF/unité</td>
+                <td className="px-4 py-3 text-xs font-semibold" style={{ color: "#2E7D32" }}>3 404 000 XOF</td>
+              </tr>
+              <tr className="hover:bg-gray-50">
+                <td className="px-4 py-3 text-xs font-medium text-gray-900">Poulets de chair vendus</td>
+                <td className="px-4 py-3 text-xs text-gray-600">140 têtes</td>
+                <td className="px-4 py-3 text-xs text-gray-600">3 200 XOF/kg vif</td>
+                <td className="px-4 py-3 text-xs font-semibold" style={{ color: "#2E7D32" }}>4 480 000 XOF</td>
+              </tr>
+              <tr className="hover:bg-gray-50">
+                <td className="px-4 py-3 text-xs text-gray-500 italic">Poussins vendus</td>
+                <td className="px-4 py-3 text-xs text-gray-400">0 (autoconsommation)</td>
+                <td className="px-4 py-3 text-xs text-gray-400">—</td>
+                <td className="px-4 py-3 text-xs text-gray-400">—</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-gray-200 bg-green-50">
+                <td className="px-4 py-2.5 text-xs font-bold text-gray-900" colSpan={3}>Sous-total Volailles</td>
+                <td className="px-4 py-2.5 text-xs font-bold" style={{ color: "#1B5E20" }}>7 884 000 XOF</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      {/* Bovins */}
+      <div className="bg-white rounded-2xl border border-gray-100">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900">Valorisation Bovins — Jan–Jul 2025</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ backgroundColor: "#F8FBF8" }}>
+                {["Produit", "Volume", "Prix moyen", "CA"].map((h) => (
+                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              <tr className="hover:bg-gray-50">
+                <td className="px-4 py-3 text-xs font-medium text-gray-900">Lait collecté (5 vaches laitières)</td>
+                <td className="px-4 py-3 text-xs text-gray-600">8 400 L</td>
+                <td className="px-4 py-3 text-xs text-gray-600">420 XOF/L</td>
+                <td className="px-4 py-3 text-xs font-semibold" style={{ color: "#2E7D32" }}>3 528 000 XOF</td>
+              </tr>
+              <tr className="hover:bg-gray-50">
+                <td className="px-4 py-3 text-xs font-medium text-gray-900">Veaux nés (3 veaux — 1 vendu)</td>
+                <td className="px-4 py-3 text-xs text-gray-600">1 veau vendu (2 gardés)</td>
+                <td className="px-4 py-3 text-xs text-gray-600">85 000 XOF/veau</td>
+                <td className="px-4 py-3 text-xs font-semibold" style={{ color: "#2E7D32" }}>85 000 XOF</td>
+              </tr>
+              <tr className="hover:bg-gray-50">
+                <td className="px-4 py-3 text-xs text-gray-500 italic">Bœufs de travail (3)</td>
+                <td className="px-4 py-3 text-xs text-gray-400">Non vendus</td>
+                <td className="px-4 py-3 text-xs text-gray-400">—</td>
+                <td className="px-4 py-3 text-xs text-gray-400">—</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-gray-200 bg-green-50">
+                <td className="px-4 py-2.5 text-xs font-bold text-gray-900" colSpan={3}>Sous-total Bovins</td>
+                <td className="px-4 py-2.5 text-xs font-bold" style={{ color: "#1B5E20" }}>3 613 000 XOF</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      {/* Charges */}
+      <div className="bg-white rounded-2xl border border-gray-100">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900">Charges directes élevage</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ backgroundColor: "#F8FBF8" }}>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Poste de charge</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500">Montant</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500">% du CA</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {charges.map((c) => (
+                <tr key={c.poste} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 text-xs text-gray-700">{c.poste}</td>
+                  <td className="px-4 py-3 text-xs text-right font-medium text-red-600">{fmt(c.montant)}</td>
+                  <td className="px-4 py-3 text-xs text-right text-gray-500">{((c.montant / ca) * 100).toFixed(1)}%</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-gray-300 bg-red-50">
+                <td className="px-4 py-2.5 text-xs font-bold text-gray-900">Total charges</td>
+                <td className="px-4 py-2.5 text-xs text-right font-bold text-red-700">{fmt(totalCharges)}</td>
+                <td className="px-4 py-2.5 text-xs text-right font-semibold text-red-600">{((totalCharges / ca) * 100).toFixed(1)}%</td>
+              </tr>
+              <tr className="border-t border-gray-200 bg-green-50">
+                <td className="px-4 py-2.5 text-xs font-bold text-gray-900">Marge brute</td>
+                <td className="px-4 py-2.5 text-xs text-right font-bold" style={{ color: "#1B5E20" }}>{fmt(marge)}</td>
+                <td className="px-4 py-2.5 text-xs text-right font-bold" style={{ color: "#2E7D32" }}>{txMarge}%</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      {/* Programme d'expansion */}
+      <div className="bg-white rounded-2xl border border-gray-100">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900">Programme d&apos;expansion 2025–2026</h3>
+        </div>
+        <div className="divide-y divide-gray-50">
+          {expansion.map((e) => (
+            <div key={e.label} className="px-5 py-4 flex items-center gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-gray-900">{e.label}</div>
+                <div className="text-xs text-gray-500 mt-0.5">{e.periode}</div>
+              </div>
+              <div className="text-xs font-semibold text-gray-700 shrink-0">{e.budget}</div>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${e.color} shrink-0`}>{e.statut}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── TABS CONFIG ─── */
 const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: "volailles", label: "Volailles", icon: Bird },
@@ -344,6 +553,7 @@ const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: "porcs",    label: "Porcs",     icon: PiggyBank },
   { id: "sante",    label: "Santé & Vétérinaire", icon: ShieldCheck },
   { id: "productions", label: "Productions", icon: ShoppingCart },
+  { id: "valorisation", label: "Valorisation & Ventes", icon: DollarSign },
 ];
 
 /* ─── PAGE ─── */
@@ -387,11 +597,12 @@ export default function ElevagePage() {
         </div>
 
         {/* Contenu */}
-        {activeTab === "volailles"    && <ContenuVolailles />}
-        {activeTab === "bovins"       && <ContenuBovins />}
-        {activeTab === "porcs"        && <ContenuPorcs />}
-        {activeTab === "sante"        && <ContenuSante />}
-        {activeTab === "productions"  && <ContenuProductions />}
+        {activeTab === "volailles"     && <ContenuVolailles />}
+        {activeTab === "bovins"        && <ContenuBovins />}
+        {activeTab === "porcs"         && <ContenuPorcs />}
+        {activeTab === "sante"         && <ContenuSante />}
+        {activeTab === "productions"   && <ContenuProductions />}
+        {activeTab === "valorisation"  && <ContenuValorisation />}
 
       </div>
     </div>
