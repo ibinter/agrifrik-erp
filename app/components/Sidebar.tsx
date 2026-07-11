@@ -71,6 +71,7 @@ import {
   SlidersHorizontal,
   User,
   BadgeCheck,
+  Award,
 } from "lucide-react";
 
 type NavChild = {
@@ -103,6 +104,7 @@ const navSections: NavSection[] = [
       { label: "Cartographie GPS", href: "/cartographie", icon: Map },
       { label: "Planning Cultural", href: "/planning-cultural", icon: CalendarDays },
       { label: "Semences", href: "/semences", icon: Wheat },
+      { label: "Transformation", href: "/transformation", icon: Factory },
     ],
   },
   {
@@ -132,6 +134,7 @@ const navSections: NavSection[] = [
       { label: "Suivi Qualité", href: "/suivi-qualite", icon: BadgeCheck },
       { label: "Traçabilité", href: "/tracabilite", icon: ScanLine },
       { label: "Audit", href: "/audit", icon: ClipboardCheck },
+      { label: "Certifications", href: "/certifications", icon: Award },
     ],
   },
   {

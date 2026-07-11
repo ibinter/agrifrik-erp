@@ -308,6 +308,128 @@ export default function AidePage() {
           </section>
         )}
 
+        {/* Tutoriels vidéo interactifs */}
+        {!search && (
+          <section>
+            <h2 className="text-base font-semibold text-gray-800 mb-4">Tutoriels vidéo interactifs</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { titre: "Prise en main d'AGRIFRIK en 5 minutes", duree: "5:02", niveau: "Débutant", niveauColor: "bg-green-50 text-green-700" },
+                { titre: "Gérer votre traçabilité cacao", duree: "8:45", niveau: "Intermédiaire", niveauColor: "bg-blue-50 text-blue-700" },
+                { titre: "Exporter vers Barry Callebaut : procédure complète", duree: "12:18", niveau: "Avancé", niveauColor: "bg-orange-50 text-orange-700" },
+                { titre: "Configuration de la certification RA", duree: "9:32", niveau: "Intermédiaire", niveauColor: "bg-blue-50 text-blue-700" },
+                { titre: "Utiliser l'IA agronomique pour optimiser vos rendements", duree: "7:15", niveau: "Intermédiaire", niveauColor: "bg-blue-50 text-blue-700" },
+                { titre: "Générer vos rapports bailleurs FAO/Banque Mondiale", duree: "11:40", niveau: "Avancé", niveauColor: "bg-orange-50 text-orange-700" },
+              ].map((v) => (
+                <button
+                  key={v.titre}
+                  className="bg-white rounded-2xl border border-gray-100 overflow-hidden text-left hover:shadow-md hover:border-[#2E7D32]/30 transition-all group flex flex-col"
+                >
+                  {/* Thumbnail SVG */}
+                  <div className="w-full relative bg-[#1B5E20]" style={{ paddingTop: "56.25%" }}>
+                    <svg
+                      className="absolute inset-0 w-full h-full"
+                      viewBox="0 0 320 180"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect width="320" height="180" fill="#1A2E1A" />
+                      <rect x="0" y="0" width="320" height="180" fill="url(#vgrad)" />
+                      <defs>
+                        <linearGradient id="vgrad" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#1B5E20" stopOpacity="0.9" />
+                          <stop offset="100%" stopColor="#0a1a0a" stopOpacity="1" />
+                        </linearGradient>
+                      </defs>
+                      {/* Play button circle */}
+                      <circle cx="160" cy="90" r="30" fill="white" fillOpacity="0.15" />
+                      <circle cx="160" cy="90" r="22" fill="white" fillOpacity="0.9" />
+                      {/* Play triangle */}
+                      <polygon points="154,82 154,98 172,90" fill="#1B5E20" />
+                      {/* Duration badge */}
+                      <rect x="6" y="158" width="36" height="16" rx="4" fill="black" fillOpacity="0.75" />
+                      <text x="24" y="170" textAnchor="middle" fill="white" fontSize="9" fontFamily="monospace">{v.duree}</text>
+                    </svg>
+                  </div>
+                  <div className="p-4 flex flex-col gap-2 flex-1">
+                    <p className="text-sm font-semibold text-gray-900 group-hover:text-[#2E7D32] transition-colors leading-snug">{v.titre}</p>
+                    <div className="flex items-center gap-2 mt-auto">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${v.niveauColor}`}>{v.niveau}</span>
+                      <span className="text-xs text-gray-400">{v.duree}</span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Raccourcis clavier */}
+        {!search && (
+          <section>
+            <h2 className="text-base font-semibold text-gray-800 mb-4">Raccourcis clavier</h2>
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+              <table className="w-full text-sm">
+                <thead className="bg-[#F8FBF8]">
+                  <tr>
+                    <th className="text-left text-xs font-semibold text-gray-500 px-6 py-3">Raccourci</th>
+                    <th className="text-left text-xs font-semibold text-gray-500 px-6 py-3">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { key: "Ctrl+K", action: "Recherche globale" },
+                    { key: "Ctrl+D", action: "Tableau de bord" },
+                    { key: "Ctrl+N", action: "Nouvelle facture / devis" },
+                    { key: "Ctrl+P", action: "Imprimer la page" },
+                    { key: "Ctrl+S", action: "Sauvegarder" },
+                    { key: "Ctrl+/", action: "Aide contextuelle" },
+                    { key: "Échap", action: "Fermer modal / panneau" },
+                    { key: "Alt+M", action: "Messagerie" },
+                  ].map((row) => (
+                    <tr key={row.key} className="hover:bg-gray-50">
+                      <td className="px-6 py-3">
+                        <kbd className="inline-flex items-center px-2.5 py-1 rounded-lg border border-gray-200 bg-gray-100 text-xs font-mono font-semibold text-gray-700 shadow-sm">
+                          {row.key}
+                        </kbd>
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">{row.action}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* Nouveautés — Version 2.0 */}
+        {!search && (
+          <section>
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-base font-semibold text-gray-800">Nouveautés</h2>
+              <span className="text-xs font-bold px-2.5 py-1 bg-[#E65100] text-white rounded-full">NOUVEAU</span>
+              <span className="text-xs text-gray-400">Version 2.0</span>
+            </div>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              {[
+                { icon: "🤖", titre: "IA Agronomique v2.0", desc: "Recommandations personnalisées par parcelle grâce à l'intelligence artificielle avancée." },
+                { icon: "⛓️", titre: "Blockchain Hyperledger", desc: "Traçabilité immuable des lots cacao — chaque transaction certifiée et infalsifiable." },
+                { icon: "🚁", titre: "Drone DJI Agras T30", desc: "Module pilotage et cartographie intégré pour la surveillance de parcelles par drone." },
+                { icon: "🗺️", titre: "Export KML / GeoJSON", desc: "Vos données SIG exportables directement vers Google Earth, QGIS et autres outils cartographiques." },
+                { icon: "📊", titre: "Rapports bailleurs automatisés", desc: "Génération automatique des rapports FAO, Banque Mondiale et ANADER en un clic." },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-4 px-6 py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+                  <span className="text-2xl shrink-0 mt-0.5">{item.icon}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{item.titre}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>
+                  </div>
+                  <span className="ml-auto shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-700 mt-0.5">Nouveau</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Contacter le support */}
         <section>
           <h2 className="text-base font-semibold text-gray-800 mb-4">Contacter le support</h2>

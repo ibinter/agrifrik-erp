@@ -51,77 +51,82 @@ interface Reco {
 const RECOS: Reco[] = [
   {
     prio: "urgent",
-    titre: "Séchage lot LOT-032",
-    confiance: 98,
-    type: "Qualité",
-    parcelle: "N/A",
-    priorite: "Critique",
+    titre: "URGENT : Traitement mildiou PAR-B1",
+    confiance: 78,
+    type: "Phytosanitaire",
+    parcelle: "PAR-B1 — 3,2 ha",
+    priorite: "Haute",
     analyse:
-      "Humidité mesurée à 12,4% > norme RA 10%. Si non traité dans 48h, risque développement aflatoxines (Aspergillus flavus). Pertes estimées : 3,2 t (100% du lot).",
+      "Analyse NDVI : taches blanches détectées sur 12% du feuillage PAR-B1 (analyse drone DJI 09/07). Pathogène probable : Phytophthora palmivora (mildiou des cabosses). Pluies 60-80mm prévues 12/07 — conditions idéales pour propagation rapide. Date : 11/07/2025.",
     recommandation:
-      "Déplacer immédiatement en séchoir solaire Zone C. Réétaler sur claies. Exposition 6-8h si ensoleillement > 5h. Revérifier humidité dans 24h.",
-    gain: "Économie potentielle : 3,52 M XOF (valeur du lot sauvé)",
+      "Traitement Ridomil Gold 68 WG — 2,5 g/L — 1 application avant pluies du 12/07. Coût estimé : 48 000 XOF. Stock disponible : 82 kg Ridomil restant ✅. Impact si non traité : Perte estimée 15-25% de la récolte PAR-B1 (-1,4 t → -1 540 000 XOF).",
+    gain: "🟡 En cours — Ibrahim S. a confirmé le traitement à 08h30 ce matin ✅",
     actions: [
-      { label: "Appliquer la recommandation", primary: true },
-      { label: "Ignorer" },
+      { label: "Voir rapport de traitement", primary: true },
+      { label: "Planifier suivi J+7" },
     ],
   },
   {
     prio: "important",
-    titre: "Fertilisation K sur PAR-A3",
+    titre: "Fertilisation KCl PAR-A3",
     confiance: 91,
     type: "Agronomique",
     parcelle: "PAR-A3 — 4,8 ha",
     priorite: "Haute",
     analyse:
-      "Analyse sol 2024 confirme déficience en potassium (K : 0,18 cmol/kg vs optimal 0,25). Stade floraison actuel — K critique pour formation des cabosses. Rendement estimé sans apport : 1,08 t/ha vs 1,26 t/ha avec apport K.",
+      "Source : Analyse sol Mar 2025 + Modèle prédictif rendement. Déficit en potassium confirmé (K : 0,18 cmol/kg vs optimal 0,25 cmol/kg). Analyse NDVI confirme stress hydro-minéral sur zone nord-est de la parcelle. Date : 10/07/2025.",
     recommandation:
-      "Épandre 22 kg/ha KCl (Muriate de Potasse 0-0-60) = 106 kg total sur 4,8 ha. Applique entre 06h-09h ou 16h-18h. Évite les pluies (prévues 12-13/07).",
-    gain: "Gain de rendement estimé : +0,18 t/ha × 4,8 ha = +0,86 t = +946 000 XOF",
+      "Épandage 150 kg KCl/ha × 4,8 ha = 720 kg — Prévu 20/07 si livraison SCPA. Impact attendu : +0,08 t/ha rendement (+384 kg de cacao → +422 400 XOF).",
+    gain: "Gain de rendement estimé : +384 kg cacao = +422 400 XOF",
     actions: [
       { label: "Créer bon commande KCl", primary: true },
       { label: "Planifier l'intervention" },
     ],
   },
   {
-    prio: "important",
-    titre: "Traitement préventif mildiou PAR-B1",
-    confiance: 87,
-    type: "Phytosanitaire",
-    parcelle: "PAR-B1 — 3,2 ha",
-    priorite: "Haute",
-    analyse:
-      "Conditions météo (pluies 60-80mm prévues 12-13/07) + température 28-34°C = risque élevé Phytophthora megakarya (mildiou cacao). PAR-B1 historique : mildiou détecté août 2022. Risque de perte sans traitement : 15-25% rendement.",
-    recommandation:
-      "Appliquer Ridomil Gold (Métalaxyl + Mancozeb) 2,5 kg/ha AVANT les pluies (idéalement 10/07 matin). Coût : ~24 000 XOF. Éviter application < 6h avant pluie.",
-    actions: [{ label: "Planifier le traitement", primary: true }],
-  },
-  {
-    prio: "optimisation",
-    titre: "Récolte optimale cacao PAR-A1",
-    confiance: 84,
+    prio: "info",
+    titre: "Récolte anacarde PAR-C1 prématurée évitée",
+    confiance: 94,
     type: "Planification",
-    parcelle: "PAR-A1",
-    priorite: "Normale",
+    parcelle: "PAR-C1",
+    priorite: "Appliquée ✅",
     analyse:
-      "Floraison enregistrée mi-avril. Maturation cacao : 5-6 mois. Fenêtre de récolte optimale : mi-octobre à fin novembre 2025. Prix cacao en hausse (+3,2% cette semaine). Si récolte à 100% maturité = Grade AA vs récolte prématurée = Grade A.",
+      "Recommandation appliquée le 08/05/2025. L'IA avait recommandé d'attendre 8 jours supplémentaires pour atteindre le stade de maturité optimal. La récolte anticipée aurait produit du grade WW180.",
     recommandation:
-      "Planifier récolte 15/10 - 30/11. Préparer main d'œuvre (8-10 saisonniers). Réserver espace entrepôt Zone 2 (estimé 7,8 t = 78 sacs 100kg).",
-    gain: "Gain qualité estimé : +15 XOF/kg × 7,8 t = +117 000 XOF (passage de A à AA)",
-    actions: [{ label: "Planifier la récolte", primary: true }],
+      "Attente respectée — récolte effectuée au stade optimal. Résultat : Qualité WW240 obtenue vs WW180 estimée → Prime qualité +15% = +680 000 XOF de CA supplémentaire.",
+    gain: "✅ Résultat confirmé : +680 000 XOF CA supplémentaire (prime qualité WW240 vs WW180)",
+    actions: [{ label: "Voir rapport campagne anacarde", primary: true }],
   },
   {
     prio: "optimisation",
-    titre: "Rotation culturale PAR-D2",
-    confiance: 76,
-    type: "Agronomique",
-    parcelle: "PAR-D2 — 2,4 ha",
+    titre: "Ajustement ratio alimentation BAS-02 (pisciculture)",
+    confiance: 87,
+    type: "Pisciculture",
+    parcelle: "Bassin BAS-02",
     priorite: "Normale",
     analyse:
-      "Parcelle anacarde post-campagne (récolte terminée). Sol pH 6,2 légèrement acide. Légumineuses recommandées pour fixation azote avant reprise anacarde.",
+      "FCR actuel : 1,9 (objectif : 1,8). Suivi biométrique semaine 28 : prise de poids conforme mais consommation alimentaire légèrement supérieure aux normes. Date : 09/07/2025.",
     recommandation:
-      "Envisager culture intercalaire niébé ou mucuna (légumineuses) de juillet à octobre 2025. Coût semences : ~28 000 XOF. Bénéfice sol : +0,08% N (estimation).",
-    actions: [{ label: "Voir le plan de rotation", primary: true }],
+      "Réduire ration journalière de 5% sur BAS-02. Réévaluer FCR après 7 jours. Impact attendu : Économie 18 kg aliment/semaine = 36 000 XOF/mois.",
+    gain: "Économie estimée : 36 000 XOF/mois sur alimentation BAS-02",
+    actions: [{ label: "Ajuster le plan d'alimentation", primary: true }],
+  },
+  {
+    prio: "optimisation",
+    titre: "Prévision récolte cacao Oct-Nov 2025",
+    confiance: 82,
+    type: "Prévision 90 jours",
+    parcelle: "Toutes parcelles cacao",
+    priorite: "Information",
+    analyse:
+      "Modèle : Données météo CHIRPS + historique parcelles + stade phénologique actuel. Facteurs positifs : Bonne pluviométrie S1 (+8% vs normale), traitement mildiou PAR-B1 appliqué. Facteurs risque : Prévision El Niño faible → légère sécheresse possible octobre.",
+    recommandation:
+      "Prévision centrale : 94 t de cacao (fourchette 91-97 t). Planifier main-d'œuvre saisonnière (12-15 personnes) dès mi-septembre. Réserver capacité séchoirs et entrepôts Zone 1+2.",
+    gain: "Prévision CA récolte principale : 101-106 M XOF (prix actuel 1 087 XOF/kg)",
+    actions: [
+      { label: "Voir plan de récolte détaillé", primary: true },
+      { label: "Planifier RH saisonniers" },
+    ],
   },
 ];
 
@@ -138,6 +143,19 @@ const INITIAL_MSGS: Msg[] = [
   {
     role: "ai",
     text: "📊 Prévision cours cacao Oct-Nov 2025 : Tendance haussière confirmée (+8-15% vs 2024). Facteurs : demande chocolat UE +4%, production Ghana -12% (sécheresse). Fourchette estimée : 1 150-1 280 XOF/kg (vs 1 087 aujourd'hui). ✅ Recommande maintenir contrat Barry Callebaut à prix fixe comme couverture, et vendre 20-30% en marché spot si cours > 1 250.",
+  },
+];
+
+const EXTRA_MSGS: Msg[] = [
+  { role: "user", text: "Quelle est la probabilité d'obtenir le grade AA pour le lot LOT-2025-048 ?" },
+  {
+    role: "ai",
+    text: "Basé sur les données de fermentation (94% fèves brunes, T°J3 52°C ✅, J5 48°C ✅) et l'historique de PAR-A1 (8 campagnes), j'estime une probabilité de 89% d'obtenir le Grade AA. Le principal facteur de risque est la durée de séchage — assurez-vous d'atteindre une humidité finale ≤7,5% pour maximiser la qualité.",
+  },
+  { role: "user", text: "Faut-il commander plus d'engrais NPK maintenant ?" },
+  {
+    role: "ai",
+    text: "Oui, je recommande de commander 10-12 t de NPK 20-10-10 pour la fertilisation azotée de septembre (pré-récolte). Prix actuel SCPA : 224 000 XOF/t. Délai livraison DDP : 14 jours. Commande avant le 15/08 pour livraison avant le 01/09 recommandée. Bon de commande pré-rempli disponible → [Créer le bon de commande]",
   },
 ];
 
@@ -232,7 +250,7 @@ const ALERTE_CFG: Record<string, { bg: string; border: string; color: string; la
 
 export default function IAPage() {
   const [tab, setTab] = useState<"recos" | "chat" | "predictions" | "alertes">("recos");
-  const [msgs, setMsgs] = useState<Msg[]>(INITIAL_MSGS);
+  const [msgs, setMsgs] = useState<Msg[]>([...INITIAL_MSGS, ...EXTRA_MSGS]);
   const [input, setInput] = useState("");
 
   const sendMsg = (text: string) => {
@@ -625,6 +643,130 @@ export default function IAPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            {/* Carte thermique rendements */}
+            <div>
+              <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <Leaf size={15} color="#2E7D32" />
+                Carte thermique des rendements prévus
+              </h2>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <svg viewBox="0 0 600 300" className="w-full" style={{ height: 300 }}>
+                  {/* Parcelles — rectangles colorés par rendement */}
+                  {/* PAR-A1 : 1,28 t/ha — vert très foncé */}
+                  <rect x={30} y={20} width={160} height={110} rx={8} fill="#1B5E20" />
+                  <text x={110} y={68} textAnchor="middle" fill="white" fontSize={13} fontWeight="bold">PAR-A1</text>
+                  <text x={110} y={86} textAnchor="middle" fill="#A5D6A7" fontSize={11}>1,28 t/ha</text>
+                  <text x={110} y={102} textAnchor="middle" fill="#C8E6C9" fontSize={10}>6,2 ha — Cacao AA</text>
+
+                  {/* PAR-A2 : 1,24 t/ha — vert foncé */}
+                  <rect x={210} y={20} width={150} height={110} rx={8} fill="#2E7D32" />
+                  <text x={285} y={68} textAnchor="middle" fill="white" fontSize={13} fontWeight="bold">PAR-A2</text>
+                  <text x={285} y={86} textAnchor="middle" fill="#A5D6A7" fontSize={11}>1,24 t/ha</text>
+                  <text x={285} y={102} textAnchor="middle" fill="#C8E6C9" fontSize={10}>5,4 ha — Cacao A</text>
+
+                  {/* PAR-A3 : 1,22 t/ha — vert moyen */}
+                  <rect x={380} y={20} width={190} height={110} rx={8} fill="#388E3C" />
+                  <text x={475} y={68} textAnchor="middle" fill="white" fontSize={13} fontWeight="bold">PAR-A3</text>
+                  <text x={475} y={86} textAnchor="middle" fill="#C8E6C9" fontSize={11}>1,22 t/ha</text>
+                  <text x={475} y={102} textAnchor="middle" fill="#C8E6C9" fontSize={10}>4,8 ha — KCl requis</text>
+
+                  {/* PAR-B1 : 1,15 t/ha — vert clair (si traitement) */}
+                  <rect x={30} y={150} width={200} height={120} rx={8} fill="#66BB6A" />
+                  <text x={130} y={203} textAnchor="middle" fill="white" fontSize={13} fontWeight="bold">PAR-B1</text>
+                  <text x={130} y={221} textAnchor="middle" fill="#E8F5E9" fontSize={11}>1,15 t/ha*</text>
+                  <text x={130} y={237} textAnchor="middle" fill="#E8F5E9" fontSize={10}>3,2 ha — *si traitement</text>
+                  <text x={130} y={253} textAnchor="middle" fill="#FFEB3B" fontSize={10}>⚠️ Mildiou surveillé</text>
+
+                  {/* PAR-B2 : 1,18 t/ha — vert moyen */}
+                  <rect x={250} y={150} width={320} height={120} rx={8} fill="#4CAF50" />
+                  <text x={410} y={203} textAnchor="middle" fill="white" fontSize={13} fontWeight="bold">PAR-B2</text>
+                  <text x={410} y={221} textAnchor="middle" fill="#E8F5E9" fontSize={11}>1,18 t/ha</text>
+                  <text x={410} y={237} textAnchor="middle" fill="#E8F5E9" fontSize={10}>4,0 ha — Cacao A</text>
+
+                  {/* Légende */}
+                  <defs>
+                    <linearGradient id="legendGrad" x1="0" x2="1" y1="0" y2="0">
+                      <stop offset="0%" stopColor="#C8E6C9" />
+                      <stop offset="100%" stopColor="#1B5E20" />
+                    </linearGradient>
+                  </defs>
+                  <rect x={30} y={282} width={200} height={10} rx={4} fill="url(#legendGrad)" />
+                  <text x={30} y={278} fontSize={9} fill="#9CA3AF">1,10 t/ha</text>
+                  <text x={200} y={278} textAnchor="end" fontSize={9} fill="#9CA3AF">1,30 t/ha</text>
+                  <text x={115} y={278} textAnchor="middle" fontSize={9} fill="#6B7280">Rendement prévu (t/ha)</text>
+                </svg>
+              </div>
+            </div>
+
+            {/* Scatter plot pluviométrie vs rendement */}
+            <div>
+              <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <BarChart2 size={15} color="#1565C0" />
+                Prédictions météo-corrélées — Pluviométrie vs Rendement
+              </h2>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <svg viewBox="0 0 600 280" className="w-full" style={{ height: 280 }}>
+                  {/* Axes */}
+                  <line x1={50} y1={20} x2={50} y2={230} stroke="#E5E7EB" strokeWidth={1.5} />
+                  <line x1={50} y1={230} x2={580} y2={230} stroke="#E5E7EB" strokeWidth={1.5} />
+
+                  {/* Y labels */}
+                  {[0.8, 0.9, 1.0, 1.1, 1.2, 1.3].map((v, i) => {
+                    const y = 230 - i * 42;
+                    return (
+                      <g key={v}>
+                        <line x1={46} x2={580} y1={y} y2={y} stroke="#F3F4F6" strokeWidth={1} />
+                        <text x={44} y={y + 4} textAnchor="end" fontSize={9} fill="#9CA3AF">{v.toFixed(1)}</text>
+                      </g>
+                    );
+                  })}
+                  {/* X labels */}
+                  {[0, 200, 400, 600, 800, 1000].map((v, i) => {
+                    const x = 50 + i * 106;
+                    return (
+                      <g key={v}>
+                        <text x={x} y={244} textAnchor="middle" fontSize={9} fill="#9CA3AF">{v}</text>
+                      </g>
+                    );
+                  })}
+
+                  {/* Scatter points — simulated data */}
+                  {[
+                    [120,0.82],[140,0.85],[160,0.88],[180,0.90],[200,0.91],[220,0.93],
+                    [240,0.95],[260,0.97],[280,0.99],[300,1.00],[320,1.02],[340,1.04],
+                    [360,1.05],[380,1.07],[400,1.08],[420,1.10],[440,1.11],[460,1.13],
+                    [480,1.14],[500,1.15],[520,1.16],[540,1.17],[560,1.18],[580,1.19],
+                    [600,1.20],[620,1.21],[640,1.22],[660,1.22],[680,1.23],[700,1.24],
+                    [150,0.84],[190,0.89],[230,0.94],[270,0.98],[310,1.01],[350,1.04],
+                    [390,1.07],[430,1.10],[470,1.13],[510,1.15],[550,1.17],[590,1.19],
+                    [630,1.21],[670,1.22],[710,1.24],[130,0.83],[170,0.87],[210,0.92],
+                    [250,0.96],[290,1.00],[330,1.03],[370,1.06],[410,1.09],[450,1.12],
+                    [490,1.14],[530,1.16],[570,1.18],[610,1.20],[650,1.22],[690,1.23],
+                  ].map(([px, py], i) => {
+                    const cx = 50 + (px / 1000) * 530;
+                    const cy = 230 - ((py - 0.8) / 0.5) * 210;
+                    return <circle key={i} cx={cx} cy={cy} r={3.5} fill="#2E7D32" opacity={0.55} />;
+                  })}
+
+                  {/* Regression line */}
+                  <line
+                    x1={50 + (100/1000)*530} y1={230 - ((0.82-0.8)/0.5)*210}
+                    x2={50 + (750/1000)*530} y2={230 - ((1.25-0.8)/0.5)*210}
+                    stroke="#C62828" strokeWidth={2} strokeDasharray="6 3"
+                  />
+
+                  {/* Axis titles */}
+                  <text x={315} y={262} textAnchor="middle" fontSize={10} fill="#6B7280">Pluviométrie (mm)</text>
+                  <text x={12} y={130} textAnchor="middle" fontSize={10} fill="#6B7280" transform="rotate(-90,12,130)">Rendement (t/ha)</text>
+
+                  {/* R² label */}
+                  <rect x={460} y={22} width={115} height={28} rx={6} fill="#FFF3E0" />
+                  <text x={517} y={38} textAnchor="middle" fontSize={10} fill="#E65100" fontWeight="bold">R² = 0,78</text>
+                  <text x={517} y={47} textAnchor="middle" fontSize={9} fill="#E65100">Corrélation forte</text>
+                </svg>
               </div>
             </div>
 

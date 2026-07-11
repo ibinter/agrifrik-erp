@@ -1,654 +1,782 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Leaf,
-  CheckCircle,
-  ChevronRight,
-  ChevronLeft,
-  Plus,
-  X,
-  Upload,
-  Play,
-  SkipForward,
-  Users,
-} from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, Upload, CalendarDays, LayoutDashboard } from "lucide-react";
 
-// ─── Données statiques ──────────────────────────────────────────────────────
+/* ─── Types ─── */
+type Culture = {
+  id: string;
+  label: string;
+  emoji: string;
+  superficie: string;
+};
 
-const STEPS = [
-  { num: 1, label: "Entreprise" },
-  { num: 2, label: "Cultures" },
-  { num: 3, label: "Équipe" },
-  { num: 4, label: "Finalisation" },
+type InviteRow = { email: string; role: string };
+
+type FormData = {
+  // Étape 1
+  nomEntreprise: string;
+  formeJuridique: string;
+  pays: string;
+  region: string;
+  rccm: string;
+  telephone: string;
+  devise: string;
+  // Étape 2
+  nomExploitation: string;
+  superficie: string;
+  nbParcelles: string;
+  typeSol: string;
+  eau: string;
+  certifications: string[];
+  // Étape 3 — cultures
+  cultures: Culture[];
+  // Étape 4
+  employesPermanents: string;
+  saisonniers: string;
+  roles: string[];
+  invitations: InviteRow[];
+};
+
+const CULTURES_DISPO = [
+  { id: "cacao", label: "Cacao", emoji: "🍫" },
+  { id: "anacarde", label: "Anacarde", emoji: "🥜" },
+  { id: "palmier", label: "Palmier à huile", emoji: "🌴" },
+  { id: "cafe", label: "Café", emoji: "☕" },
+  { id: "coton", label: "Coton", emoji: "🌿" },
+  { id: "mais", label: "Maïs", emoji: "🌽" },
+  { id: "riz", label: "Riz", emoji: "🍚" },
+  { id: "banane", label: "Banane", emoji: "🍌" },
+  { id: "mangue", label: "Mangue", emoji: "🥭" },
+  { id: "legumes", label: "Légumes", emoji: "🌱" },
+  { id: "elevage", label: "Élevage", emoji: "🐄" },
+  { id: "pisciculture", label: "Pisciculture", emoji: "🐟" },
 ];
 
-const CULTURES = [
-  { id: "cacao", emoji: "🍫", label: "Cacao" },
-  { id: "anacarde", emoji: "🥜", label: "Anacarde" },
-  { id: "mais", emoji: "🌽", label: "Maïs" },
-  { id: "riz", emoji: "🍚", label: "Riz" },
-  { id: "cafe", emoji: "☕", label: "Café" },
-  { id: "hevea", emoji: "🌿", label: "Hévéa" },
-  { id: "palmier", emoji: "🌴", label: "Palmier à huile" },
-  { id: "bananier", emoji: "🍌", label: "Bananier" },
-  { id: "elevage", emoji: "🐄", label: "Élevage" },
-  { id: "pisciculture", emoji: "🐟", label: "Pisciculture" },
-  { id: "karite", emoji: "🌰", label: "Karité" },
-  { id: "autre", emoji: "🌱", label: "Autre" },
+const ROLES_DISPO = [
+  "Directeur financier",
+  "Responsable terrain",
+  "Technicien agricole",
+  "Comptable",
+  "Responsable qualité",
+  "Chauffeur/Logistique",
 ];
 
-const TYPES_EXPLOITATION = [
-  "Plantation individuelle",
-  "Coopérative",
-  "Entreprise agro-industrielle",
-  "Groupement",
+const CERTIFICATIONS_DISPO = [
+  "Rainforest Alliance",
+  "GlobalG.A.P.",
+  "Agriculture Bio",
+  "Fairtrade",
+  "RSPO",
+  "Aucune",
 ];
 
-const PAYS = [
-  "Côte d'Ivoire",
-  "Sénégal",
-  "Mali",
-  "Burkina Faso",
-  "Ghana",
-  "Cameroun",
-  "Autre",
+const STEP_LABELS = [
+  "Votre entreprise",
+  "Votre exploitation",
+  "Vos cultures",
+  "Vos équipes",
+  "Terminé",
 ];
 
-const DEVISES = [
-  { value: "XOF", label: "XOF (FCFA)" },
-  { value: "EUR", label: "EUR (€)" },
-  { value: "USD", label: "USD ($)" },
-  { value: "GHS", label: "GHS (₵)" },
-  { value: "XAF", label: "XAF (FCFA)" },
-];
+const INITIAL_FORM: FormData = {
+  nomEntreprise: "",
+  formeJuridique: "",
+  pays: "",
+  region: "",
+  rccm: "",
+  telephone: "",
+  devise: "",
+  nomExploitation: "",
+  superficie: "",
+  nbParcelles: "",
+  typeSol: "",
+  eau: "",
+  certifications: [],
+  cultures: [],
+  employesPermanents: "",
+  saisonniers: "",
+  roles: [],
+  invitations: [
+    { email: "", role: "" },
+    { email: "", role: "" },
+    { email: "", role: "" },
+  ],
+};
 
-const FORMATS_DATE = [
-  { value: "DD/MM/YYYY", label: "JJ/MM/AAAA" },
-  { value: "MM/DD/YYYY", label: "MM/DD/YYYY" },
-];
+/* ─── Helpers ─── */
+function Label({ children }: { children: React.ReactNode }) {
+  return <p className="text-sm font-medium text-gray-700 mb-1.5">{children}</p>;
+}
 
-// ─── Confettis ───────────────────────────────────────────────────────────────
-
-const CONFETTI_COLORS = [
-  "#2E7D32", "#F59E0B", "#3B82F6", "#EF4444",
-  "#8B5CF6", "#10B981", "#F97316", "#EC4899",
-];
-
-function Confetti({ active }: { active: boolean }) {
-  if (!active) return null;
-  const pieces = Array.from({ length: 32 }, (_, i) => i);
+function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div className="pointer-events-none fixed inset-0 overflow-hidden z-50">
-      {pieces.map((i) => {
-        const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
-        const left = `${(i * 317) % 100}%`;
-        const delay = `${(i * 0.12).toFixed(2)}s`;
-        const size = 8 + (i % 5) * 3;
-        const duration = `${1.2 + (i % 6) * 0.25}s`;
-        const rotate = `${(i * 47) % 360}deg`;
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              left,
-              top: "-20px",
-              width: size,
-              height: size,
-              backgroundColor: color,
-              borderRadius: i % 3 === 0 ? "50%" : "2px",
-              transform: `rotate(${rotate})`,
-              animation: `confettiFall ${duration} ${delay} ease-in forwards`,
-            }}
-          />
-        );
-      })}
-      <style>{`
-        @keyframes confettiFall {
-          0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-      `}</style>
-    </div>
+    <input
+      {...props}
+      className={`border border-gray-200 rounded-xl px-4 py-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#2E7D32] transition ${props.className ?? ""}`}
+    />
   );
 }
 
-// ─── Composant principal ─────────────────────────────────────────────────────
+function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <select
+      {...props}
+      className={`border border-gray-200 rounded-xl px-4 py-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#2E7D32] bg-white transition ${props.className ?? ""}`}
+    />
+  );
+}
 
+/* ─── Composant principal ─── */
 export default function OnboardingPage() {
-  const router = useRouter();
   const [step, setStep] = useState(1);
-  const [confetti, setConfetti] = useState(false);
+  const [form, setForm] = useState<FormData>(INITIAL_FORM);
+  const [errors, setErrors] = useState<string>("");
+  const router = useRouter();
 
-  // Étape 1
-  const [nomEntreprise, setNomEntreprise] = useState("");
-  const [typeExploitation, setTypeExploitation] = useState("Plantation individuelle");
-  const [pays, setPays] = useState("Côte d'Ivoire");
-  const [region, setRegion] = useState("");
-  const [superficie, setSuperficie] = useState("");
+  /* helpers set */
+  const set = (field: keyof FormData, value: unknown) =>
+    setForm((f) => ({ ...f, [field]: value }));
 
-  // Étape 2
-  const [selectedCultures, setSelectedCultures] = useState<string[]>([]);
+  const toggleCheck = (field: "certifications" | "roles", val: string) => {
+    setForm((f) => {
+      const arr = f[field] as string[];
+      return {
+        ...f,
+        [field]: arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val],
+      };
+    });
+  };
 
-  // Étape 3
-  const [nbEmployes, setNbEmployes] = useState("");
-  const [emailInput, setEmailInput] = useState("");
-  const [emails, setEmails] = useState<string[]>([]);
-  const [devise, setDevise] = useState("XOF");
-  const [formatDate, setFormatDate] = useState("DD/MM/YYYY");
+  const toggleCulture = (id: string) => {
+    setForm((f) => {
+      const exists = f.cultures.find((c) => c.id === id);
+      if (exists) return { ...f, cultures: f.cultures.filter((c) => c.id !== id) };
+      const meta = CULTURES_DISPO.find((c) => c.id === id)!;
+      return { ...f, cultures: [...f.cultures, { ...meta, superficie: "" }] };
+    });
+  };
 
-  // Déclenche confettis à l'étape 4
-  useEffect(() => {
-    if (step === 4) {
-      setConfetti(true);
-      const t = setTimeout(() => setConfetti(false), 3500);
-      return () => clearTimeout(t);
+  const setCultureSup = (id: string, superficie: string) => {
+    setForm((f) => ({
+      ...f,
+      cultures: f.cultures.map((c) => (c.id === id ? { ...c, superficie } : c)),
+    }));
+  };
+
+  const setInvite = (idx: number, field: keyof InviteRow, val: string) => {
+    setForm((f) => {
+      const invitations = [...f.invitations];
+      invitations[idx] = { ...invitations[idx], [field]: val };
+      return { ...f, invitations };
+    });
+  };
+
+  /* validation basique */
+  const validate = (): boolean => {
+    if (step === 1) {
+      if (!form.nomEntreprise.trim()) { setErrors("Le nom de l'entreprise est requis."); return false; }
+      if (!form.pays) { setErrors("Le pays est requis."); return false; }
     }
-  }, [step]);
-
-  function toggleCulture(id: string) {
-    setSelectedCultures((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-    );
-  }
-
-  function addEmail() {
-    const e = emailInput.trim();
-    if (e && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && !emails.includes(e)) {
-      setEmails((prev) => [...prev, e]);
-      setEmailInput("");
+    if (step === 2) {
+      if (!form.nomExploitation.trim()) { setErrors("Le nom de l'exploitation est requis."); return false; }
     }
-  }
+    if (step === 3) {
+      if (form.cultures.length === 0) { setErrors("Sélectionnez au moins une culture."); return false; }
+    }
+    setErrors("");
+    return true;
+  };
 
-  function removeEmail(e: string) {
-    setEmails((prev) => prev.filter((x) => x !== e));
-  }
+  const next = () => { if (validate()) setStep((s) => Math.min(s + 1, 5)); };
+  const prev = () => { setErrors(""); setStep((s) => Math.max(s - 1, 1)); };
 
-  function next() {
-    if (step < 4) setStep((s) => s + 1);
-  }
-  function prev() {
-    if (step > 1) setStep((s) => s - 1);
-  }
-
-  const culturesChoisies = selectedCultures
-    .map((id) => CULTURES.find((c) => c.id === id))
-    .filter(Boolean) as (typeof CULTURES)[number][];
-
-  const progressPct = ((step - 1) / (STEPS.length - 1)) * 100;
+  const nbInvitesEnvoyees = form.invitations.filter((i) => i.email.trim()).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E8F5E9] via-white to-[#F1F8E9] flex flex-col items-center justify-center px-4 py-10">
-      <Confetti active={confetti} />
-
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 mb-8">
-        <div className="bg-[#2E7D32] rounded-xl p-2 shadow-md">
-          <Leaf className="w-6 h-6 text-white" />
+    <div className="min-h-screen flex">
+      {/* ── Bande gauche ── */}
+      <div
+        className="hidden lg:flex lg:w-64 xl:w-72 flex-col justify-between p-10"
+        style={{ background: "linear-gradient(160deg, #1A3B1A 0%, #2E7D32 100%)" }}
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg"
+            style={{ background: "rgba(76,175,80,0.25)", color: "#A5D6A7" }}
+          >
+            A
+          </div>
+          <span className="text-white text-lg font-extrabold tracking-widest">AGRIFRIK</span>
         </div>
-        <span className="text-xl font-extrabold text-[#1B5E20] tracking-tight">AGRIFRIK</span>
+
+        {/* Étapes latérales */}
+        <div className="space-y-6">
+          {STEP_LABELS.map((label, i) => {
+            const n = i + 1;
+            const done = step > n;
+            const active = step === n;
+            return (
+              <div key={n} className="flex items-center gap-3">
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                  style={{
+                    background: done ? "#4CAF50" : active ? "white" : "rgba(255,255,255,0.15)",
+                    color: done ? "white" : active ? "#1B5E20" : "rgba(255,255,255,0.5)",
+                  }}
+                >
+                  {done ? <Check className="w-3.5 h-3.5" /> : n}
+                </div>
+                <span
+                  className="text-sm font-medium"
+                  style={{
+                    color: active ? "white" : done ? "#A5D6A7" : "rgba(255,255,255,0.45)",
+                  }}
+                >
+                  {label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+          © 2025 AGRIFRIK SAS
+        </p>
       </div>
 
-      {/* Card */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 w-full max-w-xl overflow-hidden">
-
-        {/* Progress header */}
-        <div className="px-6 pt-6 pb-5 border-b border-gray-100">
-          {/* Étiquettes */}
-          <div className="flex justify-between mb-3">
-            {STEPS.map(({ num, label }) => {
-              const done = num < step;
-              const active = num === step;
-              return (
-                <div key={num} className="flex flex-col items-center gap-1.5 flex-1">
-                  <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-sm transition-all ${
-                      done
-                        ? "bg-[#2E7D32] text-white"
-                        : active
-                        ? "bg-[#2E7D32] text-white ring-4 ring-[#2E7D32]/20"
-                        : "bg-gray-100 text-gray-400"
-                    }`}
-                  >
-                    {done ? <CheckCircle size={17} /> : num}
+      {/* ── Zone principale ── */}
+      <div className="flex-1 bg-gray-50 flex flex-col">
+        {/* Barre de progression mobile + top */}
+        <div className="bg-white border-b border-gray-100 px-8 py-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex items-center gap-3">
+              {STEP_LABELS.map((label, i) => {
+                const n = i + 1;
+                const done = step > n;
+                const active = step === n;
+                return (
+                  <div key={n} className="flex items-center gap-2 flex-1 min-w-0">
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                      style={{
+                        background: done ? "#2E7D32" : active ? "#E8F5E9" : "#F3F4F6",
+                        color: done ? "white" : active ? "#2E7D32" : "#9CA3AF",
+                        border: active ? "2px solid #2E7D32" : "none",
+                      }}
+                    >
+                      {done ? <Check className="w-3 h-3" /> : n}
+                    </div>
+                    <span
+                      className="text-xs font-medium hidden sm:block truncate"
+                      style={{ color: active ? "#2E7D32" : done ? "#4CAF50" : "#9CA3AF" }}
+                    >
+                      {label}
+                    </span>
+                    {i < STEP_LABELS.length - 1 && (
+                      <div
+                        className="flex-1 h-0.5 ml-1"
+                        style={{ background: done ? "#4CAF50" : "#E5E7EB" }}
+                      />
+                    )}
                   </div>
-                  <span
-                    className={`text-[10px] font-semibold ${
-                      active
-                        ? "text-[#2E7D32]"
-                        : done
-                        ? "text-gray-500"
-                        : "text-gray-300"
-                    }`}
-                  >
-                    {label}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-          {/* Barre de progression */}
-          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[#2E7D32] rounded-full transition-all duration-500"
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-          <p className="text-xs text-gray-400 mt-1.5 text-right">
-            Étape {step} sur {STEPS.length}
-          </p>
         </div>
 
-        {/* Contenu des étapes */}
-        <div className="px-6 pb-6 pt-5">
-
-          {/* ── Étape 1 : Bienvenue & Informations entreprise ── */}
-          {step === 1 && (
-            <div className="space-y-5">
-              <div className="text-center mb-2">
-                <div className="text-4xl mb-3">🌾</div>
-                <h2 className="text-2xl font-extrabold text-gray-900">
-                  Bienvenue dans AGRIFRIK 🌾
-                </h2>
-                <p className="text-gray-500 text-sm mt-1">
-                  Configurons votre exploitation en 4 étapes simples
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700">
-                  Nom de l&apos;entreprise / exploitation <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={nomEntreprise}
-                  onChange={(e) => setNomEntreprise(e.target.value)}
-                  placeholder="ex. AGROTEK CI, Coopérative San Pedro…"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] placeholder:text-gray-300"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700">Type d&apos;exploitation</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {TYPES_EXPLOITATION.map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setTypeExploitation(type)}
-                      className={`px-3 py-2 rounded-xl text-xs font-medium border-2 transition-all text-left ${
-                        typeExploitation === type
-                          ? "bg-[#E8F5E9] text-[#2E7D32] border-[#2E7D32]"
-                          : "bg-white text-gray-600 border-gray-200 hover:border-[#2E7D32]/50"
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-gray-700">Pays</label>
-                  <select
-                    value={pays}
-                    onChange={(e) => setPays(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] bg-white"
-                  >
-                    {PAYS.map((p) => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-gray-700">Région / Zone</label>
-                  <input
-                    type="text"
-                    value={region}
-                    onChange={(e) => setRegion(e.target.value)}
-                    placeholder="ex. Soubré"
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] placeholder:text-gray-300"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700">Superficie totale</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={superficie}
-                    onChange={(e) => setSuperficie(e.target.value)}
-                    placeholder="0"
-                    min={0}
-                    className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] placeholder:text-gray-300"
-                  />
-                  <span className="text-sm text-gray-500 font-semibold">ha</span>
-                </div>
-              </div>
-
-              <button
-                onClick={next}
-                disabled={!nomEntreprise.trim()}
-                className="w-full flex items-center justify-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-xl transition-colors mt-2"
-              >
-                Suivant <ChevronRight size={16} />
-              </button>
-            </div>
-          )}
-
-          {/* ── Étape 2 : Cultures ── */}
-          {step === 2 && (
-            <div className="space-y-4">
+        {/* Contenu de l'étape */}
+        <div className="flex-1 overflow-y-auto px-6 py-10">
+          <div className="max-w-2xl mx-auto">
+            {/* ─── Étape 1 ─── */}
+            {step === 1 && (
               <div>
-                <h2 className="text-xl font-extrabold text-gray-900">
-                  Quelles cultures cultivez-vous ?
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  Sélectionnez vos productions principales (plusieurs choix possibles)
-                </p>
-              </div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">Votre entreprise</h1>
+                <p className="text-gray-500 text-sm mb-8">Informations générales sur votre structure</p>
 
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {CULTURES.map((culture) => {
-                  const isSelected = selectedCultures.includes(culture.id);
-                  return (
-                    <button
-                      key={culture.id}
-                      type="button"
-                      onClick={() => toggleCulture(culture.id)}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center relative ${
-                        isSelected
-                          ? "border-[#2E7D32] bg-[#E8F5E9] shadow-sm"
-                          : "border-gray-100 bg-gray-50 hover:border-gray-300"
-                      }`}
-                    >
-                      {isSelected && (
-                        <div className="absolute top-1 right-1 w-4 h-4 bg-[#2E7D32] rounded-full flex items-center justify-center">
-                          <CheckCircle size={10} className="text-white" />
-                        </div>
-                      )}
-                      <span className="text-2xl">{culture.emoji}</span>
-                      <span
-                        className={`text-[10px] font-semibold leading-tight ${
-                          isSelected ? "text-[#2E7D32]" : "text-gray-600"
-                        }`}
-                      >
-                        {culture.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+                  <div>
+                    <Label>Nom de l&apos;entreprise *</Label>
+                    <Input
+                      placeholder="AGRIFRIK SAS"
+                      value={form.nomEntreprise}
+                      onChange={(e) => set("nomEntreprise", e.target.value)}
+                    />
+                  </div>
 
-              {selectedCultures.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {culturesChoisies.map((c) => (
-                    <span
-                      key={c.id}
-                      className="bg-[#E8F5E9] text-[#2E7D32] text-xs font-medium px-2.5 py-1 rounded-full border border-[#2E7D32]/20"
-                    >
-                      {c.emoji} {c.label}
-                    </span>
-                  ))}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Forme juridique</Label>
+                      <Select value={form.formeJuridique} onChange={(e) => set("formeJuridique", e.target.value)}>
+                        <option value="">Sélectionner…</option>
+                        {["SAS", "SARL", "SA", "Coopérative", "Association", "Individuel"].map((v) => (
+                          <option key={v}>{v}</option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Devise principale</Label>
+                      <Select value={form.devise} onChange={(e) => set("devise", e.target.value)}>
+                        <option value="">Sélectionner…</option>
+                        {["XOF", "GHS", "KES", "XAF", "NGN"].map((v) => (
+                          <option key={v}>{v}</option>
+                        ))}
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Pays *</Label>
+                    <Select value={form.pays} onChange={(e) => set("pays", e.target.value)}>
+                      <option value="">Sélectionner…</option>
+                      {[
+                        "Côte d'Ivoire",
+                        "Sénégal",
+                        "Burkina Faso",
+                        "Mali",
+                        "Ghana",
+                        "Cameroun",
+                        "Kenya",
+                        "Autres",
+                      ].map((v) => (
+                        <option key={v}>{v}</option>
+                      ))}
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Région / Ville</Label>
+                    <Input
+                      placeholder="Soubré, Nawa"
+                      value={form.region}
+                      onChange={(e) => set("region", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>RCCM (optionnel)</Label>
+                      <Input
+                        placeholder="CI-ABJ-2024-…"
+                        value={form.rccm}
+                        onChange={(e) => set("rccm", e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label>Téléphone principal</Label>
+                      <Input
+                        placeholder="+225 07 00 00 00 00"
+                        value={form.telephone}
+                        onChange={(e) => set("telephone", e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
-              )}
-
-              {selectedCultures.length === 0 && (
-                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                  Sélectionnez au moins une culture pour continuer.
-                </p>
-              )}
-
-              <div className="flex justify-between pt-2 border-t border-gray-100">
-                <button
-                  onClick={prev}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  <ChevronLeft size={16} /> Précédent
-                </button>
-                <button
-                  onClick={next}
-                  disabled={selectedCultures.length === 0}
-                  className="flex items-center gap-1.5 bg-[#2E7D32] hover:bg-[#1B5E20] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-2 px-5 rounded-xl transition-colors text-sm"
-                >
-                  Suivant <ChevronRight size={16} />
-                </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* ── Étape 3 : Équipe & Configuration ── */}
-          {step === 3 && (
-            <div className="space-y-4">
+            {/* ─── Étape 2 ─── */}
+            {step === 2 && (
               <div>
-                <h2 className="text-xl font-extrabold text-gray-900">Configurez votre équipe</h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  Ces paramètres pourront être modifiés plus tard dans les réglages.
-                </p>
-              </div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">Votre exploitation</h1>
+                <p className="text-gray-500 text-sm mb-8">Caractéristiques de votre exploitation principale</p>
 
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                  <Users size={14} /> Nombre d&apos;employés
-                </label>
-                <input
-                  type="number"
-                  value={nbEmployes}
-                  onChange={(e) => setNbEmployes(e.target.value)}
-                  placeholder="ex. 12"
-                  min={0}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] placeholder:text-gray-300"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700">Inviter des collaborateurs</label>
-                <div className="flex gap-2">
-                  <input
-                    type="email"
-                    value={emailInput}
-                    onChange={(e) => setEmailInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addEmail()}
-                    placeholder="email@exemple.com"
-                    className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] placeholder:text-gray-300"
-                  />
-                  <button
-                    type="button"
-                    onClick={addEmail}
-                    className="bg-[#2E7D32] hover:bg-[#1B5E20] text-white px-3 py-2 rounded-xl transition-colors"
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
-                {emails.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {emails.map((e) => (
-                      <span
-                        key={e}
-                        className="flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1.5 rounded-full border border-blue-200"
-                      >
-                        {e}
-                        <button
-                          type="button"
-                          onClick={() => removeEmail(e)}
-                          className="hover:text-red-600 transition-colors"
-                        >
-                          <X size={11} />
-                        </button>
-                      </span>
-                    ))}
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+                  <div>
+                    <Label>Nom de l&apos;exploitation *</Label>
+                    <Input
+                      placeholder="Plantation principale"
+                      value={form.nomExploitation}
+                      onChange={(e) => set("nomExploitation", e.target.value)}
+                    />
                   </div>
-                )}
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-gray-700">Devise</label>
-                  <select
-                    value={devise}
-                    onChange={(e) => setDevise(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] bg-white"
-                  >
-                    {DEVISES.map((d) => (
-                      <option key={d.value} value={d.value}>{d.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-gray-700">Format de date</label>
-                  <select
-                    value={formatDate}
-                    onChange={(e) => setFormatDate(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] bg-white"
-                  >
-                    {FORMATS_DATE.map((f) => (
-                      <option key={f.value} value={f.value}>{f.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-between pt-2 border-t border-gray-100">
-                <button
-                  onClick={prev}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  <ChevronLeft size={16} /> Précédent
-                </button>
-                <button
-                  onClick={next}
-                  className="flex items-center gap-1.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-semibold py-2 px-5 rounded-xl transition-colors text-sm"
-                >
-                  Suivant <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ── Étape 4 : Finalisation ── */}
-          {step === 4 && (
-            <div className="space-y-5">
-              <div className="text-center">
-                <div className="text-5xl mb-2 animate-bounce inline-block">🎉</div>
-                <h2 className="text-2xl font-extrabold text-gray-900">
-                  Votre AGRIFRIK est prêt !
-                </h2>
-                <p className="text-gray-500 text-sm mt-1">
-                  Voici le récapitulatif de votre configuration
-                </p>
-              </div>
-
-              {/* Récap */}
-              <div className="bg-gradient-to-br from-[#E8F5E9] to-[#F1F8E9] rounded-2xl p-4 space-y-3 border border-[#2E7D32]/10">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Entreprise</span>
-                  <span className="text-sm font-bold text-gray-900 text-right">{nomEntreprise || "—"}</span>
-                </div>
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Type</span>
-                  <span className="text-sm text-gray-800 text-right">{typeExploitation}</span>
-                </div>
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Pays</span>
-                  <span className="text-sm text-gray-800">{pays}{region ? ` · ${region}` : ""}</span>
-                </div>
-                {superficie && (
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Superficie</span>
-                    <span className="text-sm text-gray-800">{superficie} ha</span>
-                  </div>
-                )}
-                {nbEmployes && (
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Employés</span>
-                    <span className="text-sm text-gray-800">{nbEmployes} personnes</span>
-                  </div>
-                )}
-                {culturesChoisies.length > 0 && (
-                  <div className="pt-2 border-t border-[#2E7D32]/15">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Cultures</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {culturesChoisies.map((c) => (
-                        <span
-                          key={c.id}
-                          className="bg-white text-[#2E7D32] text-xs font-semibold px-2.5 py-1 rounded-full border border-[#2E7D32]/30 shadow-sm"
-                        >
-                          {c.emoji} {c.label}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Superficie totale</Label>
+                      <div className="relative">
+                        <Input
+                          placeholder="0"
+                          value={form.superficie}
+                          onChange={(e) => set("superficie", e.target.value)}
+                          className="pr-10"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium">
+                          ha
                         </span>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Nombre de parcelles</Label>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={form.nbParcelles}
+                        onChange={(e) => set("nbParcelles", e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Type de sol principal</Label>
+                    <Select value={form.typeSol} onChange={(e) => set("typeSol", e.target.value)}>
+                      <option value="">Sélectionner…</option>
+                      {["Limon argileux", "Argilo-sableux", "Sableux", "Argileux", "Latérite"].map((v) => (
+                        <option key={v}>{v}</option>
+                      ))}
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Disponibilité en eau</Label>
+                    <div className="grid grid-cols-2 gap-3 mt-1">
+                      {[
+                        "Pluies uniquement",
+                        "Rivière/Marigot",
+                        "Puits/Forage",
+                        "Irrigation",
+                      ].map((opt) => (
+                        <label
+                          key={opt}
+                          className="flex items-center gap-2 cursor-pointer border rounded-xl px-4 py-3 transition hover:bg-gray-50"
+                          style={{
+                            borderColor: form.eau === opt ? "#2E7D32" : "#E5E7EB",
+                            background: form.eau === opt ? "#F1F8E9" : "white",
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name="eau"
+                            value={opt}
+                            checked={form.eau === opt}
+                            onChange={() => set("eau", opt)}
+                            className="accent-[#2E7D32]"
+                          />
+                          <span className="text-sm text-gray-700">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Certifications existantes</Label>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {CERTIFICATIONS_DISPO.map((cert) => {
+                        const checked = form.certifications.includes(cert);
+                        return (
+                          <button
+                            key={cert}
+                            type="button"
+                            onClick={() => toggleCheck("certifications", cert)}
+                            className="text-xs px-3 py-1.5 rounded-full border font-medium transition"
+                            style={{
+                              borderColor: checked ? "#2E7D32" : "#E5E7EB",
+                              background: checked ? "#2E7D32" : "white",
+                              color: checked ? "white" : "#6B7280",
+                            }}
+                          >
+                            {cert}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ─── Étape 3 ─── */}
+            {step === 3 && (
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">Vos cultures</h1>
+                <p className="text-gray-500 text-sm mb-8">Quelles cultures pratiquez-vous ?</p>
+
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-6">
+                  {CULTURES_DISPO.map(({ id, label, emoji }) => {
+                    const selected = form.cultures.some((c) => c.id === id);
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => toggleCulture(id)}
+                        className="flex flex-col items-center gap-2 p-4 rounded-2xl border text-center transition"
+                        style={{
+                          borderColor: selected ? "#2E7D32" : "#E5E7EB",
+                          background: selected ? "#F1F8E9" : "white",
+                          boxShadow: selected ? "0 0 0 2px #2E7D32" : "none",
+                        }}
+                      >
+                        <span className="text-2xl">{emoji}</span>
+                        <span
+                          className="text-xs font-medium leading-tight"
+                          style={{ color: selected ? "#1B5E20" : "#374151" }}
+                        >
+                          {label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {form.cultures.length > 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <p className="text-sm font-semibold text-gray-700 mb-4">
+                      Superficie par culture
+                    </p>
+                    <div className="space-y-3">
+                      {form.cultures.map((c) => (
+                        <div key={c.id} className="flex items-center gap-3">
+                          <span className="text-lg">{c.emoji}</span>
+                          <span className="text-sm text-gray-700 flex-1">{c.label}</span>
+                          <div className="relative w-32">
+                            <input
+                              type="number"
+                              placeholder="0"
+                              value={c.superficie}
+                              onChange={(e) => setCultureSup(c.id, e.target.value)}
+                              className="border border-gray-200 rounded-xl px-3 py-2 text-sm w-full pr-9 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                              ha
+                            </span>
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
                 )}
               </div>
+            )}
 
-              {/* Options de démarrage */}
-              <div className="space-y-2">
+            {/* ─── Étape 4 ─── */}
+            {step === 4 && (
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">Votre équipe</h1>
+                <p className="text-gray-500 text-sm mb-8">Configuration des membres et invitations</p>
+
+                <div className="space-y-5">
+                  <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Employés permanents</Label>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={form.employesPermanents}
+                          onChange={(e) => set("employesPermanents", e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Saisonniers (estimé)</Label>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={form.saisonniers}
+                          onChange={(e) => set("saisonniers", e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label>Rôles à créer maintenant</Label>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {ROLES_DISPO.map((role) => {
+                          const checked = form.roles.includes(role);
+                          return (
+                            <button
+                              key={role}
+                              type="button"
+                              onClick={() => toggleCheck("roles", role)}
+                              className="text-xs px-3 py-1.5 rounded-full border font-medium transition"
+                              style={{
+                                borderColor: checked ? "#2E7D32" : "#E5E7EB",
+                                background: checked ? "#2E7D32" : "white",
+                                color: checked ? "white" : "#6B7280",
+                              }}
+                            >
+                              {role}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                    <p className="text-sm font-semibold text-gray-700 mb-1">
+                      Invitations par email
+                    </p>
+                    <p className="text-xs text-gray-400 mb-4">
+                      Jusqu&apos;à 3 collaborateurs — ils recevront un lien d&apos;activation
+                    </p>
+                    <div className="space-y-3">
+                      {form.invitations.map((inv, idx) => (
+                        <div key={idx} className="flex gap-3">
+                          <input
+                            type="email"
+                            placeholder={`collaborateur${idx + 1}@exemple.com`}
+                            value={inv.email}
+                            onChange={(e) => setInvite(idx, "email", e.target.value)}
+                            className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                          />
+                          <select
+                            value={inv.role}
+                            onChange={(e) => setInvite(idx, "role", e.target.value)}
+                            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-[#2E7D32] bg-white"
+                          >
+                            <option value="">Rôle…</option>
+                            {ROLES_DISPO.map((r) => (
+                              <option key={r}>{r}</option>
+                            ))}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ─── Étape 5 ─── */}
+            {step === 5 && (
+              <div className="text-center py-8">
+                {/* Animation SVG */}
+                <div className="flex justify-center mb-8">
+                  <div className="relative">
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="55"
+                        fill="none"
+                        stroke="#E8F5E9"
+                        strokeWidth="8"
+                      />
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="42"
+                        fill="none"
+                        stroke="#C8E6C9"
+                        strokeWidth="4"
+                      />
+                      <circle cx="60" cy="60" r="48" fill="#2E7D32" opacity="0.12" />
+                      <circle cx="60" cy="60" r="36" fill="#2E7D32" />
+                      <text
+                        x="60"
+                        y="68"
+                        textAnchor="middle"
+                        fontSize="28"
+                        fontWeight="900"
+                        fill="white"
+                        fontFamily="sans-serif"
+                      >
+                        A
+                      </text>
+                    </svg>
+                  </div>
+                </div>
+
+                <h1 className="text-3xl font-black text-gray-900 mb-2">
+                  Votre espace AGRIFRIK est prêt !
+                </h1>
+                <p className="text-gray-500 text-base mb-10">
+                  Votre configuration a été enregistrée avec succès.
+                </p>
+
+                {/* Résumé */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 text-left max-w-md mx-auto mb-10 space-y-3">
+                  {[
+                    { label: "Entreprise créée", value: form.nomEntreprise || "—" },
+                    { label: "Exploitation configurée", value: form.nomExploitation || "—" },
+                    {
+                      label: "Cultures enregistrées",
+                      value: `${form.cultures.length} culture${form.cultures.length > 1 ? "s" : ""}`,
+                    },
+                    {
+                      label: "Invitations envoyées",
+                      value: `${nbInvitesEnvoyees} invitation${nbInvitesEnvoyees > 1 ? "s" : ""}`,
+                    },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-5 h-5 rounded-full flex items-center justify-center"
+                          style={{ background: "#E8F5E9" }}
+                        >
+                          <Check className="w-3 h-3" style={{ color: "#2E7D32" }} />
+                        </div>
+                        <span className="text-sm text-gray-600">{label}</span>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900">{value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Boutons */}
+                <div className="flex flex-col gap-3 max-w-sm mx-auto">
+                  <button
+                    onClick={() => router.push("/dashboard")}
+                    className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition"
+                    style={{ background: "#2E7D32" }}
+                  >
+                    <LayoutDashboard className="inline w-4 h-4 mr-2" />
+                    Accéder au tableau de bord
+                  </button>
+                  <button
+                    className="w-full py-3 rounded-xl text-sm font-semibold border-2 transition hover:bg-[#F1F8E9]"
+                    style={{ borderColor: "#2E7D32", color: "#2E7D32" }}
+                  >
+                    <Upload className="inline w-4 h-4 mr-2" />
+                    Importer mes données (Excel/CSV)
+                  </button>
+                  <button
+                    className="w-full py-3 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
+                  >
+                    <CalendarDays className="inline w-4 h-4 mr-2" />
+                    Planifier une démo avec un expert
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ─── Erreur ─── */}
+            {errors && (
+              <div className="mt-4 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+                {errors}
+              </div>
+            )}
+
+            {/* ─── Navigation ─── */}
+            {step < 5 && (
+              <div className="flex items-center justify-between mt-8">
                 <button
                   type="button"
-                  className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-gray-300 bg-white transition-all text-left group"
+                  onClick={prev}
+                  disabled={step === 1}
+                  className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
                 >
-                  <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                    <Upload size={18} className="text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">Importer des données existantes</p>
-                    <p className="text-xs text-gray-500">Excel, CSV — importez vos fichiers actuels</p>
-                  </div>
+                  <ChevronLeft className="w-4 h-4" />
+                  Précédent
                 </button>
 
                 <button
                   type="button"
-                  className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-[#2E7D32] bg-[#E8F5E9] hover:bg-[#D7EED8] transition-all text-left group relative"
+                  onClick={next}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-white px-6 py-3 rounded-xl transition"
+                  style={{ background: "#2E7D32" }}
                 >
-                  <div className="w-9 h-9 rounded-lg bg-[#2E7D32] flex items-center justify-center shrink-0">
-                    <Play size={18} className="text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-[#1B5E20]">Commencer avec les données de démonstration</p>
-                    <p className="text-xs text-[#2E7D32]/70">Explorez toutes les fonctionnalités avec des données réelles</p>
-                  </div>
-                  <span className="absolute top-2 right-2 text-[9px] font-bold bg-[#2E7D32] text-white px-1.5 py-0.5 rounded-full uppercase tracking-wide">
-                    Recommandé
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-gray-300 bg-white transition-all text-left group"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                    <SkipForward size={18} className="text-gray-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700">Partir de zéro</p>
-                    <p className="text-xs text-gray-500">Commencez avec un espace vide</p>
-                  </div>
+                  {step === 4 ? "Terminer" : "Suivant"}
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="w-full flex items-center justify-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-bold py-3.5 px-8 rounded-xl transition-colors text-base shadow-md"
-              >
-                Accéder à mon tableau de bord <ChevronRight size={18} />
-              </button>
-
-              <button
-                onClick={prev}
-                className="w-full text-center text-sm text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                ← Modifier mes informations
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-
-      <p className="mt-8 text-center text-xs text-gray-400">© 2025 AGRIFRIK by IBIG SOFT</p>
     </div>
   );
 }

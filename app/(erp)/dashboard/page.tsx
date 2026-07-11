@@ -104,11 +104,14 @@ const topCultures = [
 
 /* ─── AGENDA ─────────────────────────────────────────────── */
 const agenda = [
-  { date: "10/07", label: "Taille d'entretien PAR-A1", who: "Ibrahim S." },
-  { date: "12/07", label: "Livraison 240 kg cacao → Soubré", who: "Logistique" },
-  { date: "14/07", label: "Sarclage PAR-D2 (adventices)", who: "Équipe terrain" },
-  { date: "15/07", label: "Réunion coopérative mensuelle", who: "Direction" },
-  { date: "20/07", label: "Épandage K sur PAR-A3", who: "Équipe agro" },
+  { date: "11/07", label: "08:00 Taille PAR-A3", who: "Ibrahim S.", alert: false },
+  { date: "11/07", label: "10:00 Réunion direction hebdo", who: "Direction", alert: false },
+  { date: "11/07", label: "14:00 Contrôle fermentation LOT-2025-048", who: "Qualité", alert: false },
+  { date: "14/07", label: "08:00 Sarclage PAR-D2", who: "Équipe terrain", alert: false },
+  { date: "14/07", label: "Loyers PAR-B1+B2 dus (1 980 000 XOF)", who: "Finance", alert: true },
+  { date: "14/07", label: "Loyers PAR-E1+E2 dus (2 510 000 XOF)", who: "Finance", alert: true },
+  { date: "17/07", label: "MSC Allegria Rotterdam ETA (LOT-045)", who: "Export", alert: false },
+  { date: "18/07", label: "Entretien final candidat Resp. Export", who: "RH", alert: false },
 ];
 
 /* ─── SVG GROUPED BAR CHART ──────────────────────────────── */
@@ -217,13 +220,20 @@ export default function DashboardPage() {
               <div className="flex flex-wrap gap-3 mb-3">
                 <span className="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs px-3 py-1.5 rounded-lg">
                   <TrendingUp size={12} className="text-green-300" />
-                  Cacao BCC&nbsp;: <strong className="ml-0.5">1 087 XOF/kg</strong>
-                  <span className="text-green-300 font-medium">↑ +3,2%</span>
+                  BCC Abidjan&nbsp;: <strong className="ml-0.5">1 087 XOF/kg</strong>
+                  <span className="text-green-300 font-medium">+12 ▲</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs px-3 py-1.5 rounded-lg">
+                  <TrendingUp size={12} className="text-green-300" />
+                  London ICE&nbsp;: <strong className="ml-0.5">£2 842/t</strong>
+                </span>
+                <span className="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs px-3 py-1.5 rounded-lg">
+                  <TrendingUp size={12} className="text-green-300" />
+                  NYMEX&nbsp;: <strong className="ml-0.5">$3 241/t</strong>
                 </span>
                 <span className="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs px-3 py-1.5 rounded-lg">
                   <Minus size={12} className="text-yellow-300" />
-                  Anacarde&nbsp;: <strong className="ml-0.5">680 XOF/kg</strong>
-                  <span className="text-yellow-300 font-medium">→ stable</span>
+                  EUR/XOF&nbsp;: <strong className="ml-0.5">655,96</strong>
                 </span>
               </div>
               {/* Alerte météo */}
@@ -260,6 +270,79 @@ export default function DashboardPage() {
               </Link>
             );
           })}
+        </div>
+
+        {/* ── 2b. ALERTES IA EN TEMPS RÉEL ─────────────────── */}
+        <div
+          className="rounded-2xl p-4"
+          style={{ background: "#FFF8F0", border: "1px solid #FFCC80" }}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-base">🤖</span>
+            <span className="text-sm font-bold text-orange-800">IA Agronomique</span>
+            <span className="text-xs text-orange-600 font-medium">— 3 recommandations aujourd&apos;hui</span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-start gap-2 text-xs text-orange-900">
+              <span className="flex-shrink-0">⚠️</span>
+              <span><strong>Mildiou détecté probable PAR-B1</strong> (probabilité 78%) — Traitement Ridomil recommandé avant pluies du 12/07</span>
+            </div>
+            <div className="flex items-start gap-2 text-xs text-orange-900">
+              <span className="flex-shrink-0">💧</span>
+              <span><strong>Stress hydrique PAR-A3</strong> — Déficit en KCl confirmé par analyse NDVI — Épandage urgent</span>
+            </div>
+            <div className="flex items-start gap-2 text-xs text-orange-900">
+              <span className="flex-shrink-0">✅</span>
+              <span><strong>LOT-2025-048</strong> fermentation dans les normes — Aucune action requise</span>
+            </div>
+          </div>
+          <Link href="/ia" className="inline-block mt-3 text-xs font-semibold text-orange-700 hover:underline">
+            Voir toutes les recommandations IA →
+          </Link>
+        </div>
+
+        {/* ── 2c. SUIVI EN TEMPS RÉEL — LOTS ACTIFS ───────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900 text-sm">Suivi en temps réel — Lots actifs</h2>
+            <Link href="/stocks" className="text-xs text-green-700 font-medium hover:underline">Voir tous les lots →</Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr style={{ backgroundColor: "#F8FBF8" }}>
+                  <th className="text-left px-3 py-2 font-semibold text-gray-500 rounded-l-xl">Lot</th>
+                  <th className="text-left px-3 py-2 font-semibold text-gray-500">Stade actuel</th>
+                  <th className="text-left px-3 py-2 font-semibold text-gray-500">Progression</th>
+                  <th className="text-left px-3 py-2 font-semibold text-gray-500 rounded-r-xl">Alerte</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[
+                  { lot: "LOT-2025-048", stade: "Fermentation J5/6", pct: 83, alerte: "✅ Normes" },
+                  { lot: "LOT-2025-047", stade: "Séchage J8/9", pct: 90, alerte: "✅ Humidité 8,1%" },
+                  { lot: "LOT-2025-045", stade: "En transit → Rotterdam", pct: 100, alerte: "🔵 ETA 05/08" },
+                ].map((l) => (
+                  <tr key={l.lot} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-3 py-2.5 font-mono font-semibold text-gray-800">{l.lot}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{l.stade}</td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-gray-100 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full"
+                            style={{ width: `${l.pct}%`, backgroundColor: l.pct === 100 ? "#1565C0" : "#2E7D32" }}
+                          />
+                        </div>
+                        <span className="font-semibold text-gray-700">{l.pct}%</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5 font-medium text-gray-700">{l.alerte}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* ── 3. ACTIVITÉ + INDICATEURS CLÉS ──────────────── */}
@@ -413,10 +496,17 @@ export default function DashboardPage() {
               {agenda.map((ev, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="flex-shrink-0 w-10 text-center">
-                    <span className="text-xs font-bold text-green-700 bg-green-50 rounded-lg px-1.5 py-0.5 block">{ev.date}</span>
+                    <span
+                      className="text-xs font-bold rounded-lg px-1.5 py-0.5 block"
+                      style={ev.alert
+                        ? { backgroundColor: "#FFF3E0", color: "#E65100" }
+                        : { backgroundColor: "#E8F5E9", color: "#2E7D32" }}
+                    >{ev.date}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-800 font-medium leading-snug">{ev.label}</p>
+                    <p className={`text-xs font-medium leading-snug ${ev.alert ? "text-orange-800" : "text-gray-800"}`}>
+                      {ev.label}
+                    </p>
                     <p className="text-xs text-gray-400 mt-0.5">{ev.who}</p>
                   </div>
                 </div>

@@ -63,6 +63,8 @@ import {
   Truck,
   FlaskConical,
   Boxes,
+  Award,
+  Wrench,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -124,6 +126,8 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   Truck: <Truck size={16} />,
   FlaskConical: <FlaskConical size={16} />,
   Boxes: <Boxes size={16} />,
+  Award: <Award size={16} />,
+  Wrench: <Wrench size={16} />,
 };
 
 type SearchItem = {
@@ -203,6 +207,15 @@ const searchData: SearchItem[] = [
   { type: "page", title: "Analytics", href: "/analytics", icon: "LineChart", desc: "Analyse" },
   { type: "page", title: "Direction", href: "/direction", icon: "Gauge", desc: "Analyse" },
   { type: "page", title: "Rapports Terrain", href: "/rapports-terrain", icon: "ClipboardList", desc: "Reporting" },
+  // Detail pages (vagues 19-22)
+  { type: "page", title: "Fiche détail exploitation", href: "/exploitations/[id]", icon: "Building2", desc: "Production" },
+  { type: "page", title: "Fiche détail matériel/équipement", href: "/materiels/[id]", icon: "Wrench", desc: "Logistique" },
+  { type: "page", title: "Fiche détail fournisseur", href: "/fournisseurs/[id]", icon: "Truck", desc: "Logistique" },
+  { type: "page", title: "Bulletin de paie individuel", href: "/paie/[id]", icon: "Wallet", desc: "Ressources Humaines" },
+  { type: "page", title: "Traçabilité complète d'un lot", href: "/tracabilite/[id]", icon: "ScanLine", desc: "Qualité" },
+  { type: "page", title: "Fiche article stock", href: "/stocks/[id]", icon: "Warehouse", desc: "Logistique" },
+  { type: "page", title: "Certifications & Conformité", href: "/certifications", icon: "Award", desc: "Commerce" },
+  { type: "page", title: "Configuration initiale", href: "/onboarding", icon: "Settings", desc: "Administration" },
   { type: "action", title: "Enregistrer une récolte", href: "/cultures", icon: "Plus", desc: "Action rapide" },
   { type: "action", title: "Nouvelle commande", href: "/ventes", icon: "Plus", desc: "Action rapide" },
   { type: "action", title: "Nouveau bon de commande", href: "/achats", icon: "Plus", desc: "Action rapide" },
@@ -213,6 +226,9 @@ const searchData: SearchItem[] = [
   { type: "action", title: "Nouveau rapport terrain", href: "/rapports-terrain", icon: "ClipboardList", desc: "Action rapide" },
   { type: "action", title: "Nouveau projet", href: "/projets", icon: "FolderKanban", desc: "Action rapide" },
   { type: "action", title: "Nouvelle assurance", href: "/assurances", icon: "Shield", desc: "Action rapide" },
+  { type: "action", title: "Nouveau lot de fermentation", href: "/transformation", icon: "Factory", desc: "Action rapide" },
+  { type: "action", title: "Créer un membre coopérative", href: "/cooperative", icon: "Network", desc: "Action rapide" },
+  { type: "action", title: "Voir les alertes critiques", href: "/notifications", icon: "AlertTriangle", desc: "Action rapide" },
   { type: "action", title: "Déconnexion", href: "/login", icon: "LogOut", desc: "Action rapide" },
 ];
 

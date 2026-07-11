@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, Leaf, CheckCircle, BarChart3, Brain } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Sprout,
+  BarChart3,
+  Brain,
+  Globe,
+  ShieldCheck,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -29,102 +39,143 @@ export default function LoginPage() {
     }
   };
 
+  const fillDemo = () => {
+    setEmail("admin@agrifrik.com");
+    setPassword("agrifrik2025");
+  };
+
   return (
     <div className="min-h-screen flex">
-      {/* Panneau gauche */}
+      {/* ── Colonne gauche – Branding ── */}
       <div
-        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white"
-        style={{ backgroundColor: "#1B5E20" }}
+        className="hidden lg:flex lg:flex-1 flex-col justify-between relative overflow-hidden"
+        style={{
+          background: "linear-gradient(160deg, #0D2B0D 0%, #1B5E20 100%)",
+        }}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="bg-white/20 rounded-xl p-2">
-            <Leaf className="w-7 h-7 text-white" />
-          </div>
-          <span className="text-2xl font-bold tracking-tight">AGRIFRIK</span>
-        </div>
+        {/* Cercles déco */}
+        <div
+          className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, #4CAF50, transparent)" }}
+        />
+        <div
+          className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, #66BB6A, transparent)" }}
+        />
 
-        {/* Centre */}
-        <div className="space-y-10">
-          <div>
-            <h1 className="text-4xl font-bold leading-tight mb-4">
-              Gérez votre exploitation agricole avec intelligence
-            </h1>
-            <p className="text-white/70 text-lg">
-              La plateforme ERP conçue pour les agriculteurs africains modernes.
+        <div className="relative z-10 flex flex-col h-full p-12">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-2xl"
+              style={{ background: "rgba(76,175,80,0.25)", color: "#A5D6A7" }}
+            >
+              A
+            </div>
+            <span className="text-white text-2xl font-extrabold tracking-widest">AGRIFRIK</span>
+          </div>
+
+          {/* Citation principale */}
+          <div className="mt-16 mb-auto">
+            <p className="text-white text-3xl font-bold leading-snug max-w-lg">
+              De la parcelle à l&apos;export, gérez toute votre filière agricole depuis une seule
+              plateforme.
             </p>
           </div>
 
-          {/* Points forts */}
-          <div className="space-y-5">
-            <div className="flex items-start gap-4">
-              <div className="bg-white/15 rounded-lg p-2 mt-0.5 shrink-0">
-                <BarChart3 className="w-5 h-5 text-white" />
+          {/* 4 points forts */}
+          <div className="space-y-5 mb-10">
+            {[
+              {
+                Icon: Sprout,
+                title: "Traçabilité cacao 100%",
+                sub: "De la plantation au container",
+              },
+              {
+                Icon: ShieldCheck,
+                title: "Certifications RA & GlobalG.A.P.",
+                sub: "Gestion documentaire complète",
+              },
+              {
+                Icon: Brain,
+                title: "IA agronomique",
+                sub: "Recommandations en temps réel",
+              },
+              {
+                Icon: Globe,
+                title: "Export simplifié",
+                sub: "Documents douaniers automatiques",
+              },
+            ].map(({ Icon, title, sub }) => (
+              <div key={title} className="flex items-center gap-4">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: "rgba(76,175,80,0.2)" }}
+                >
+                  <Icon className="w-4 h-4" style={{ color: "#81C784" }} />
+                </div>
+                <div>
+                  <p className="text-white text-sm font-semibold">{title}</p>
+                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+                    {sub}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-white">Suivi en temps réel</p>
-                <p className="text-white/65 text-sm">
-                  Tableaux de bord live, alertes et indicateurs clés de performance.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="bg-white/15 rounded-lg p-2 mt-0.5 shrink-0">
-                <Brain className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-semibold text-white">IA intégrée</p>
-                <p className="text-white/65 text-sm">
-                  Recommandations intelligentes pour optimiser vos rendements.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="bg-white/15 rounded-lg p-2 mt-0.5 shrink-0">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-semibold text-white">Conforme SYSCOHADA</p>
-                <p className="text-white/65 text-sm">
-                  Comptabilité et reporting aux normes OHADA, prêt pour l&apos;audit.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Citation client */}
-          <div className="border border-white/25 rounded-2xl p-6 bg-white/10">
-            <p className="text-white/90 italic text-base leading-relaxed">
-              &quot;AGRIFRIK a transformé notre coopérative. +34% de rendement en 1 an.&quot;
+          {/* Stats */}
+          <div className="flex gap-6 mb-8">
+            {[
+              { val: "50+", label: "modules" },
+              { val: "287", label: "employés" },
+              { val: "94%", label: "conformité RA" },
+            ].map(({ val, label }) => (
+              <div key={label} className="text-center">
+                <p className="text-white text-2xl font-black">{val}</p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  {label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Band partenaires */}
+          <div
+            className="rounded-2xl px-5 py-4"
+            style={{ background: "rgba(0,0,0,0.35)" }}
+          >
+            <p className="text-xs font-semibold mb-1" style={{ color: "rgba(255,255,255,0.45)" }}>
+              Utilisé par
             </p>
-            <p className="text-white/60 text-sm mt-3 font-medium">— Konan Y., Soubré</p>
+            <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.75)" }}>
+              FAO · ANADER · Barry Callebaut · Cargill · Olam
+            </p>
           </div>
         </div>
-
-        {/* Footer gauche */}
-        <p className="text-white/40 text-xs">© 2025 AGRIFRIK by IBIG SOFT</p>
       </div>
 
-      {/* Panneau droit */}
-      <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 bg-white">
-        {/* Logo mobile */}
-        <div className="lg:hidden flex items-center gap-2 mb-10">
-          <Leaf className="w-6 h-6" style={{ color: "#2E7D32" }} />
-          <span className="text-xl font-bold" style={{ color: "#1B5E20" }}>
-            AGRIFRIK
-          </span>
-        </div>
-
-        <div className="w-full max-w-md space-y-8">
-          {/* En-tête formulaire */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Connexion à votre espace</h2>
-            <p className="text-gray-500 text-sm mt-1">
-              Entrez vos identifiants pour accéder à l&apos;ERP
-            </p>
+      {/* ── Colonne droite – Formulaire ── */}
+      <div
+        className="flex flex-col justify-between bg-white"
+        style={{ width: "100%", maxWidth: "420px" }}
+      >
+        <div className="flex-1 flex flex-col justify-center px-10 py-12">
+          {/* Logo petit */}
+          <div className="flex items-center gap-2 mb-10">
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-base"
+              style={{ background: "#E8F5E9", color: "#2E7D32" }}
+            >
+              A
+            </div>
+            <span className="font-extrabold tracking-widest text-sm" style={{ color: "#1B5E20" }}>
+              AGRIFRIK
+            </span>
           </div>
+
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Connexion à votre espace</h2>
+          <p className="text-sm text-gray-500 mb-8">Plateforme ERP Agricole pour l&apos;Afrique</p>
 
           {/* Formulaire */}
           <form className="space-y-5" onSubmit={handleSubmit}>
@@ -134,18 +185,16 @@ export default function LoginPage() {
                 Adresse email
               </label>
               <div className="relative">
-                <Mail
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   id="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="vous@exemple.com"
+                  placeholder="admin@agrifrik.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="border border-gray-200 rounded-xl px-4 py-3 text-sm w-full pl-10 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  className="border border-gray-200 rounded-xl px-4 py-3 text-sm w-full pl-10 focus:outline-none focus:ring-2 focus:ring-[#2E7D32] transition"
                 />
               </div>
             </div>
@@ -165,9 +214,7 @@ export default function LoginPage() {
                 </Link>
               </div>
               <div className="relative">
-                <Lock
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -176,7 +223,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="border border-gray-200 rounded-xl px-4 py-3 text-sm w-full pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  className="border border-gray-200 rounded-xl px-4 py-3 text-sm w-full pl-10 pr-11 focus:outline-none focus:ring-2 focus:ring-[#2E7D32] transition"
                 />
                 <button
                   type="button"
@@ -189,7 +236,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Se souvenir de moi */}
+            {/* Se souvenir */}
             <div className="flex items-center gap-2">
               <input
                 id="remember"
@@ -214,9 +261,10 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="block bg-[#2E7D32] hover:bg-[#1B5E20] disabled:opacity-60 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-xl w-full transition-colors text-center text-sm"
+              className="w-full py-3 rounded-xl text-white font-semibold text-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ background: isLoading ? "#4CAF50" : "#2E7D32" }}
             >
-              {isLoading ? "Connexion..." : "Se connecter"}
+              {isLoading ? "Connexion en cours…" : "Se connecter"}
             </button>
 
             {/* Séparateur */}
@@ -226,36 +274,38 @@ export default function LoginPage() {
               <div className="flex-1 border-t border-gray-200" />
             </div>
 
-            {/* SSO */}
+            {/* Bouton démo */}
             <button
               type="button"
-              className="border border-gray-200 text-gray-700 font-medium py-3 px-6 rounded-xl w-full hover:bg-gray-50 transition-colors text-sm"
+              onClick={fillDemo}
+              className="w-full py-3 rounded-xl text-sm font-semibold border-2 transition hover:bg-[#F1F8E9]"
+              style={{ borderColor: "#2E7D32", color: "#2E7D32" }}
             >
-              Accéder avec SSO
+              Accès démo — Credentials pré-remplis
             </button>
           </form>
 
-          {/* Compte démo */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs text-gray-500 text-center">
-            Compte démo&nbsp;: <span className="font-medium text-gray-700">admin@agrifrik.com</span> / <span className="font-medium text-gray-700">agrifrik2025</span>
+          {/* Info sécurité */}
+          <div
+            className="mt-6 rounded-xl px-4 py-3 text-xs text-gray-600 leading-relaxed"
+            style={{ background: "#F1F8E9", border: "1px solid #C8E6C9" }}
+          >
+            <span className="font-semibold text-gray-700">🔐 Vos données sont hébergées en Afrique</span>{" "}
+            (Supabase EU Frankfurt). Connexion SSL/TLS 256-bit.
           </div>
-
-          {/* Lien démo */}
-          <p className="text-center text-sm text-gray-500">
-            Pas encore de compte ?{" "}
-            <a href="#" className="font-medium hover:underline" style={{ color: "#2E7D32" }}>
-              Demander une démo
-            </a>
-          </p>
         </div>
 
         {/* Footer */}
-        <p className="mt-12 text-center text-xs text-gray-400">
-          © 2025 AGRIFRIK by IBIG SOFT · Support :{" "}
+        <div className="px-10 pb-6 text-center text-xs text-gray-400">
+          © 2025 AGRIFRIK SAS ·{" "}
+          <a href="#" className="hover:underline">
+            Mentions légales
+          </a>{" "}
+          ·{" "}
           <a href="mailto:support@agrifrik.com" className="hover:underline">
-            support@agrifrik.com
+            Contact
           </a>
-        </p>
+        </div>
       </div>
     </div>
   );
