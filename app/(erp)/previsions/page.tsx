@@ -3,625 +3,419 @@
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
 
-/* ─── Types ─────────────────────────────────────────────────────────────────── */
-
-type Tab = "annuel" | "tresorerie" | "scenarios" | "hypotheses";
-
-/* ─── KPIs ───────────────────────────────────────────────────────────────────── */
-
-const KPIS = [
-  {
-    label: "CA prévu 2025",
-    val: "285 – 310 M XOF",
-    color: "text-[#2E7D32]",
-    sub: "Fourchette de prévision",
-  },
-  {
-    label: "EBITDA prévu",
-    val: "72 – 82 M XOF",
-    color: "text-indigo-600",
-    sub: "Marge EBITDA 24 – 27%",
-  },
-  {
-    label: "Résultat prévu",
-    val: "28 – 34 M XOF",
-    color: "text-blue-600",
-    sub: "Après impôt BIC 25%",
-  },
-  {
-    label: "Fiabilité modèle",
-    val: "87%",
-    color: "text-amber-600",
-    sub: "Basé sur 3 ans historique",
-  },
-];
-
-/* ─── Compte de résultat prévisionnel ─────────────────────────────────────── */
-
-interface CR {
-  label: string;
-  bold?: boolean;
-  s1: string;
-  s2: string;
-  total: string;
-  budget: string;
-  ecart: string;
-  ok?: boolean | null; // true=vert, false=rouge, null=neutre
-}
-
-const CR_ROWS: CR[] = [
-  { label: "Chiffre d'affaires",     s1: "145,2 M", s2: "152,4 M", total: "297,6 M", budget: "280,0 M", ecart: "+17,6 M", ok: true },
-  { label: "Charges variables",       s1: "(63,8 M)", s2: "(67,2 M)", total: "(131,0 M)", budget: "(126,0 M)", ecart: "-5,0 M",  ok: false },
-  { label: "Marge brute",             bold: true, s1: "81,4 M", s2: "85,2 M", total: "166,6 M", budget: "154,0 M", ecart: "+12,6 M", ok: true },
-  { label: "Charges personnel",       s1: "(21,2 M)", s2: "(22,4 M)", total: "(43,6 M)", budget: "(44,0 M)", ecart: "+0,4 M",  ok: true },
-  { label: "Charges externes",        s1: "(12,4 M)", s2: "(11,8 M)", total: "(24,2 M)", budget: "(25,0 M)", ecart: "+0,8 M",  ok: true },
-  { label: "Amortissements",          s1: "(9,2 M)", s2: "(9,2 M)", total: "(18,4 M)", budget: "(18,4 M)", ecart: "0",        ok: null },
-  { label: "EBITDA",                  bold: true, s1: "38,6 M", s2: "41,8 M", total: "80,4 M", budget: "66,6 M", ecart: "+13,8 M", ok: true },
-  { label: "Charges financières",     s1: "(2,1 M)", s2: "(2,1 M)", total: "(4,2 M)", budget: "(4,5 M)", ecart: "+0,3 M",  ok: true },
-  { label: "Résultat avant impôt",    bold: true, s1: "22,8 M", s2: "24,4 M", total: "47,2 M", budget: "32,0 M", ecart: "+15,2 M", ok: true },
-  { label: "Impôt BIC 25%",           s1: "(5,7 M)", s2: "(6,1 M)", total: "(11,8 M)", budget: "(8,0 M)", ecart: "—",       ok: null },
-  { label: "Résultat net",            bold: true, s1: "17,1 M", s2: "18,3 M", total: "35,4 M", budget: "24,0 M", ecart: "+11,4 M", ok: true },
-];
-
-/* ─── SVG Bar chart CA mensuel S2 ────────────────────────────────────────── */
-
-const S2_CA = [
-  { mois: "Juil", val: 22.4 },
-  { mois: "Aoû",  val: 18.2 },
-  { mois: "Sep",  val: 24.6 },
-  { mois: "Oct",  val: 38.4 },
-  { mois: "Nov",  val: 32.8 },
-  { mois: "Déc",  val: 16.0 },
-];
-
-const MAX_CA = 42;
-const SVG_H  = 160;
-const SVG_W  = 520;
-const BAR_W  = 48;
-const BAR_GAP = 32;
-const CHART_H = 110;
-const CHART_Y = 20;
-
-function CaBarChart() {
-  const total = S2_CA.length;
-  const step  = (SVG_W - 60) / total;
-  return (
-    <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full" aria-label="Évolution prévue CA mensuel S2 2025">
-      {/* Grid lines */}
-      {[0, 0.25, 0.5, 0.75, 1].map((t) => {
-        const y = CHART_Y + CHART_H * (1 - t);
-        return (
-          <g key={t}>
-            <line x1={40} y1={y} x2={SVG_W - 10} y2={y} stroke="#e5e7eb" strokeWidth="1" />
-            <text x={36} y={y + 4} textAnchor="end" fontSize={9} fill="#9ca3af">
-              {(MAX_CA * t).toFixed(0)} M
-            </text>
-          </g>
-        );
-      })}
-      {/* Bars */}
-      {S2_CA.map((d, i) => {
-        const barH  = (d.val / MAX_CA) * CHART_H;
-        const x     = 46 + i * step + (step - BAR_W) / 2;
-        const y     = CHART_Y + CHART_H - barH;
-        const confH = barH * 0.12;
-        return (
-          <g key={d.mois}>
-            {/* Confidence shadow */}
-            <rect x={x - 3} y={y - confH} width={BAR_W + 6} height={barH + confH} rx={3} fill="#93c5fd" fillOpacity={0.25} />
-            {/* Bar */}
-            <rect x={x} y={y} width={BAR_W} height={barH} rx={3} fill="#3b82f6" />
-            {/* Value */}
-            <text x={x + BAR_W / 2} y={y - 4} textAnchor="middle" fontSize={9} fill="#1d4ed8" fontWeight="600">
-              {d.val} M
-            </text>
-            {/* Month label */}
-            <text x={x + BAR_W / 2} y={CHART_Y + CHART_H + 14} textAnchor="middle" fontSize={10} fill="#6b7280">
-              {d.mois}
-            </text>
-          </g>
-        );
-      })}
-      {/* Axes */}
-      <line x1={40} y1={CHART_Y} x2={40} y2={CHART_Y + CHART_H} stroke="#d1d5db" strokeWidth="1" />
-      <line x1={40} y1={CHART_Y + CHART_H} x2={SVG_W - 10} y2={CHART_Y + CHART_H} stroke="#d1d5db" strokeWidth="1" />
-    </svg>
-  );
-}
-
-/* ─── Trésorerie ─────────────────────────────────────────────────────────── */
-
-interface TresoRow {
-  mois: string;
-  enc: string;
-  dec: string;
-  flux: string;
-  debut: string;
-  fin: string;
-  ok: boolean;
-  note?: string;
-}
-
-const TRESO_ROWS: TresoRow[] = [
-  { mois: "Juil 2025", enc: "22,4 M", dec: "18,2 M", flux: "+4,2 M",  debut: "34,2 M", fin: "38,4 M", ok: true },
-  { mois: "Aoû 2025",  enc: "18,2 M", dec: "14,8 M", flux: "+3,4 M",  debut: "38,4 M", fin: "41,8 M", ok: true },
-  { mois: "Sep 2025",  enc: "24,6 M", dec: "28,4 M", flux: "-3,8 M",  debut: "41,8 M", fin: "38,0 M", ok: false, note: "Achats récolte" },
-  { mois: "Oct 2025",  enc: "38,4 M", dec: "22,4 M", flux: "+16,0 M", debut: "38,0 M", fin: "54,0 M", ok: true },
-  { mois: "Nov 2025",  enc: "32,8 M", dec: "18,6 M", flux: "+14,2 M", debut: "54,0 M", fin: "68,2 M", ok: true },
-  { mois: "Déc 2025",  enc: "16,0 M", dec: "24,8 M", flux: "-8,8 M",  debut: "68,2 M", fin: "59,4 M", ok: true, note: "Dividendes + impôt" },
-];
-
-const TRESO_VALS = [38.4, 41.8, 38.0, 54.0, 68.2, 59.4];
-
-function TresoLineChart() {
-  const minVal = 34;
-  const maxVal = 72;
-  const range  = maxVal - minVal;
-  const w      = 500;
-  const h      = 120;
-  const padX   = 40;
-  const padY   = 16;
-  const plotW  = w - padX - 10;
-  const plotH  = h - padY - 20;
-
-  const pts = TRESO_VALS.map((v, i) => ({
-    x: padX + (i / (TRESO_VALS.length - 1)) * plotW,
-    y: padY + plotH - ((v - minVal) / range) * plotH,
-  }));
-  const path = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
-  const areaPath = `${path} L${pts[pts.length - 1].x},${padY + plotH} L${pts[0].x},${padY + plotH} Z`;
-  const labels   = ["Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
-
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full" aria-label="Évolution trésorerie S2 2025">
-      {[0, 0.25, 0.5, 0.75, 1].map((t) => {
-        const y = padY + plotH * (1 - t);
-        const v = (minVal + range * t).toFixed(0);
-        return (
-          <g key={t}>
-            <line x1={padX} y1={y} x2={w - 10} y2={y} stroke="#e5e7eb" strokeWidth="1" />
-            <text x={padX - 4} y={y + 3} textAnchor="end" fontSize={9} fill="#9ca3af">{v} M</text>
-          </g>
-        );
-      })}
-      <path d={areaPath} fill="#22c55e" fillOpacity={0.08} />
-      <path d={path} fill="none" stroke="#16a34a" strokeWidth={2} strokeLinejoin="round" />
-      {pts.map((p, i) => (
-        <g key={i}>
-          <circle cx={p.x} cy={p.y} r={4} fill={TRESO_VALS[i] < 40 ? "#f59e0b" : "#16a34a"} />
-          <text x={p.x} y={p.y - 6} textAnchor="middle" fontSize={9} fill="#15803d" fontWeight="600">
-            {TRESO_VALS[i]} M
-          </text>
-          <text x={p.x} y={padY + plotH + 14} textAnchor="middle" fontSize={10} fill="#6b7280">
-            {labels[i]}
-          </text>
-        </g>
-      ))}
-      <line x1={padX} y1={padY} x2={padX} y2={padY + plotH} stroke="#d1d5db" strokeWidth="1" />
-      <line x1={padX} y1={padY + plotH} x2={w - 10} y2={padY + plotH} stroke="#d1d5db" strokeWidth="1" />
-    </svg>
-  );
-}
-
-/* ─── Scénarios ────────────────────────────────────────────────────────────── */
-
-interface Scenario {
-  label: string;
-  color: string;
-  bg: string;
-  pct: string;
-  ca: number;
-  prix: string;
-  prod: string;
-  ebitda: number;
-  net: number;
-}
-
-const SCENARIOS: Scenario[] = [
-  { label: "Pessimiste", color: "text-red-700",   bg: "bg-red-50",    pct: "15%", ca: 248, prix: "980 XOF/kg",   prod: "78 t",  ebitda: 52, net: 18 },
-  { label: "Central",    color: "text-[#2E7D32]", bg: "bg-green-50",  pct: "65%", ca: 297, prix: "1 100 XOF/kg", prod: "94 t",  ebitda: 80, net: 35 },
-  { label: "Optimiste",  color: "text-blue-700",  bg: "bg-blue-50",   pct: "20%", ca: 342, prix: "1 280 XOF/kg", prod: "112 t", ebitda: 98, net: 52 },
-];
-
-function ScenarioChart() {
-  const maxCA = 360;
-  const w     = 420;
-  const h     = 140;
-  const padX  = 40;
-  const padY  = 16;
-  const plotH = h - padY - 22;
-  const groupW = (w - padX - 10) / SCENARIOS.length;
-  const barW  = 28;
-  const colors = { ca: ["#fca5a5", "#86efac", "#93c5fd"], net: ["#ef4444", "#16a34a", "#3b82f6"] };
-
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full" aria-label="Comparaison scénarios">
-      {[0, 0.25, 0.5, 0.75, 1].map((t) => {
-        const y = padY + plotH * (1 - t);
-        return (
-          <g key={t}>
-            <line x1={padX} y1={y} x2={w - 10} y2={y} stroke="#e5e7eb" strokeWidth="1" />
-            <text x={padX - 4} y={y + 3} textAnchor="end" fontSize={8} fill="#9ca3af">{(maxCA * t).toFixed(0)} M</text>
-          </g>
-        );
-      })}
-      {SCENARIOS.map((s, i) => {
-        const cx = padX + i * groupW + groupW / 2;
-        const caH  = (s.ca / maxCA) * plotH;
-        const netH = (s.net / maxCA) * plotH;
-        return (
-          <g key={s.label}>
-            <rect x={cx - barW - 2} y={padY + plotH - caH}  width={barW} height={caH}  rx={3} fill={colors.ca[i]} />
-            <rect x={cx + 2}        y={padY + plotH - netH} width={barW} height={netH} rx={3} fill={colors.net[i]} />
-            <text x={cx} y={padY + plotH + 14} textAnchor="middle" fontSize={10} fill="#374151" fontWeight="600">{s.label}</text>
-            <text x={cx - barW / 2 - 2} y={padY + plotH - caH - 3} textAnchor="middle" fontSize={8} fill="#6b7280">{s.ca} M</text>
-            <text x={cx + barW / 2 + 2} y={padY + plotH - netH - 3} textAnchor="middle" fontSize={8} fill={colors.net[i]}>{s.net} M</text>
-          </g>
-        );
-      })}
-      <line x1={padX} y1={padY} x2={padX} y2={padY + plotH} stroke="#d1d5db" strokeWidth="1" />
-      <line x1={padX} y1={padY + plotH} x2={w - 10} y2={padY + plotH} stroke="#d1d5db" strokeWidth="1" />
-      {/* Legend */}
-      <rect x={padX} y={h - 10} width={10} height={8} rx={2} fill="#86efac" />
-      <text x={padX + 13} y={h - 3} fontSize={8} fill="#6b7280">CA (barres claires)</text>
-      <rect x={padX + 110} y={h - 10} width={10} height={8} rx={2} fill="#16a34a" />
-      <text x={padX + 123} y={h - 3} fontSize={8} fill="#6b7280">Résultat net</text>
-    </svg>
-  );
-}
-
-/* ─── Hypothèses ─────────────────────────────────────────────────────────── */
-
-interface Hyp {
-  variable: string;
-  valeur: string;
-  source: string;
-  impact: string;
-  sensibilite: string;
-}
-
-const HYPOTHESES: Hyp[] = [
-  { variable: "Cours cacao AA",          valeur: "1 100 XOF/kg", source: "BCC Abidjan + Reuters",    impact: "Fort",   sensibilite: "±1% prix = ±2,1 M XOF CA" },
-  { variable: "Volume production cacao", valeur: "94 t",          source: "Planning cultural + IA",   impact: "Fort",   sensibilite: "±1 t = ±1,1 M XOF" },
-  { variable: "Cours anacarde WW240",    valeur: "680 XOF/kg",    source: "INC",                      impact: "Modéré", sensibilite: "±1% = ±0,3 M XOF" },
-  { variable: "Taux croissance effectif",valeur: "+4,2%",          source: "RH — recrutements prévus", impact: "Faible", sensibilite: "±1 recrutement = ±150 000 XOF" },
-  { variable: "Taux inflation CI",       valeur: "3,5%",           source: "BCEAO",                    impact: "Modéré", sensibilite: "Impact charges +1,4 M" },
-  { variable: "Taux crédit BICICI",      valeur: "8,5%",           source: "BICICI",                   impact: "Faible", sensibilite: "±1% = ±420 000 XOF" },
-];
-
-const IMPACT_COLOR: Record<string, string> = {
-  Fort:   "bg-red-100 text-red-700",
-  Modéré: "bg-amber-100 text-amber-700",
-  Faible: "bg-gray-100 text-gray-600",
-};
-
-/* ─── Composant principal ────────────────────────────────────────────────── */
+type Tab = "recolte" | "finances" | "scenarios";
 
 export default function PrevisionsPage() {
-  const [tab, setTab] = useState<Tab>("annuel");
+  const [activeTab, setActiveTab] = useState<Tab>("recolte");
 
-  const TABS: { key: Tab; label: string }[] = [
-    { key: "annuel",      label: "Prévisions annuelles" },
-    { key: "tresorerie",  label: "Flux de trésorerie" },
-    { key: "scenarios",   label: "Scénarios" },
-    { key: "hypotheses",  label: "Hypothèses" },
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "recolte", label: "Récolte & Production" },
+    { id: "finances", label: "Finances" },
+    { id: "scenarios", label: "Scénarios" },
   ];
 
+  const kpis = [
+    { label: "CA prévisionnel 2025", value: "48,6M XOF", trend: "+5,7% vs budget initial" },
+    { label: "Production prévisionnelle", value: "16,2 t", trend: "Cacao + anacarde + pisciculture" },
+    { label: "Marge nette prévisionnelle", value: "34,8%", trend: "vs 33,6% budget initial" },
+    { label: "Indice confiance ARIA", value: "87%", trend: "Modèle mis à jour 10/07/2025" },
+  ];
+
+  // ── Récolte area chart ────────────────────────────────────────────────────
+  const mois = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"];
+  const realiseTons = [0.4, 0.3, 0.5, 0.8, 0.9, 1.2, 0.8];
+  const prevuTons   = [null, null, null, null, null, null, 0.8, 1.4, 1.8, 2.8, 2.4, 1.1];
+
+  const W = 640, H = 220, padL = 48, padB = 30, padT = 20, padR = 20;
+  const innerW = W - padL - padR;
+  const innerH = H - padB - padT;
+  const maxVal = 3.2;
+  const xOf = (i: number) => padL + (i / 11) * innerW;
+  const yOf = (v: number) => padT + innerH - (v / maxVal) * innerH;
+
+  const rPoints = realiseTons.map((v, i) => ({ x: xOf(i), y: yOf(v) }));
+  const rLinePath = rPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const rAreaPath = `${rLinePath} L${rPoints[rPoints.length-1].x.toFixed(1)},${(padT+innerH).toFixed(1)} L${rPoints[0].x.toFixed(1)},${(padT+innerH).toFixed(1)} Z`;
+
+  // jonction depuis Jul (index 6)
+  const pRaw = prevuTons.map((v, i) => v !== null ? { x: xOf(i), y: yOf(v) } : null);
+  const pPoints = pRaw.filter(Boolean) as { x: number; y: number }[];
+  const pLinePath = pPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const pAreaPath = `${pLinePath} L${pPoints[pPoints.length-1].x.toFixed(1)},${(padT+innerH).toFixed(1)} L${pPoints[0].x.toFixed(1)},${(padT+innerH).toFixed(1)} Z`;
+
+  // ── Trésorerie dual line chart ────────────────────────────────────────────
+  const encaissements = [3.8, 4.2, 3.5, 5.2, 4.8, 6.2, 4.5, 5.8, 6.4, 7.2, 6.8, 4.6];
+  const decaissements = [2.1, 1.8, 2.4, 2.8, 3.2, 2.6, 2.9, 3.1, 2.8, 3.4, 3.0, 2.5];
+  const solde = encaissements.reduce((acc: number[], enc, i) => {
+    acc.push((i === 0 ? 0 : acc[i-1]) + enc - decaissements[i]);
+    return acc;
+  }, []);
+
+  const W2 = 640, H2 = 240, pL2 = 52, pB2 = 32, pT2 = 20, pR2 = 20;
+  const iW2 = W2 - pL2 - pR2, iH2 = H2 - pB2 - pT2;
+  const maxEnc = 8;
+  const xT = (i: number) => pL2 + (i / 11) * iW2;
+  const yT = (v: number) => pT2 + iH2 - (v / maxEnc) * iH2;
+  const maxS = Math.max(...solde), minS = Math.min(...solde);
+  const yS = (v: number) => pT2 + iH2 - ((v - minS) / (maxS - minS + 1)) * iH2;
+
+  const encPath = encaissements.map((v, i) => `${i===0?"M":"L"}${xT(i).toFixed(1)},${yT(v).toFixed(1)}`).join(" ");
+  const decPath = decaissements.map((v, i) => `${i===0?"M":"L"}${xT(i).toFixed(1)},${yT(v).toFixed(1)}`).join(" ");
+  const soldePath = solde.map((v, i) => `${i===0?"M":"L"}${xT(i).toFixed(1)},${yS(v).toFixed(1)}`).join(" ");
+
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar title="Prévisions & Projections" breadcrumb={["Finance", "Prévisions"]} />
+    <div className="flex flex-col min-h-screen bg-[#F8FBF8]">
+      <Topbar breadcrumb={["Finance", "Prévisions"]} />
 
       <main className="flex-1 p-6 space-y-6">
-        {/* ── KPIs ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {KPIS.map((k) => (
-            <div
-              key={k.label}
-              className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm"
-            >
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{k.label}</p>
-              <p className={`mt-2 text-xl font-bold ${k.color}`}>{k.val}</p>
-              <p className="mt-1 text-xs text-gray-400">{k.sub}</p>
+        {/* EN-TÊTE */}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Prévisions & Planification</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Modèles prédictifs ARIA — Campagne 2025 et projections 2026</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1.5 rounded-xl bg-[#E8F5E9] text-[#1B5E20] text-xs font-semibold">
+              🤖 ARIA — Confiance 87%
+            </span>
+            <button className="px-3 py-1.5 bg-[#2E7D32] text-white rounded-xl text-xs font-medium">
+              Exporter PDF
+            </button>
+          </div>
+        </div>
+
+        {/* KPIs */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {kpis.map((kpi) => (
+            <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5">
+              <p className="text-xs text-gray-500 mb-1">{kpi.label}</p>
+              <p className="text-lg font-bold text-[#1B5E20]">{kpi.value}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{kpi.trend}</p>
             </div>
           ))}
         </div>
 
-        {/* ── Onglets ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          {/* Tab bar */}
-          <div className="flex border-b border-gray-100 overflow-x-auto">
-            {TABS.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`px-5 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
-                  tab === t.key
-                    ? "border-[#2E7D32] text-[#2E7D32]"
-                    : "border-transparent text-gray-500 hover:text-gray-800"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+        {/* TABS */}
+        <div className="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1 w-fit">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${
+                activeTab === tab.id
+                  ? "bg-[#2E7D32] text-white"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-          {/* ── Prévisions annuelles ── */}
-          {tab === "annuel" && (
-            <div className="p-6 space-y-6">
-              <div>
-                <h2 className="text-base font-semibold text-gray-900 mb-1">
-                  Résultats prévisionnels 2025
-                </h2>
-                <p className="text-xs text-gray-500 mb-4">
-                  Compte de résultat prévisionnel consolidé — en millions XOF
-                </p>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm min-w-[700px]">
-                    <thead>
-                      <tr className="bg-[#F8FBF8] text-xs font-semibold text-gray-600">
-                        <th className="px-4 py-2.5 text-left">Libellé</th>
-                        <th className="px-4 py-2.5 text-right">Réalisé S1</th>
-                        <th className="px-4 py-2.5 text-right">Prévision S2</th>
-                        <th className="px-4 py-2.5 text-right font-bold">Total 2025</th>
-                        <th className="px-4 py-2.5 text-right">Budget 2025</th>
-                        <th className="px-4 py-2.5 text-right">Écart</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {CR_ROWS.map((row) => (
-                        <tr
-                          key={row.label}
-                          className={`hover:bg-gray-50 transition-colors ${row.bold ? "bg-[#F8FBF8]" : ""}`}
-                        >
-                          <td className={`px-4 py-2.5 ${row.bold ? "font-bold text-gray-900" : "text-gray-700"}`}>
-                            {row.label}
-                          </td>
-                          <td className="px-4 py-2.5 text-right text-gray-600">{row.s1}</td>
-                          <td className="px-4 py-2.5 text-right text-gray-600">{row.s2}</td>
-                          <td className={`px-4 py-2.5 text-right ${row.bold ? "font-bold text-gray-900" : "text-gray-700"}`}>
-                            {row.total}
-                          </td>
-                          <td className="px-4 py-2.5 text-right text-gray-500">{row.budget}</td>
-                          <td className="px-4 py-2.5 text-right">
-                            {row.ok === null ? (
-                              <span className="text-gray-400">{row.ecart}</span>
-                            ) : row.ok ? (
-                              <span className="text-[#2E7D32] font-medium">{row.ecart} ✅</span>
-                            ) : (
-                              <span className="text-amber-600 font-medium">{row.ecart} ⚠️</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+        {/* ══ ONGLET RÉCOLTE ══════════════════════════════════════════════════ */}
+        {activeTab === "recolte" && (
+          <div className="space-y-5">
+            {/* Area chart récolte */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-bold text-gray-800">Prévision de récolte cacao 2025 par mois</h2>
+                <div className="flex items-center gap-5 text-xs text-gray-500">
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block w-6 h-0.5 bg-[#2E7D32] rounded" />
+                    Réalisé
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#4CAF50" strokeWidth="2" strokeDasharray="5,3"/></svg>
+                    Prévisionnel
+                  </span>
                 </div>
               </div>
-
-              {/* SVG Bar chart */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-800 mb-1">
-                  Évolution prévue CA mensuel — S2 2025
-                </h3>
-                <p className="text-xs text-gray-400 mb-3">
-                  En millions XOF. Les barres claires indiquent l&apos;intervalle de confiance à ±12%. Pic Oct–Nov = récolte principale cacao.
-                </p>
-                <CaBarChart />
+              <svg viewBox={`0 0 ${W} ${H}`} className="w-full" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="gr" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2E7D32" stopOpacity="0.22"/>
+                    <stop offset="100%" stopColor="#2E7D32" stopOpacity="0.02"/>
+                  </linearGradient>
+                  <linearGradient id="gp" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#4CAF50" stopOpacity="0.16"/>
+                    <stop offset="100%" stopColor="#4CAF50" stopOpacity="0.02"/>
+                  </linearGradient>
+                </defs>
+                {/* Grille horizontale */}
+                {[0, 0.8, 1.6, 2.4, 3.2].map((v) => (
+                  <g key={v}>
+                    <line x1={padL} y1={yOf(v)} x2={W-padR} y2={yOf(v)} stroke="#F0F0F0" strokeWidth="1"/>
+                    <text x={padL-6} y={yOf(v)+4} textAnchor="end" fontSize="9" fill="#9E9E9E">{v}t</text>
+                  </g>
+                ))}
+                {/* Aires */}
+                <path d={rAreaPath} fill="url(#gr)"/>
+                <path d={pAreaPath} fill="url(#gp)"/>
+                {/* Lignes */}
+                <path d={rLinePath} fill="none" stroke="#2E7D32" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d={pLinePath} fill="none" stroke="#4CAF50" strokeWidth="2" strokeDasharray="6,3" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Points réalisés */}
+                {rPoints.map((p, i) => (
+                  <circle key={i} cx={p.x} cy={p.y} r={4} fill="#2E7D32" stroke="white" strokeWidth="1.5"/>
+                ))}
+                {/* Séparateur réalisé/prévu */}
+                <line x1={xOf(6)} y1={padT} x2={xOf(6)} y2={padT+innerH} stroke="#E65100" strokeWidth="1" strokeDasharray="4,2"/>
+                <text x={xOf(6)+4} y={padT+11} fontSize="8" fill="#E65100">Aujourd'hui</text>
+                {/* Mois */}
+                {mois.map((m, i) => (
+                  <text key={m} x={xOf(i)} y={H-8} textAnchor="middle" fontSize="9" fill="#9E9E9E">{m}</text>
+                ))}
+              </svg>
+              <div className="flex flex-wrap gap-6 mt-2 text-xs text-gray-600">
+                <span>Réalisé YTD : <strong className="text-[#1B5E20]">4,9 t</strong></span>
+                <span>Prévu H2 : <strong className="text-[#1B5E20]">11,5 t</strong></span>
+                <span>Total 2025 : <strong className="text-[#1B5E20]">16,4 t</strong></span>
               </div>
             </div>
-          )}
 
-          {/* ── Flux de trésorerie ── */}
-          {tab === "tresorerie" && (
-            <div className="p-6 space-y-6">
-              <div>
-                <h2 className="text-base font-semibold text-gray-900 mb-1">
-                  Prévision de trésorerie — S2 2025
-                </h2>
-                <p className="text-xs text-gray-500 mb-4">En millions XOF</p>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm min-w-[700px]">
-                    <thead>
-                      <tr className="bg-[#F8FBF8] text-xs font-semibold text-gray-600">
-                        <th className="px-4 py-2.5 text-left">Mois</th>
-                        <th className="px-4 py-2.5 text-right">Encaissements</th>
-                        <th className="px-4 py-2.5 text-right">Décaissements</th>
-                        <th className="px-4 py-2.5 text-right">Flux net</th>
-                        <th className="px-4 py-2.5 text-right">Tréso début</th>
-                        <th className="px-4 py-2.5 text-right font-bold">Tréso fin</th>
-                        <th className="px-4 py-2.5 text-left">Note</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {TRESO_ROWS.map((r) => (
-                        <tr key={r.mois} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-2.5 font-medium text-gray-800">{r.mois}</td>
-                          <td className="px-4 py-2.5 text-right text-[#2E7D32]">{r.enc}</td>
-                          <td className="px-4 py-2.5 text-right text-gray-600">{r.dec}</td>
-                          <td className={`px-4 py-2.5 text-right font-medium ${r.flux.startsWith("-") ? "text-amber-600" : "text-[#2E7D32]"}`}>
-                            {r.flux}
-                          </td>
-                          <td className="px-4 py-2.5 text-right text-gray-500">{r.debut}</td>
-                          <td className={`px-4 py-2.5 text-right font-bold ${r.ok ? "text-[#2E7D32]" : "text-amber-600"}`}>
-                            {r.fin} {r.ok ? "✅" : "⚠️"}
-                          </td>
-                          <td className="px-4 py-2.5 text-xs text-gray-400">{r.note ?? "—"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Line chart */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-800 mb-1">
-                  Évolution de la trésorerie S2 2025
-                </h3>
-                <p className="text-xs text-gray-400 mb-3">Solde de fin de mois en millions XOF</p>
-                <TresoLineChart />
-              </div>
-
-              {/* Alerte */}
-              <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                <span className="text-lg mt-0.5">🟡</span>
-                <div>
-                  <p className="text-sm font-semibold text-amber-800">Alerte trésorerie — Septembre 2025</p>
-                  <p className="text-xs text-amber-700 mt-0.5">
-                    Flux négatif prévu (-3,8 M) lié aux achats pré-récolte (intrants, main d&apos;œuvre).
-                    La trésorerie reste confortable (38 M XOF). Aucune action requise.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── Scénarios ── */}
-          {tab === "scenarios" && (
-            <div className="p-6 space-y-6">
-              <div>
-                <h2 className="text-base font-semibold text-gray-900 mb-1">Analyse de scénarios 2025</h2>
-                <p className="text-xs text-gray-500 mb-4">
-                  Espérance mathématique : 0,15 × 248 + 0,65 × 297 + 0,20 × 342 ={" "}
-                  <span className="font-bold text-[#2E7D32]">300,7 M XOF</span>
-                </p>
-
-                {/* Scénario cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  {SCENARIOS.map((s) => (
-                    <div key={s.label} className={`rounded-xl border p-5 ${s.bg}`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className={`text-sm font-bold ${s.color}`}>{s.label}</h3>
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full bg-white/70 ${s.color}`}>
-                          P = {s.pct}
-                        </span>
-                      </div>
-                      <div className="space-y-1.5 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">CA 2025</span>
-                          <span className={`font-bold ${s.color}`}>{s.ca} M XOF</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Prix cacao</span>
-                          <span className="text-gray-800 font-medium">{s.prix}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Production</span>
-                          <span className="text-gray-800 font-medium">{s.prod}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">EBITDA</span>
-                          <span className="text-gray-800 font-medium">{s.ebitda} M XOF</span>
-                        </div>
-                        <div className="flex justify-between border-t border-white/60 pt-1.5 mt-1.5">
-                          <span className="text-gray-700 font-medium">Résultat net</span>
-                          <span className={`font-bold ${s.color}`}>{s.net} M XOF</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Tableau comparatif */}
-                <div className="overflow-x-auto mb-6">
-                  <table className="w-full text-sm min-w-[500px]">
-                    <thead>
-                      <tr className="bg-[#F8FBF8] text-xs font-semibold text-gray-600">
-                        <th className="px-4 py-2.5 text-left">Indicateur</th>
-                        <th className="px-4 py-2.5 text-right text-red-700">Pessimiste</th>
-                        <th className="px-4 py-2.5 text-right text-[#2E7D32]">Central (base)</th>
-                        <th className="px-4 py-2.5 text-right text-blue-700">Optimiste</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {[
-                        ["CA 2025", "248 M XOF", "297 M XOF", "342 M XOF"],
-                        ["Prix cacao", "980 XOF/kg", "1 100 XOF/kg", "1 280 XOF/kg"],
-                        ["Production", "78 t", "94 t", "112 t"],
-                        ["EBITDA", "52 M XOF", "80 M XOF", "98 M XOF"],
-                        ["Résultat net", "18 M XOF", "35 M XOF", "52 M XOF"],
-                        ["Probabilité", "15%", "65%", "20%"],
-                      ].map(([ind, p, c, o]) => (
-                        <tr key={ind} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-2.5 text-gray-700">{ind}</td>
-                          <td className="px-4 py-2.5 text-right text-red-700 font-medium">{p}</td>
-                          <td className="px-4 py-2.5 text-right text-[#2E7D32] font-medium">{c}</td>
-                          <td className="px-4 py-2.5 text-right text-blue-700 font-medium">{o}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Bar chart scénarios */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-800 mb-3">
-                    Comparaison CA / Résultat net par scénario
-                  </h3>
-                  <ScenarioChart />
-                </div>
-
-                {/* Hypothèses scénarios */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="p-4 bg-red-50 border border-red-100 rounded-xl">
-                    <h4 className="text-sm font-semibold text-red-800 mb-2">Hypothèses pessimistes</h4>
-                    <ul className="text-xs text-red-700 space-y-1">
-                      <li>• Cours cacao repli -12% (980 XOF/kg)</li>
-                      <li>• Pluies déficitaires -25% sur zone production</li>
-                    </ul>
-                  </div>
-                  <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                    <h4 className="text-sm font-semibold text-blue-800 mb-2">Hypothèses optimistes</h4>
-                    <ul className="text-xs text-blue-700 space-y-1">
-                      <li>• Cours cacao hausse +16% (1 280 XOF/kg)</li>
-                      <li>• Nouvelles parcelles bio premium intégrées</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── Hypothèses ── */}
-          {tab === "hypotheses" && (
-            <div className="p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">
-                Hypothèses du modèle financier
-              </h2>
-              <p className="text-xs text-gray-500 mb-4">
-                Variables macro et sectorielles retenues pour le modèle de prévision 2025
-              </p>
+            {/* Tableau parcelles */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-bold text-gray-800 mb-4">Prévisions de production par parcelle</h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[700px]">
+                <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-[#F8FBF8] text-xs font-semibold text-gray-600">
-                      <th className="px-4 py-2.5 text-left">Variable</th>
-                      <th className="px-4 py-2.5 text-right">Valeur retenue</th>
-                      <th className="px-4 py-2.5 text-left">Source</th>
-                      <th className="px-4 py-2.5 text-center">Impact CA</th>
-                      <th className="px-4 py-2.5 text-left">Sensibilité</th>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Parcelle","Surface","Réalisé YTD","Prévu H2","Total 2025","vs 2024"].map((h) => (
+                        <th key={h} className="text-left px-3 py-2 text-xs font-semibold text-gray-500">{h}</th>
+                      ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {HYPOTHESES.map((h) => (
-                      <tr key={h.variable} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-800">{h.variable}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-[#2E7D32]">{h.valeur}</td>
-                        <td className="px-4 py-3 text-gray-500">{h.source}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${IMPACT_COLOR[h.impact]}`}>
-                            {h.impact}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-gray-500">{h.sensibilite}</td>
+                  <tbody className="divide-y divide-gray-50 text-xs">
+                    {[
+                      ["PAR-A1","2,3 ha","2,1 t","3,8 t","5,9 t","+8,2%"],
+                      ["PAR-A2","2,1 ha","1,9 t","3,4 t","5,3 t","+6,0%"],
+                      ["PAR-B1","1,8 ha","0,4 t","0,8 t","1,2 t","+15,4% (croissance)"],
+                      ["PAR-B2","1,4 ha","0,0 t","0,2 t","0,2 t","N/A (trop jeune)"],
+                    ].map(([p,s,r,pr,tot,vs]) => (
+                      <tr key={p} className="hover:bg-gray-50/50">
+                        <td className="px-3 py-2.5 font-medium text-gray-700">{p}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{s}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{r}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{pr}</td>
+                        <td className="px-3 py-2.5 font-semibold text-[#1B5E20]">{tot}</td>
+                        <td className="px-3 py-2.5 text-green-600 font-medium">{vs}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-[#E8F5E9] font-bold">
+                      {["TOTAL cacao","7,6 ha","4,4 t","8,2 t","12,6 t","+8%"].map((v, i) => (
+                        <td key={i} className={`px-3 py-2.5 text-xs ${i >= 4 ? "text-[#1B5E20]" : "text-gray-700"}`}>{v}</td>
+                      ))}
+                    </tr>
+                    {[
+                      ["PAR-C1 anacarde","3,2 ha","0 t","2,0 t","2,0 t","+5,3%"],
+                      ["PAR-D1 pisciculture","1,6 ha","1,2 t","1,2 t","2,4 t","+4,3% (constant)"],
+                    ].map(([p,s,r,pr,tot,vs]) => (
+                      <tr key={p} className="hover:bg-gray-50/50">
+                        <td className="px-3 py-2.5 text-xs font-medium text-gray-700">{p}</td>
+                        <td className="px-3 py-2.5 text-xs text-gray-600">{s}</td>
+                        <td className="px-3 py-2.5 text-xs text-gray-600">{r}</td>
+                        <td className="px-3 py-2.5 text-xs text-gray-600">{pr}</td>
+                        <td className="px-3 py-2.5 text-xs font-semibold text-[#1B5E20]">{tot}</td>
+                        <td className="px-3 py-2.5 text-xs text-green-600 font-medium">{vs}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* ══ ONGLET FINANCES ═════════════════════════════════════════════════ */}
+        {activeTab === "finances" && (
+          <div className="space-y-5">
+            {/* Dual line chart trésorerie */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-bold text-gray-800">Flux de trésorerie prévisionnels 2025</h2>
+                <div className="flex items-center gap-5 text-xs text-gray-500">
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-5 h-0.5 bg-[#2E7D32] rounded"/>Encaissements</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-5 h-0.5 bg-[#E65100] rounded"/>Décaissements</span>
+                  <span className="flex items-center gap-1.5">
+                    <svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="#3B82F6" strokeWidth="2" strokeDasharray="4,2"/></svg>
+                    Solde cumulé
+                  </span>
+                </div>
+              </div>
+              <svg viewBox={`0 0 ${W2} ${H2}`} className="w-full" xmlns="http://www.w3.org/2000/svg">
+                {[0, 2, 4, 6, 8].map((v) => (
+                  <g key={v}>
+                    <line x1={pL2} y1={yT(v)} x2={W2-pR2} y2={yT(v)} stroke="#F0F0F0" strokeWidth="1"/>
+                    <text x={pL2-6} y={yT(v)+4} textAnchor="end" fontSize="9" fill="#9E9E9E">{v}M</text>
+                  </g>
+                ))}
+                <path d={encPath} fill="none" stroke="#2E7D32" strokeWidth="2" strokeLinecap="round"/>
+                <path d={decPath} fill="none" stroke="#E65100" strokeWidth="2" strokeLinecap="round"/>
+                <path d={soldePath} fill="none" stroke="#3B82F6" strokeWidth="1.5" strokeDasharray="5,2" strokeLinecap="round"/>
+                {/* Points (pleins=réalisé, creux=prévu) */}
+                {encaissements.map((v, i) => (
+                  <circle key={i} cx={xT(i)} cy={yT(v)} r={3}
+                    fill={i <= 6 ? "#2E7D32" : "white"} stroke="#2E7D32" strokeWidth="1.5"/>
+                ))}
+                {decaissements.map((v, i) => (
+                  <circle key={i} cx={xT(i)} cy={yT(v)} r={3}
+                    fill={i <= 6 ? "#E65100" : "white"} stroke="#E65100" strokeWidth="1.5"/>
+                ))}
+                {/* Séparateur */}
+                <line x1={xT(6)} y1={pT2} x2={xT(6)} y2={pT2+iH2} stroke="#E65100" strokeWidth="1" strokeDasharray="4,2"/>
+                <text x={xT(6)+3} y={pT2+11} fontSize="8" fill="#E65100">Prévis.</text>
+                {mois.map((m, i) => (
+                  <text key={m} x={xT(i)} y={H2-8} textAnchor="middle" fontSize="9" fill="#9E9E9E">{m}</text>
+                ))}
+              </svg>
+            </div>
+
+            {/* P&L Table */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-bold text-gray-800 mb-4">Compte de résultat prévisionnel 2025</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Poste","H1 réalisé","H2 prévisionnel","Total 2025","Budget initial"].map((h) => (
+                        <th key={h} className="text-left px-3 py-2 text-xs font-semibold text-gray-500">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-xs">
+                    {[
+                      { p:"CA cacao",       h1:"26,7M", h2:"21,9M", tot:"48,6M", bud:"46,0M (+5,7%)", neg:false, bold:false },
+                      { p:"CA anacarde",    h1:"—",     h2:"2,4M",  tot:"2,4M",  bud:"2,2M",          neg:false, bold:false },
+                      { p:"CA pisciculture",h1:"0,9M",  h2:"1,0M",  tot:"1,9M",  bud:"1,8M",          neg:false, bold:false },
+                    ].map(({p,h1,h2,tot,bud}) => (
+                      <tr key={p} className="hover:bg-gray-50/50">
+                        <td className="px-3 py-2.5 text-gray-700">{p}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{h1}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{h2}</td>
+                        <td className="px-3 py-2.5 font-semibold text-[#1B5E20]">{tot}</td>
+                        <td className="px-3 py-2.5 text-gray-500">{bud}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-[#E8F5E9] font-bold text-xs">
+                      {["CA TOTAL","27,6M","25,3M","52,9M","50,0M"].map((v,i) => (
+                        <td key={i} className="px-3 py-2.5 text-[#1B5E20]">{v}</td>
+                      ))}
+                    </tr>
+                    {[
+                      { p:"Intrants phyto",   h1:"-3,1M", h2:"-2,8M", tot:"-5,9M", bud:"-5,6M" },
+                      { p:"Main-d'œuvre",     h1:"-4,2M", h2:"-4,0M", tot:"-8,2M", bud:"-8,0M" },
+                      { p:"Charges fixes",    h1:"-1,3M", h2:"-1,5M", tot:"-2,8M", bud:"-2,8M" },
+                    ].map(({p,h1,h2,tot,bud}) => (
+                      <tr key={p} className="hover:bg-gray-50/50">
+                        <td className="px-3 py-2.5 text-gray-700">{p}</td>
+                        <td className="px-3 py-2.5 text-red-600">{h1}</td>
+                        <td className="px-3 py-2.5 text-red-600">{h2}</td>
+                        <td className="px-3 py-2.5 font-semibold text-red-700">{tot}</td>
+                        <td className="px-3 py-2.5 text-gray-500">{bud}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-[#E8F5E9] font-bold text-xs">
+                      {["Résultat net","19,0M","17,0M","36,0M","33,6M"].map((v,i) => (
+                        <td key={i} className="px-3 py-2.5 text-[#1B5E20]">{v}</td>
+                      ))}
+                    </tr>
+                    <tr className="hover:bg-gray-50/50">
+                      <td className="px-3 py-2.5 text-xs text-gray-700 font-medium">Taux de marge</td>
+                      <td className="px-3 py-2.5 text-xs text-gray-600">68,8%</td>
+                      <td className="px-3 py-2.5 text-xs text-gray-600">67,2%</td>
+                      <td className="px-3 py-2.5 text-xs font-bold text-[#1B5E20]">68,1%</td>
+                      <td className="px-3 py-2.5 text-xs text-gray-500">67,2%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══ ONGLET SCÉNARIOS ════════════════════════════════════════════════ */}
+        {activeTab === "scenarios" && (
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-bold text-gray-800 mb-4">Scénarios de prix cacao — Impact sur CA 2025</h2>
+              <div className="overflow-x-auto mb-6">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Scénario","Prix BCC","Volume","CA total","Écart base"].map((h) => (
+                        <th key={h} className="text-left px-3 py-2 text-xs font-semibold text-gray-500">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-xs">
+                    <tr className="bg-red-50/50">
+                      <td className="px-3 py-3 font-semibold text-red-700">🐻 Pessimiste (cours -15%)</td>
+                      <td className="px-3 py-3 text-gray-700">924 XOF/kg</td>
+                      <td className="px-3 py-3 text-gray-600">12,6 t</td>
+                      <td className="px-3 py-3 font-bold text-red-700">41,2M XOF</td>
+                      <td className="px-3 py-3 text-red-600 font-medium">-7,4M (-15,2%)</td>
+                    </tr>
+                    <tr className="bg-[#E8F5E9]">
+                      <td className="px-3 py-3 font-semibold text-[#1B5E20]">⚖️ Base (cours actuel)</td>
+                      <td className="px-3 py-3 text-gray-700">1 087 XOF/kg</td>
+                      <td className="px-3 py-3 text-gray-600">12,6 t</td>
+                      <td className="px-3 py-3 font-bold text-[#1B5E20]">48,5M XOF</td>
+                      <td className="px-3 py-3 text-gray-500 font-medium">— référence</td>
+                    </tr>
+                    <tr className="bg-green-50/40">
+                      <td className="px-3 py-3 font-semibold text-green-700">🐂 Optimiste (cours +10%)</td>
+                      <td className="px-3 py-3 text-gray-700">1 196 XOF/kg</td>
+                      <td className="px-3 py-3 text-gray-600">12,6 t</td>
+                      <td className="px-3 py-3 font-bold text-green-700">53,3M XOF</td>
+                      <td className="px-3 py-3 text-green-600 font-medium">+4,8M (+9,9%)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* SVG 3 barres */}
+              <h3 className="text-xs font-semibold text-gray-700 mb-3">Impact scénario sur résultat net</h3>
+              <svg viewBox="0 0 420 260" className="w-full max-w-md" xmlns="http://www.w3.org/2000/svg">
+                {[0, 10, 20, 30, 40].map((v) => {
+                  const y = 220 - (v / 45) * 185;
+                  return (
+                    <g key={v}>
+                      <line x1={50} y1={y} x2={400} y2={y} stroke="#F0F0F0" strokeWidth="1"/>
+                      <text x={44} y={y+4} textAnchor="end" fontSize="9" fill="#9E9E9E">{v}M</text>
+                    </g>
+                  );
+                })}
+                <line x1={50} y1={220} x2={400} y2={220} stroke="#E0E0E0" strokeWidth="1"/>
+                {[
+                  { label:"Pessimiste", val:27, color:"#EF5350", x:110 },
+                  { label:"Base",       val:36, color:"#2E7D32", x:210 },
+                  { label:"Optimiste",  val:41, color:"#1B5E20", x:310 },
+                ].map(({ label, val, color, x }) => {
+                  const barH = (val / 45) * 185;
+                  const y = 220 - barH;
+                  return (
+                    <g key={label}>
+                      <rect x={x-35} y={y} width={70} height={barH} rx={6} fill={color}/>
+                      <text x={x} y={y-7} textAnchor="middle" fontSize="11" fontWeight="700" fill={color}>{val}M</text>
+                      <text x={x} y={238} textAnchor="middle" fontSize="9" fill="#555">{label}</text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+
+            {/* Note ARIA */}
+            <div className="rounded-2xl p-4" style={{ background:"#E8F5E9", borderLeft:"4px solid #2E7D32" }}>
+              <p className="text-xs font-semibold text-[#1B5E20] mb-1">Note ARIA — Analyse de probabilité</p>
+              <p className="text-xs text-[#2E7D32] leading-relaxed">
+                Le scénario de base est le plus probable (probabilité ARIA : <strong>65%</strong>).
+                La tension sur les prix du cacao sur le marché mondial (LME) depuis Q2 2025 et la bonne pluviométrie Nawa
+                soutiennent le scénario optimiste (probabilité <strong>25%</strong>).
+                Scénario pessimiste : probabilité <strong>10%</strong> (risque géopolitique limité sur les corridors d'exportation).
+              </p>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

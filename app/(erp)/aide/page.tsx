@@ -3,216 +3,152 @@
 import { useState } from "react";
 import {
   Search,
-  Wheat,
-  Package,
-  DollarSign,
-  Users,
-  BarChart2,
-  Settings,
   ChevronDown,
   ChevronUp,
-  Play,
-  Mail,
   MessageCircle,
+  Mail,
   Phone,
-  ShieldCheck,
-  BookOpen,
   Ticket,
+  Rocket,
+  DollarSign,
+  Leaf,
+  BarChart2,
+  Bot,
+  Users,
+  ArrowRight,
 } from "lucide-react";
 import Topbar from "../../components/Topbar";
 
-const CATEGORIES = [
-  { icon: Wheat, titre: "Production & Cultures", articles: 18, color: "bg-green-50 text-green-700" },
-  { icon: Package, titre: "Stocks & Logistique", articles: 12, color: "bg-blue-50 text-blue-700" },
-  { icon: DollarSign, titre: "Finance & Comptabilité", articles: 15, color: "bg-yellow-50 text-yellow-700" },
-  { icon: Users, titre: "RH & Paie", articles: 10, color: "bg-purple-50 text-purple-700" },
-  { icon: BarChart2, titre: "Rapports & Analytics", articles: 8, color: "bg-orange-50 text-orange-700" },
-  { icon: Settings, titre: "Administration & Paramètres", articles: 14, color: "bg-gray-100 text-gray-700" },
+const breadcrumb = ["Administration", "Aide"];
+
+const THEMES = [
+  { icon: Rocket, titre: "Démarrage rapide", articles: 5, color: "bg-green-50 text-green-700" },
+  { icon: DollarSign, titre: "Finance & SYSCOHADA", articles: 8, color: "bg-yellow-50 text-yellow-700" },
+  { icon: Leaf, titre: "Rainforest Alliance & Certifications", articles: 6, color: "bg-emerald-50 text-emerald-700" },
+  { icon: BarChart2, titre: "Rapports & Analytics", articles: 7, color: "bg-blue-50 text-blue-700" },
+  { icon: Bot, titre: "IA ARIA", articles: 4, color: "bg-purple-50 text-purple-700" },
+  { icon: Users, titre: "Gestion RH & Paie", articles: 5, color: "bg-orange-50 text-orange-700" },
 ];
 
-type FaqSection = {
-  titre: string;
-  icon: typeof Wheat;
-  color: string;
-  items: { q: string; r: string }[];
-};
-
-const FAQ_SECTIONS: FaqSection[] = [
+const FAQ = [
   {
-    titre: "Prise en main",
-    icon: BookOpen,
-    color: "text-green-600",
-    items: [
-      {
-        q: "Comment créer mon premier lot de production ?",
-        r: "Rendez-vous dans Production > Cultures, puis cliquez sur \"+ Nouveau lot\". Sélectionnez la culture, la parcelle et la période de récolte. Renseignez la quantité estimée, le stade de croissance et validez. Le lot apparaît dans votre tableau de bord avec un suivi en temps réel.",
-      },
-      {
-        q: "Comment enregistrer une récolte dans le système ?",
-        r: "Dans Production > Cultures, ouvrez la fiche de la culture concernée. Cliquez sur \"Enregistrer une récolte\", saisissez la date, la quantité récoltée en kg, la qualité estimée et l'emplacement de stockage. Le système met à jour automatiquement vos stocks et indicateurs de rendement.",
-      },
-      {
-        q: "Comment générer un bulletin de paie ?",
-        r: "Accédez à RH > Paie, sélectionnez le mois concerné, puis cliquez sur \"Générer les bulletins\". Vous pouvez générer tous les bulletins en masse ou individuellement. Chaque bulletin est téléchargeable en PDF.",
-      },
-      {
-        q: "Comment ajouter une nouvelle culture ?",
-        r: "Allez dans Production > Cultures, cliquez sur \"+ Nouvelle culture\". Renseignez le nom de la culture, la parcelle associée, la surface en hectares, la date de semis/plantation et le rendement prévu. Cliquez \"Enregistrer\". La culture apparaît immédiatement dans votre tableau de bord.",
-      },
-    ],
+    q: "Comment enregistrer une nouvelle récolte ?",
+    r: "Aller dans Production > Cultures > [votre parcelle] > Bouton \"Nouvelle récolte\". Renseignez le poids des cabosses fraîches, la date, l'opérateur. Le système crée automatiquement un lot de transformation.",
   },
   {
-    titre: "Qualité & Certifications",
-    icon: ShieldCheck,
-    color: "text-blue-600",
-    items: [
-      {
-        q: "Comment enregistrer un contrôle qualité ?",
-        r: "Dans Commerce > Suivi Qualité, cliquez \"+ Nouveau contrôle\". Sélectionnez le lot concerné, saisissez les paramètres mesurés (humidité, grade, défauts, etc.) et le résultat global. Un statut Conforme / Non conforme est attribué automatiquement selon vos seuils configurés.",
-      },
-      {
-        q: "Que faire si un lot est déclaré non-conforme ?",
-        r: "Un lot non-conforme est automatiquement mis en quarantaine dans le système. Vous recevez une alerte et devez ouvrir une action corrective dans le module Traçabilité > Non-conformités. Le lot ne peut pas être livré tant que l'action corrective n'est pas clôturée ou que le lot n'est pas reclassé.",
-      },
-      {
-        q: "Comment préparer un dossier d'audit Rainforest Alliance ?",
-        r: "Utilisez Commerce > Audit pour générer le dossier pré-audit. Le système compile automatiquement vos données de traçabilité, contrôles qualité, formations employés et intrants utilisés. Cliquez \"Générer le rapport d'audit\" pour obtenir un PDF conforme aux exigences RA.",
-      },
-    ],
+    q: "Comment générer une facture export conforme SYSCOHADA ?",
+    r: "Commerce > Factures > \"Nouvelle facture\". Renseignez le client, le lot, l'Incoterm. La facture est générée avec la mention d'exonération TVA (art. 344 CGI-CI) si export.",
   },
   {
-    titre: "Finance",
-    icon: DollarSign,
-    color: "text-yellow-600",
-    items: [
-      {
-        q: "Comment créer une écriture comptable SYSCOHADA ?",
-        r: "Dans Finance > Comptabilité, cliquez \"+ Nouvelle écriture\". Sélectionnez le journal (Achats, Ventes, OD, etc.), entrez la date et le libellé. Ajoutez les lignes débit/crédit en utilisant les comptes du Plan OHADA révisé intégré. Le système vérifie l'équilibre avant validation.",
-      },
-      {
-        q: "Comment générer un état de trésorerie mensuel ?",
-        r: "Allez dans Finance > Trésorerie, sélectionnez le mois et cliquez \"Générer l'état\". Le tableau de flux de trésorerie est produit selon le modèle SYSCOHADA avec les catégories activités d'exploitation, investissement et financement. Exportable en PDF ou Excel.",
-      },
-      {
-        q: "Comment suivre les impayés clients ?",
-        r: "Dans Finance > Comptabilité ou Commerce > Factures, activez le filtre \"Impayés\". Vous visualisez toutes les factures échues avec leur ancienneté (30j, 60j, 90j+). Vous pouvez envoyer un rappel par email directement depuis la fiche facture et planifier des relances automatiques.",
-      },
-      {
-        q: "Comment exporter mes données comptables ?",
-        r: "Dans Finance > Comptabilité, utilisez le bouton \"Exporter\" en haut à droite. Vous pouvez exporter en format Excel (SYSCOHADA), CSV, ou PDF. Les exports respectent le Plan Comptable OHADA révisé.",
-      },
-    ],
+    q: "Comment préparer un rapport pour la certification Rainforest Alliance ?",
+    r: "Rapports > Rapport Builder > Sélectionner le template \"Rapport RA\". Il inclut automatiquement : traçabilité lots, registre phytosanitaires, indicateurs sociaux S4, bilan carbone.",
   },
   {
-    titre: "Administration",
-    icon: Settings,
-    color: "text-gray-600",
-    items: [
-      {
-        q: "Comment ajouter un nouvel utilisateur ?",
-        r: "Administration > Utilisateurs > \"+ Ajouter un utilisateur\". Renseignez nom, email et sélectionnez le rôle (Administrateur, Gestionnaire, Comptable, Producteur partenaire, etc.). L'utilisateur reçoit ses identifiants par email avec un lien de définition de mot de passe sécurisé.",
-      },
-      {
-        q: "Comment configurer des alertes automatiques ?",
-        r: "Dans Administration > Alertes, cliquez \"+ Nouvelle alerte\". Choisissez le déclencheur (seuil de stock, date d'échéance, valeur KPI, alerte météo, etc.), les destinataires et le canal de notification (email, WhatsApp, in-app). Les alertes s'activent dès la validation.",
-      },
-      {
-        q: "Comment exporter des données en CSV ?",
-        r: "Chaque tableau de données dans AGRIFRIK dispose d'un bouton \"Exporter\" en haut à droite. Cliquez dessus et sélectionnez le format CSV. Vous pouvez filtrer les colonnes à inclure et définir la plage de dates avant l'export.",
-      },
-      {
-        q: "Comment accorder l'accès à un producteur partenaire ?",
-        r: "Administration > Utilisateurs > \"+ Ajouter un utilisateur\". Sélectionnez le rôle \"Producteur partenaire\". Le producteur recevra ses identifiants par email et aura accès uniquement au Portail Producteur.",
-      },
-      {
-        q: "L'IA agricole — comment ça fonctionne ?",
-        r: "Le module IA analyse vos données de cultures, météo, historiques de rendements et conditions du sol pour générer des recommandations personnalisées. Les suggestions IA sont consultables dans Production > IA Agricole et sont envoyées chaque lundi dans votre rapport hebdomadaire.",
-      },
-    ],
+    q: "Qu'est-ce qu'ARIA et comment l'utiliser ?",
+    r: "ARIA est l'assistant IA d'AGRIFRIK. Accédez via IA > ARIA. Posez des questions en français sur vos cultures, stocks, prix. ARIA analyse vos données pour faire des recommandations personnalisées.",
   },
-];
-
-const GUIDES = [
-  { titre: "Prise en main AGRIFRIK", duree: "12 min" },
-  { titre: "Gestion des cultures et parcelles", duree: "18 min" },
-  { titre: "Module comptabilité SYSCOHADA", duree: "24 min" },
-  { titre: "Exports et rapports", duree: "15 min" },
-  { titre: "Administration et utilisateurs", duree: "10 min" },
-  { titre: "Portail producteur pour coopérants", duree: "8 min" },
+  {
+    q: "Comment configurer les alertes de stock ?",
+    r: "Administration > Alertes (ou Alertes dans le menu). Configurez les seuils par produit. Vous recevrez des notifications email/SMS quand le stock descend sous le seuil.",
+  },
+  {
+    q: "Comment exporter les données pour mon comptable ?",
+    r: "Finance > Comptabilité > \"Exporter\". Formats disponibles : OFX (sage/ciel), CSV, Excel. Inclut le grand livre, le journal, la balance.",
+  },
+  {
+    q: "Mes parcelles apparaissent-elles sur une carte GPS ?",
+    r: "Oui ! Production > Cartographie. Vos parcelles sont affichées sur une carte schématique. Pour la géolocalisation précise, utilisez les rapports terrain avec photos GPS.",
+  },
+  {
+    q: "Comment suivre la certification Rainforest Alliance ?",
+    r: "Commerce > Certifications > [votre certification]. Vous verrez le score par chapitre, les non-conformités, les dates d'audit et le calendrier des actions correctives.",
+  },
+  {
+    q: "Comment créer un compte pour un collaborateur ?",
+    r: "Administration > Utilisateurs > \"Inviter un utilisateur\". Renseignez l'email et le rôle. Un email d'invitation est envoyé avec les identifiants temporaires.",
+  },
+  {
+    q: "Comment fonctionne la synchronisation avec Supabase ?",
+    r: "Toutes les données sont synchronisées en temps réel avec Supabase (PostgreSQL). La synchro est automatique — vous n'avez rien à faire. En cas de connexion instable, les données sont mises en cache localement.",
+  },
 ];
 
 export default function AidePage() {
   const [search, setSearch] = useState("");
-  const [openKey, setOpenKey] = useState<string | null>(null);
-
-  const toggleFaq = (key: string) => setOpenKey(openKey === key ? null : key);
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const [ticketOpened, setTicketOpened] = useState(false);
 
   const searchLower = search.toLowerCase();
-  const filteredSections = FAQ_SECTIONS.map((section) => ({
-    ...section,
-    items: section.items.filter(
-      (item) =>
-        !search ||
-        item.q.toLowerCase().includes(searchLower) ||
-        item.r.toLowerCase().includes(searchLower)
-    ),
-  })).filter((section) => !search || section.items.length > 0);
+  const filteredFaq = search
+    ? FAQ.filter(
+        (item) =>
+          item.q.toLowerCase().includes(searchLower) ||
+          item.r.toLowerCase().includes(searchLower)
+      )
+    : FAQ;
+
+  const toggle = (i: number) => setExpanded(expanded === i ? null : i);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar title="Centre d'Aide" breadcrumb={["Administration", "Aide"]} />
+      <Topbar breadcrumb={breadcrumb} />
 
-      <main className="flex-1 p-6 space-y-10 max-w-5xl mx-auto w-full">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 space-y-10">
 
-        {/* Hero recherche */}
-        <section className="bg-green-50 border border-green-100 rounded-2xl p-8 text-center space-y-4">
-          <h1 className="text-2xl font-bold text-gray-900">Comment pouvons-nous vous aider ?</h1>
-          <div className="relative max-w-xl mx-auto">
-            <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+        {/* En-tête vert */}
+        <section className="rounded-2xl p-8 text-center space-y-5" style={{ background: "linear-gradient(135deg,#2E7D32 0%,#1B5E20 100%)" }}>
+          <h1 className="text-2xl font-bold text-white">Comment pouvons-nous vous aider ?</h1>
+
+          {/* Barre de recherche */}
+          <div className="relative max-w-lg mx-auto">
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher dans l'aide… (ex. bulletin de paie, export CSV, audit…)"
-              className="w-full pl-12 pr-5 py-3.5 rounded-xl border border-green-200 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] focus:border-transparent"
+              placeholder="Rechercher dans l'aide..."
+              className="w-full pl-11 pr-4 py-3 rounded-xl bg-white text-sm text-gray-800 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#4CAF50]"
             />
           </div>
-          <p className="text-xs text-gray-500">
-            Sujets populaires :{" "}
-            {["Cultures", "Stocks", "Facturation", "Export CSV", "Paie", "Audit RA"].map((t, i, arr) => (
-              <span key={t}>
-                <button
-                  className="text-[#2E7D32] font-medium hover:underline"
-                  onClick={() => setSearch(t)}
-                >
-                  {t}
-                </button>
-                {i < arr.length - 1 && <span className="mx-1 text-gray-300">·</span>}
-              </span>
+
+          {/* Stats */}
+          <div className="flex items-center justify-center gap-8 pt-1">
+            {[
+              { value: "48", label: "articles" },
+              { value: "12", label: "vidéos tutoriels" },
+              { value: "24h/7j", label: "Support" },
+            ].map((s) => (
+              <div key={s.label} className="text-center">
+                <p className="text-xl font-bold text-white">{s.value}</p>
+                <p className="text-[11px] text-green-200">{s.label}</p>
+              </div>
             ))}
-          </p>
+          </div>
         </section>
 
-        {/* 6 catégories */}
+        {/* Thèmes populaires */}
         {!search && (
           <section>
-            <h2 className="text-base font-semibold text-gray-800 mb-4">Parcourir par catégorie</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {CATEGORIES.map((cat) => {
-                const Icon = cat.icon;
+            <h2 className="text-base font-semibold text-gray-800 mb-4">Thèmes populaires</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {THEMES.map((t) => {
+                const Icon = t.icon;
                 return (
                   <button
-                    key={cat.titre}
-                    className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 p-5 text-left hover:shadow-md hover:border-[#2E7D32]/30 transition-all group"
+                    key={t.titre}
+                    className="flex flex-col gap-3 bg-white rounded-2xl border border-gray-100 p-5 text-left hover:shadow-md hover:border-[#2E7D32]/30 transition-all group"
                   >
-                    <span className={`p-2.5 rounded-xl ${cat.color} shrink-0`}>
+                    <span className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${t.color}`}>
                       <Icon size={20} />
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900 group-hover:text-[#2E7D32] transition-colors">
-                        {cat.titre}
+                      <p className="text-sm font-semibold text-gray-800 group-hover:text-[#2E7D32] transition-colors leading-snug">
+                        {t.titre}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5">{cat.articles} articles</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{t.articles} articles</p>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-[#2E7D32] font-medium mt-auto">
+                      Voir <ArrowRight size={11} />
                     </div>
                   </button>
                 );
@@ -221,256 +157,104 @@ export default function AidePage() {
           </section>
         )}
 
-        {/* FAQ accordéon par sections */}
+        {/* FAQ */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-gray-800">Questions fréquentes</h2>
+            <h2 className="text-base font-semibold text-gray-800">FAQ — Questions fréquentes</h2>
             {search && (
               <button
                 onClick={() => setSearch("")}
                 className="text-xs text-gray-400 hover:text-gray-700 underline"
               >
-                Effacer la recherche
+                Effacer
               </button>
             )}
           </div>
 
-          {filteredSections.length === 0 && (
+          {filteredFaq.length === 0 ? (
             <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-sm text-gray-500">
-              Aucun résultat pour "<strong>{search}</strong>". Essayez un autre terme ou contactez le support.
+              Aucun résultat pour &ldquo;<strong>{search}</strong>&rdquo;. Essayez un autre terme ou contactez le support.
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm divide-y divide-gray-100">
+              {filteredFaq.map((item, i) => (
+                <div key={i}>
+                  <button
+                    onClick={() => toggle(i)}
+                    className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+                  >
+                    <span className="text-sm font-medium text-gray-800 pr-4">{item.q}</span>
+                    {expanded === i ? (
+                      <ChevronUp size={16} className="text-gray-400 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown size={16} className="text-gray-400 flex-shrink-0" />
+                    )}
+                  </button>
+                  {expanded === i && (
+                    <div className="px-6 pb-5 text-sm text-gray-600 leading-relaxed bg-green-50/40">
+                      {item.r}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
-
-          <div className="space-y-4">
-            {filteredSections.map((section) => {
-              const Icon = section.icon;
-              return (
-                <div key={section.titre} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-                  <div className={`flex items-center gap-2 px-6 py-3 border-b border-gray-100 bg-gray-50`}>
-                    <Icon size={15} className={section.color} />
-                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      {section.titre}
-                    </span>
-                  </div>
-                  <div className="divide-y divide-gray-100">
-                    {section.items.map((item, i) => {
-                      const key = `${section.titre}-${i}`;
-                      return (
-                        <div key={key}>
-                          <button
-                            onClick={() => toggleFaq(key)}
-                            className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
-                          >
-                            <span className="text-sm font-medium text-gray-800 pr-4">{item.q}</span>
-                            {openKey === key ? (
-                              <ChevronUp size={16} className="text-gray-400 shrink-0" />
-                            ) : (
-                              <ChevronDown size={16} className="text-gray-400 shrink-0" />
-                            )}
-                          </button>
-                          {openKey === key && (
-                            <div className="px-6 pb-5 text-sm text-gray-600 leading-relaxed bg-gray-50">
-                              {item.r}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </section>
-
-        {/* Guides vidéo */}
-        {!search && (
-          <section>
-            <h2 className="text-base font-semibold text-gray-800 mb-4">Guides vidéo</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {GUIDES.map((g) => (
-                <button
-                  key={g.titre}
-                  className="bg-white rounded-2xl border border-gray-100 p-5 text-left hover:shadow-md hover:border-[#2E7D32]/30 transition-all group flex flex-col gap-3"
-                >
-                  <span className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-                    <Play size={16} className="text-[#2E7D32] ml-0.5" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900 group-hover:text-[#2E7D32] transition-colors">
-                      {g.titre}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">{g.duree} de vidéo</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Tutoriels vidéo interactifs */}
-        {!search && (
-          <section>
-            <h2 className="text-base font-semibold text-gray-800 mb-4">Tutoriels vidéo interactifs</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                { titre: "Prise en main d'AGRIFRIK en 5 minutes", duree: "5:02", niveau: "Débutant", niveauColor: "bg-green-50 text-green-700" },
-                { titre: "Gérer votre traçabilité cacao", duree: "8:45", niveau: "Intermédiaire", niveauColor: "bg-blue-50 text-blue-700" },
-                { titre: "Exporter vers Barry Callebaut : procédure complète", duree: "12:18", niveau: "Avancé", niveauColor: "bg-orange-50 text-orange-700" },
-                { titre: "Configuration de la certification RA", duree: "9:32", niveau: "Intermédiaire", niveauColor: "bg-blue-50 text-blue-700" },
-                { titre: "Utiliser l'IA agronomique pour optimiser vos rendements", duree: "7:15", niveau: "Intermédiaire", niveauColor: "bg-blue-50 text-blue-700" },
-                { titre: "Générer vos rapports bailleurs FAO/Banque Mondiale", duree: "11:40", niveau: "Avancé", niveauColor: "bg-orange-50 text-orange-700" },
-              ].map((v) => (
-                <button
-                  key={v.titre}
-                  className="bg-white rounded-2xl border border-gray-100 overflow-hidden text-left hover:shadow-md hover:border-[#2E7D32]/30 transition-all group flex flex-col"
-                >
-                  {/* Thumbnail SVG */}
-                  <div className="w-full relative bg-[#1B5E20]" style={{ paddingTop: "56.25%" }}>
-                    <svg
-                      className="absolute inset-0 w-full h-full"
-                      viewBox="0 0 320 180"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <rect width="320" height="180" fill="#1A2E1A" />
-                      <rect x="0" y="0" width="320" height="180" fill="url(#vgrad)" />
-                      <defs>
-                        <linearGradient id="vgrad" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#1B5E20" stopOpacity="0.9" />
-                          <stop offset="100%" stopColor="#0a1a0a" stopOpacity="1" />
-                        </linearGradient>
-                      </defs>
-                      {/* Play button circle */}
-                      <circle cx="160" cy="90" r="30" fill="white" fillOpacity="0.15" />
-                      <circle cx="160" cy="90" r="22" fill="white" fillOpacity="0.9" />
-                      {/* Play triangle */}
-                      <polygon points="154,82 154,98 172,90" fill="#1B5E20" />
-                      {/* Duration badge */}
-                      <rect x="6" y="158" width="36" height="16" rx="4" fill="black" fillOpacity="0.75" />
-                      <text x="24" y="170" textAnchor="middle" fill="white" fontSize="9" fontFamily="monospace">{v.duree}</text>
-                    </svg>
-                  </div>
-                  <div className="p-4 flex flex-col gap-2 flex-1">
-                    <p className="text-sm font-semibold text-gray-900 group-hover:text-[#2E7D32] transition-colors leading-snug">{v.titre}</p>
-                    <div className="flex items-center gap-2 mt-auto">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${v.niveauColor}`}>{v.niveau}</span>
-                      <span className="text-xs text-gray-400">{v.duree}</span>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Raccourcis clavier */}
-        {!search && (
-          <section>
-            <h2 className="text-base font-semibold text-gray-800 mb-4">Raccourcis clavier</h2>
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-              <table className="w-full text-sm">
-                <thead className="bg-[#F8FBF8]">
-                  <tr>
-                    <th className="text-left text-xs font-semibold text-gray-500 px-6 py-3">Raccourci</th>
-                    <th className="text-left text-xs font-semibold text-gray-500 px-6 py-3">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { key: "Ctrl+K", action: "Recherche globale" },
-                    { key: "Ctrl+D", action: "Tableau de bord" },
-                    { key: "Ctrl+N", action: "Nouvelle facture / devis" },
-                    { key: "Ctrl+P", action: "Imprimer la page" },
-                    { key: "Ctrl+S", action: "Sauvegarder" },
-                    { key: "Ctrl+/", action: "Aide contextuelle" },
-                    { key: "Échap", action: "Fermer modal / panneau" },
-                    { key: "Alt+M", action: "Messagerie" },
-                  ].map((row) => (
-                    <tr key={row.key} className="hover:bg-gray-50">
-                      <td className="px-6 py-3">
-                        <kbd className="inline-flex items-center px-2.5 py-1 rounded-lg border border-gray-200 bg-gray-100 text-xs font-mono font-semibold text-gray-700 shadow-sm">
-                          {row.key}
-                        </kbd>
-                      </td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{row.action}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-
-        {/* Nouveautés — Version 2.0 */}
-        {!search && (
-          <section>
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-base font-semibold text-gray-800">Nouveautés</h2>
-              <span className="text-xs font-bold px-2.5 py-1 bg-[#E65100] text-white rounded-full">NOUVEAU</span>
-              <span className="text-xs text-gray-400">Version 2.0</span>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              {[
-                { icon: "🤖", titre: "IA Agronomique v2.0", desc: "Recommandations personnalisées par parcelle grâce à l'intelligence artificielle avancée." },
-                { icon: "⛓️", titre: "Blockchain Hyperledger", desc: "Traçabilité immuable des lots cacao — chaque transaction certifiée et infalsifiable." },
-                { icon: "🚁", titre: "Drone DJI Agras T30", desc: "Module pilotage et cartographie intégré pour la surveillance de parcelles par drone." },
-                { icon: "🗺️", titre: "Export KML / GeoJSON", desc: "Vos données SIG exportables directement vers Google Earth, QGIS et autres outils cartographiques." },
-                { icon: "📊", titre: "Rapports bailleurs automatisés", desc: "Génération automatique des rapports FAO, Banque Mondiale et ANADER en un clic." },
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-4 px-6 py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
-                  <span className="text-2xl shrink-0 mt-0.5">{item.icon}</span>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{item.titre}</p>
-                    <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>
-                  </div>
-                  <span className="ml-auto shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-700 mt-0.5">Nouveau</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* Contacter le support */}
         <section>
           <h2 className="text-base font-semibold text-gray-800 mb-4">Contacter le support</h2>
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5 shadow-sm">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="flex items-center gap-3">
-                <span className="p-2.5 bg-blue-50 rounded-xl text-blue-600 shrink-0">
-                  <Mail size={18} />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Email</p>
-                  <p className="text-xs text-gray-500">support@agrifrik.com</p>
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+            {/* Chat en direct */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col gap-3">
+              <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+                <MessageCircle size={20} className="text-[#2E7D32]" />
               </div>
-              <div className="flex items-center gap-3">
-                <span className="p-2.5 bg-green-50 rounded-xl text-green-600 shrink-0">
-                  <MessageCircle size={18} />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">WhatsApp</p>
-                  <p className="text-xs text-gray-500">+225 07 00 00 00</p>
-                  <p className="text-xs text-gray-400">Lun-Ven 8h-18h</p>
-                </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">Chat en direct</p>
+                <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                  Ibrahim de l&apos;équipe support répond en général en moins de 5 min
+                </p>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="p-2.5 bg-gray-100 rounded-xl text-gray-600 shrink-0">
-                  <Phone size={18} />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Téléphone</p>
-                  <p className="text-xs text-gray-500">+225 27 22 00 00 00</p>
-                  <p className="text-xs text-gray-400">Lun-Ven 8h-18h</p>
-                </div>
+              <span className="inline-flex items-center gap-1 text-[10px] text-green-600 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                En ligne maintenant
+              </span>
+            </div>
+
+            {/* Email */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                <Mail size={20} className="text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">Email support</p>
+                <p className="text-[11px] text-[#2E7D32] font-medium mt-1">support@agrifrik.com</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">Réponse sous 4h ouvrées</p>
               </div>
             </div>
-            <div className="pt-3 border-t border-gray-100 flex justify-end">
-              <button className="flex items-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-sm font-medium py-2.5 px-5 rounded-xl transition-colors">
-                <Ticket size={16} />
-                Créer un ticket de support
-              </button>
+
+            {/* Téléphone */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+                <Phone size={20} className="text-gray-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">Téléphone</p>
+                <p className="text-[11px] text-gray-700 font-medium mt-1">+225 07 XX XX XX</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">Lun–Sam 07h–19h</p>
+              </div>
             </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={() => setTicketOpened(true)}
+              className="flex items-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-sm font-medium py-2.5 px-5 rounded-xl transition-colors"
+            >
+              <Ticket size={16} />
+              {ticketOpened ? "Ticket ouvert ✅" : "Ouvrir un ticket support"}
+            </button>
           </div>
         </section>
 
