@@ -1,16 +1,46 @@
 {
   "name": "AGRIFRIK ERP",
   "short_name": "AGRIFRIK",
-  "description": "ERP Agricole Intelligent pour l'Afrique",
+  "description": "Système ERP agricole pour l'Afrique de l'Ouest",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#1A2E1A",
-  "theme_color": "#2E7D32",
+  "background_color": "#F8FBF8",
+  "theme_color": "#1B5E20",
   "orientation": "portrait-primary",
+  "lang": "fr",
+  "scope": "/",
+  "categories": ["business", "productivity"],
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icons/icon-72x72.png", "sizes": "72x72", "type": "image/png" },
+    { "src": "/icons/icon-96x96.png", "sizes": "96x96", "type": "image/png" },
+    { "src": "/icons/icon-128x128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/icons/icon-144x144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "/icons/icon-152x152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-384x384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
-  "categories": ["productivity", "business"],
-  "lang": "fr"
+  "shortcuts": [
+    {
+      "name": "Tableau de bord",
+      "short_name": "Dashboard",
+      "description": "Accéder au tableau de bord",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Stocks",
+      "short_name": "Stocks",
+      "description": "Gérer les stocks",
+      "url": "/stocks",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Alertes",
+      "short_name": "Alertes",
+      "description": "Voir les alertes",
+      "url": "/alertes",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ]
 }

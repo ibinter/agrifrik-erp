@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
@@ -15,8 +15,36 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AGRIFRIK ERP — Gestion Agricole Intelligente",
-  description: "Plateforme ERP pour exploitations agricoles africaines",
+  metadataBase: new URL('https://erp.agrifrik.com'),
+  title: {
+    default: 'AGRIFRIK ERP — Gestion Agricole Intelligente',
+    template: '%s | AGRIFRIK ERP',
+  },
+  description: "Système ERP agricole pour Côte d'Ivoire et Afrique de l'Ouest. Gérez cultures, élevage, finances, RH et traçabilité cacao/anacarde.",
+  keywords: ['ERP agricole', 'gestion exploitation cacao', 'traçabilité Rainforest Alliance', 'SYSCOHADA', "agriculture Côte d'Ivoire"],
+  authors: [{ name: 'AGRIFRIK SAS', url: 'https://agrifrik.com' }],
+  creator: 'AGRIFRIK SAS',
+  openGraph: {
+    type: 'website',
+    locale: 'fr_CI',
+    url: 'https://erp.agrifrik.com',
+    siteName: 'AGRIFRIK ERP',
+    title: 'AGRIFRIK ERP — Gestion Agricole Intelligente',
+    description: "ERP agricole complet pour l'Afrique de l'Ouest",
+  },
+  robots: { index: false, follow: false },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/manifest.json',
+};
+
+export const viewport: Viewport = {
+  themeColor: '#1B5E20',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
