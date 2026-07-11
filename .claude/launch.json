@@ -1,0 +1,1 @@
+{"version":"0.0.1","configurations":[{"name":"agrifrik-erp","runtimeExecutable":"npm","runtimeArgs":["run","dev","--","--port","3001"],"port":3001},{"name":"agrifrik-landing","runtimeExecutable":"npm","runtimeArgs":["run","dev"],"port":3000}]}
