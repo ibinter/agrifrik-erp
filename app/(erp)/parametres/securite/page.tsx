@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Topbar from "../../../components/Topbar";
 import {
   Lock,
@@ -9,424 +10,330 @@ import {
   Shield,
   Smartphone,
   Monitor,
-  LogOut,
+  Laptop,
+  User,
+  Palette,
+  Link2,
   CheckCircle,
   XCircle,
-  Mail,
-  KeyRound,
-  Download,
-  Trash2,
+  AlertCircle,
 } from "lucide-react";
 
-function getPasswordStrength(pwd: string): {
-  label: string;
-  color: string;
-  width: string;
-  level: number;
-} {
+// ── Sidebar nav ───────────────────────────────────────────────────────────────
+
+const NAV_ITEMS = [
+  { label: "Mon profil",   href: "/parametres/profil",       icon: User,    active: false },
+  { label: "Sécurité",     href: "/parametres/securite",     icon: Lock,    active: true  },
+  { label: "Préférences",  href: "/parametres/preferences",  icon: Palette, active: false },
+  { label: "Intégrations", href: "/parametres/integrations", icon: Link2,   active: false },
+];
+
+// ── Password strength ─────────────────────────────────────────────────────────
+
+function getStrength(pwd: string): { label: string; color: string; width: string } {
+  if (!pwd) return { label: "", color: "#E5E7EB", width: "0%" };
   let score = 0;
   if (pwd.length >= 8) score++;
   if (/[A-Z]/.test(pwd)) score++;
   if (/[0-9]/.test(pwd)) score++;
   if (/[^A-Za-z0-9]/.test(pwd)) score++;
-
-  if (pwd.length === 0) return { label: "", color: "#E5E7EB", width: "0%", level: 0 };
-  if (score === 1) return { label: "Faible", color: "#EF4444", width: "25%", level: 1 };
-  if (score === 2) return { label: "Moyen", color: "#F59E0B", width: "50%", level: 2 };
-  if (score === 3) return { label: "Fort", color: "#16A34A", width: "75%", level: 3 };
-  return { label: "Très fort", color: "#15803D", width: "100%", level: 4 };
+  if (score <= 1) return { label: "Faible", color: "#EF4444", width: "25%" };
+  if (score === 2) return { label: "Moyen", color: "#F59E0B", width: "50%" };
+  if (score === 3) return { label: "Fort", color: "#16A34A", width: "75%" };
+  return { label: "Très fort", color: "#15803D", width: "100%" };
 }
 
-const sessions = [
-  {
-    id: 1,
-    device: "💻 Cet appareil",
-    browser: "Chrome 125",
-    location: "Abidjan, CI",
-    lastSeen: "Maintenant",
-    current: true,
-  },
-  {
-    id: 2,
-    device: "📱 iPhone 15",
-    browser: "Safari 17",
-    location: "Soubré, CI",
-    lastSeen: "Il y a 2h",
-    current: false,
-  },
-  {
-    id: 3,
-    device: "💻 MacBook Pro",
-    browser: "Firefox 126",
-    location: "Abidjan, CI",
-    lastSeen: "Hier 18:30",
-    current: false,
-  },
+// ── Data ──────────────────────────────────────────────────────────────────────
+
+const TRUSTED_DEVICES = [
+  { name: "MacBook Pro 16\"", type: "Ordinateur", icon: Laptop,     lastUsed: "Il y a 2 min",  location: "Soubré, CI",  current: true  },
+  { name: "iPhone 14 Pro",   type: "Mobile",      icon: Smartphone, lastUsed: "Il y a 3h",     location: "Soubré, CI",  current: false },
+  { name: "iPad Air",        type: "Tablette",    icon: Monitor,    lastUsed: "08/07/2025",     location: "Abidjan, CI", current: false },
 ];
 
-const loginHistory = [
-  { date: "09/07/2025", time: "08:45", device: "Chrome / Windows", ip: "41.82.XX.XX", success: true },
-  { date: "08/07/2025", time: "19:12", device: "Safari / iPhone", ip: "41.82.XX.XX", success: true },
-  { date: "08/07/2025", time: "14:30", device: "Firefox / Mac", ip: "41.82.XX.XX", success: true },
-  { date: "07/07/2025", time: "09:00", device: "Chrome / Windows", ip: "41.82.XX.XX", success: true },
-  { date: "06/07/2025", time: "22:15", device: "Unknown", ip: "196.28.XX.XX", success: false },
-  { date: "06/07/2025", time: "08:30", device: "Chrome / Windows", ip: "41.82.XX.XX", success: true },
+const SECURITY_HISTORY = [
+  { date: "11/07/2025 09:45", event: "Connexion réussie", ip: "192.168.1.12", type: "success" },
+  { date: "10/07/2025 08:00", event: "Changement de mot de passe", ip: "192.168.1.12", type: "warning" },
+  { date: "09/07/2025 16:05", event: "Connexion réussie", ip: "192.168.1.12", type: "success" },
+  { date: "08/07/2025 09:00", event: "Connexion depuis nouvel appareil (iPad Air)", ip: "192.168.1.35", type: "info" },
+  { date: "07/07/2025 07:22", event: "Tentative de connexion échouée", ip: "41.203.14.88", type: "danger" },
 ];
 
 export default function SecuritePage() {
   const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
+  const [showNew,     setShowNew]     = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [currentPwd, setCurrentPwd] = useState("");
-  const [newPwd, setNewPwd] = useState("");
-  const [confirmPwd, setConfirmPwd] = useState("");
-  const [twoFAEnabled, setTwoFAEnabled] = useState(false);
-  const [activeSessions, setActiveSessions] = useState(sessions);
+  const [currentPwd,  setCurrentPwd]  = useState("");
+  const [newPwd,      setNewPwd]      = useState("");
+  const [confirmPwd,  setConfirmPwd]  = useState("");
+  const [twoFA,       setTwoFA]       = useState(false);
+  const [devices,     setDevices]     = useState(TRUSTED_DEVICES);
 
-  const strength = getPasswordStrength(newPwd);
+  const strength = getStrength(newPwd);
 
-  const rules = [
-    { label: "Au moins 8 caractères", ok: newPwd.length >= 8 },
-    { label: "Au moins 1 majuscule", ok: /[A-Z]/.test(newPwd) },
-    { label: "Au moins 1 chiffre", ok: /[0-9]/.test(newPwd) },
+  const passwordRules = [
+    { label: "Au moins 8 caractères",       ok: newPwd.length >= 8 },
+    { label: "Au moins 1 majuscule",         ok: /[A-Z]/.test(newPwd) },
+    { label: "Au moins 1 chiffre",           ok: /[0-9]/.test(newPwd) },
     { label: "Au moins 1 caractère spécial", ok: /[^A-Za-z0-9]/.test(newPwd) },
   ];
 
-  function revokeSession(id: number) {
-    setActiveSessions((prev) => prev.filter((s) => s.id !== id));
-  }
-
-  function revokeAllOthers() {
-    setActiveSessions((prev) => prev.filter((s) => s.current));
+  function revokeDevice(name: string) {
+    setDevices((prev) => prev.filter((d) => d.name !== name));
   }
 
   return (
-    <div>
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <Topbar title="Sécurité" breadcrumb={["Paramètres", "Sécurité"]} />
 
-      <div className="p-6 space-y-6 max-w-3xl">
-        {/* Changer le mot de passe */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <div className="flex items-center gap-2 mb-5">
-            <Lock size={16} className="text-gray-500" />
-            <h2 className="font-semibold text-gray-900">Changer le mot de passe</h2>
-          </div>
+      <main className="flex-1 p-6">
+        <div className="flex gap-6 items-start">
 
-          <div className="space-y-4">
-            {/* Mot de passe actuel */}
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">
-                Mot de passe actuel
-              </label>
-              <div className="relative">
-                <input
-                  type={showCurrent ? "text" : "password"}
-                  value={currentPwd}
-                  onChange={(e) => setCurrentPwd(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-3 py-2 pr-10 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrent((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
-            </div>
-
-            {/* Nouveau mot de passe */}
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">
-                Nouveau mot de passe
-              </label>
-              <div className="relative">
-                <input
-                  type={showNew ? "text" : "password"}
-                  value={newPwd}
-                  onChange={(e) => setNewPwd(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-3 py-2 pr-10 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNew((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
-
-              {/* Barre de force */}
-              {newPwd.length > 0 && (
-                <div className="mt-2">
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{ width: strength.width, backgroundColor: strength.color }}
-                    />
-                  </div>
-                  <p className="text-xs mt-1 font-medium" style={{ color: strength.color }}>
-                    {strength.label}
-                  </p>
-                </div>
-              )}
-
-              {/* Règles */}
-              {newPwd.length > 0 && (
-                <ul className="mt-3 space-y-1.5">
-                  {rules.map((r) => (
-                    <li key={r.label} className="flex items-center gap-2 text-xs">
-                      {r.ok ? (
-                        <CheckCircle size={13} className="text-green-600 flex-shrink-0" />
-                      ) : (
-                        <XCircle size={13} className="text-red-400 flex-shrink-0" />
-                      )}
-                      <span className={r.ok ? "text-green-700" : "text-gray-500"}>{r.label}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* Confirmer */}
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">
-                Confirmer le nouveau mot de passe
-              </label>
-              <div className="relative">
-                <input
-                  type={showConfirm ? "text" : "password"}
-                  value={confirmPwd}
-                  onChange={(e) => setConfirmPwd(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-3 py-2 pr-10 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
-              {confirmPwd.length > 0 && newPwd !== confirmPwd && (
-                <p className="text-xs mt-1 text-red-500">Les mots de passe ne correspondent pas.</p>
-              )}
-              {confirmPwd.length > 0 && newPwd === confirmPwd && (
-                <p className="text-xs mt-1 text-green-600 flex items-center gap-1">
-                  <CheckCircle size={12} /> Les mots de passe correspondent.
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-5 flex justify-end">
-            <button
-              className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#2E7D32" }}
-            >
-              Mettre à jour le mot de passe
-            </button>
-          </div>
-        </div>
-
-        {/* Double authentification */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-50 flex-shrink-0">
-                <Shield size={18} color="#1565C0" />
+          {/* ── Left column ─────────────────────────────────────── */}
+          <div className="w-72 shrink-0 space-y-4">
+            {/* Profile card */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-col items-center gap-3 text-center">
+              <div className="w-20 h-20 rounded-full bg-[#2E7D32] flex items-center justify-center text-white text-2xl font-bold select-none">
+                AA
               </div>
               <div>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h2 className="font-semibold text-gray-900 text-sm">
-                    Double authentification (2FA)
-                  </h2>
-                  <span
-                    className="text-xs font-medium px-2 py-0.5 rounded-full"
-                    style={{
-                      backgroundColor: twoFAEnabled ? "#DCFCE7" : "#FEF3C7",
-                      color: twoFAEnabled ? "#15803D" : "#92400E",
-                    }}
-                  >
-                    {twoFAEnabled ? "Activé" : "Désactivé"}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500">
-                  Protégez votre compte avec un code envoyé par SMS ou email à chaque connexion
-                </p>
+                <p className="font-bold text-gray-800">Admin AGRIFRIK</p>
+                <p className="text-xs text-gray-500">admin@agrifrik.com</p>
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium">
+                  Super Administrateur
+                </span>
+              </div>
+              <div className="border-t border-gray-100 w-full pt-3 flex justify-between text-xs">
+                <span className="text-gray-500">Statut</span>
+                <span className="flex items-center gap-1.5 text-emerald-600 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                  En ligne
+                </span>
               </div>
             </div>
-            <button
-              onClick={() => setTwoFAEnabled((v) => !v)}
-              className="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ml-4"
-              style={{ backgroundColor: twoFAEnabled ? "#2E7D32" : "#D1D5DB" }}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-                  twoFAEnabled ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </div>
 
-          {twoFAEnabled && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-xs font-medium text-gray-600 mb-3">Méthodes disponibles</p>
-              <div className="space-y-2">
-                {[
-                  { icon: <Smartphone size={15} />, label: "SMS", detail: "+225 07 45 12 89", selected: true },
-                  { icon: <Mail size={15} />, label: "Email", detail: "jean@agrotek.ci", selected: false },
-                  { icon: <KeyRound size={15} />, label: "Application d'authentification", detail: "Google Authenticator, Authy…", selected: false },
-                ].map((m) => (
-                  <label
-                    key={m.label}
-                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
-                      m.selected ? "border-green-200 bg-green-50" : "border-gray-100 hover:bg-gray-50"
+            {/* Nav */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-2">
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      item.active
+                        ? "bg-[#2E7D32] text-white"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
                     }`}
                   >
-                    <span className={m.selected ? "text-green-700" : "text-gray-400"}>{m.icon}</span>
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-gray-800">{m.label}</p>
-                      <p className="text-xs text-gray-400">{m.detail}</p>
-                    </div>
+                    <Icon size={15} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Right column ────────────────────────────────────── */}
+          <div className="flex-1 space-y-4 min-w-0">
+
+            {/* Password change */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                <Lock size={15} className="text-gray-400" />
+                Modifier le mot de passe
+              </h2>
+
+              <div className="space-y-4 max-w-sm">
+                {/* Current password */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Mot de passe actuel</label>
+                  <div className="relative">
                     <input
-                      type="radio"
-                      name="2fa-method"
-                      defaultChecked={m.selected}
-                      className="accent-green-700"
+                      type={showCurrent ? "text" : "password"}
+                      value={currentPwd}
+                      onChange={(e) => setCurrentPwd(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-3 py-2 pr-10 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
                     />
-                  </label>
-                ))}
+                    <button type="button" onClick={() => setShowCurrent((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* New password */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Nouveau mot de passe</label>
+                  <div className="relative">
+                    <input
+                      type={showNew ? "text" : "password"}
+                      value={newPwd}
+                      onChange={(e) => setNewPwd(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-3 py-2 pr-10 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                    />
+                    <button type="button" onClick={() => setShowNew((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                  {newPwd.length > 0 && (
+                    <>
+                      <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-300" style={{ width: strength.width, backgroundColor: strength.color }} />
+                      </div>
+                      <p className="text-xs mt-1 font-semibold" style={{ color: strength.color }}>{strength.label}</p>
+                      <ul className="mt-2 space-y-1">
+                        {passwordRules.map((r) => (
+                          <li key={r.label} className="flex items-center gap-1.5 text-xs">
+                            {r.ok ? <CheckCircle size={12} className="text-emerald-600 shrink-0" /> : <XCircle size={12} className="text-gray-300 shrink-0" />}
+                            <span className={r.ok ? "text-emerald-700" : "text-gray-500"}>{r.label}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+
+                {/* Confirm */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Confirmation</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirm ? "text" : "password"}
+                      value={confirmPwd}
+                      onChange={(e) => setConfirmPwd(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-3 py-2 pr-10 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                    />
+                    <button type="button" onClick={() => setShowConfirm((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                  {confirmPwd.length > 0 && (
+                    newPwd === confirmPwd
+                      ? <p className="text-xs mt-1 text-emerald-600 flex items-center gap-1"><CheckCircle size={12} /> Les mots de passe correspondent.</p>
+                      : <p className="text-xs mt-1 text-red-500">Les mots de passe ne correspondent pas.</p>
+                  )}
+                </div>
+
+                <button className="bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-xs font-medium px-4 py-2 rounded-xl transition-colors">
+                  Mettre à jour le mot de passe
+                </button>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Sessions actives */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Monitor size={16} className="text-gray-500" />
-            <h2 className="font-semibold text-gray-900">Sessions actives</h2>
-          </div>
-
-          <div className="space-y-2">
-            {activeSessions.map((session) => (
-              <div
-                key={session.id}
-                className={`flex items-center justify-between p-3.5 rounded-xl border ${
-                  session.current ? "border-green-100 bg-green-50" : "border-gray-100"
-                }`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${
-                      session.current ? "bg-white border border-green-100" : "bg-gray-50 border border-gray-100"
-                    }`}
-                  >
-                    {session.device.startsWith("📱") ? "📱" : "💻"}
+            {/* 2FA */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                    <Shield size={18} className="text-blue-600" />
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-gray-800 truncate">
-                        {session.device.replace(/^[^\s]+\s/, "")}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm font-semibold text-gray-800">Authentification à deux facteurs (2FA)</h2>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${twoFA ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+                        {twoFA ? "Activé" : "Désactivé"}
                       </span>
-                      <span className="text-xs text-gray-400">{session.browser}</span>
-                      {session.current && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
-                          Session actuelle
-                        </span>
-                      )}
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {session.location} · {session.lastSeen}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Protégez votre compte avec une application d&apos;authentification (Google Authenticator, Authy)
                     </p>
                   </div>
                 </div>
-                {!session.current && (
-                  <button
-                    onClick={() => revokeSession(session.id)}
-                    className="flex items-center gap-1.5 text-xs font-medium text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0 ml-2"
-                  >
-                    <LogOut size={13} />
-                    Révoquer
-                  </button>
-                )}
+                <button
+                  onClick={() => setTwoFA((v) => !v)}
+                  className={`flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-xl transition-colors shrink-0 ml-4 ${
+                    twoFA
+                      ? "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                      : "bg-[#2E7D32] text-white hover:bg-[#1B5E20]"
+                  }`}
+                >
+                  {twoFA ? "Désactiver le 2FA" : "Activer le 2FA"}
+                </button>
               </div>
-            ))}
-          </div>
-
-          {activeSessions.length > 1 && (
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={revokeAllOthers}
-                className="text-xs font-semibold px-4 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
-              >
-                Révoquer toutes les autres sessions
-              </button>
             </div>
-          )}
-        </div>
 
-        {/* Historique de connexion */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Historique de connexion</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  {["Date", "Heure", "Appareil", "IP", "Statut"].map((h) => (
-                    <th key={h} className="text-left text-gray-400 font-medium pb-2.5 pr-4 last:pr-0">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loginHistory.map((entry, i) => (
-                  <tr key={i} className="border-b border-gray-50 last:border-0">
-                    <td className="py-2.5 pr-4 text-gray-600 whitespace-nowrap">{entry.date}</td>
-                    <td className="py-2.5 pr-4 text-gray-600">{entry.time}</td>
-                    <td className="py-2.5 pr-4 text-gray-600 whitespace-nowrap">{entry.device}</td>
-                    <td className="py-2.5 pr-4 text-gray-400 font-mono">{entry.ip}</td>
-                    <td className="py-2.5">
-                      {entry.success ? (
-                        <span className="flex items-center gap-1 text-green-700">
-                          <CheckCircle size={12} /> Succès
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-red-600">
-                          <XCircle size={12} /> Échoué
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+            {/* Trusted devices */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">
+                Appareils de confiance
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#F8FBF8] text-gray-500 text-left">
+                      <th className="px-4 py-2.5 font-medium text-xs rounded-tl-xl">Appareil</th>
+                      <th className="px-4 py-2.5 font-medium text-xs">Type</th>
+                      <th className="px-4 py-2.5 font-medium text-xs">Dernière utilisation</th>
+                      <th className="px-4 py-2.5 font-medium text-xs">Localisation</th>
+                      <th className="px-4 py-2.5 font-medium text-xs rounded-tr-xl">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {devices.map((d) => {
+                      const Icon = d.icon;
+                      return (
+                        <tr key={d.name} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <Icon size={15} className="text-gray-400 shrink-0" />
+                              <span className="font-medium text-gray-800">{d.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-gray-500 text-xs">{d.type}</td>
+                          <td className="px-4 py-3 text-gray-500 text-xs">{d.lastUsed}</td>
+                          <td className="px-4 py-3 text-gray-500 text-xs">{d.location}</td>
+                          <td className="px-4 py-3">
+                            {d.current ? (
+                              <span className="text-xs text-emerald-600 font-medium">Actuel</span>
+                            ) : (
+                              <button
+                                onClick={() => revokeDevice(d.name)}
+                                className="text-xs text-red-500 hover:text-red-700 font-medium"
+                              >
+                                Révoquer
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-        {/* Données & Confidentialité */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Données &amp; Confidentialité</h2>
-          <div className="flex flex-wrap gap-3">
-            <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-              <Download size={14} />
-              Télécharger mes données
-            </button>
-            <div className="flex flex-col gap-1">
-              <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-200 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
-                <Trash2 size={14} />
-                Supprimer mon compte
-              </button>
-              <p className="text-xs text-red-400 pl-1">Action irréversible</p>
+            {/* Security history */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">
+                Historique de sécurité
+              </h2>
+              <div className="space-y-3">
+                {SECURITY_HISTORY.map((ev, i) => {
+                  const icon =
+                    ev.type === "success" ? <CheckCircle size={15} className="text-emerald-500 shrink-0 mt-0.5" /> :
+                    ev.type === "danger"  ? <XCircle     size={15} className="text-red-500 shrink-0 mt-0.5" />     :
+                    ev.type === "warning" ? <AlertCircle size={15} className="text-amber-500 shrink-0 mt-0.5" />   :
+                                            <AlertCircle size={15} className="text-blue-400 shrink-0 mt-0.5" />;
+                  return (
+                    <div key={i} className="flex items-start gap-3">
+                      {icon}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-700">{ev.event}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {ev.date} — IP : <span className="font-mono">{ev.ip}</span>
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

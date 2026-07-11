@@ -1,370 +1,231 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Topbar from "../../../components/Topbar";
 import {
   Camera,
   Save,
-  Building2,
-  Globe,
+  X,
+  User,
+  Lock,
+  Palette,
   Link2,
-  MessageCircle,
-  Bell,
-  CheckCircle2,
+  Clock,
+  ChevronDown,
 } from "lucide-react";
 
-// â”€â”€â”€ toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Sidebar nav ───────────────────────────────────────────────────────────────
 
-function Toggle({
-  checked,
-  onChange,
-}: {
-  checked: boolean;
-  onChange: () => void;
-}) {
+const NAV_ITEMS = [
+  { label: "Mon profil",   href: "/parametres/profil",       icon: User,    active: true  },
+  { label: "Sécurité",     href: "/parametres/securite",     icon: Lock,    active: false },
+  { label: "Préférences",  href: "/parametres/preferences",  icon: Palette, active: false },
+  { label: "Intégrations", href: "/parametres/integrations", icon: Link2,   active: false },
+];
+
+const RECENT_ACTIVITY = [
+  { date: "11/07/2025 09:45", action: "Connexion" },
+  { date: "10/07/2025 17:22", action: "Modification facture FAC-2025-041" },
+  { date: "09/07/2025 16:05", action: "Export rapport S1 2025" },
+  { date: "08/07/2025 09:00", action: "Paramétrage alerte stock KCl" },
+];
+
+function SelectField({ options, defaultValue }: { options: string[]; defaultValue?: string }) {
   return (
-    <button
-      type="button"
-      onClick={onChange}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
-        checked ? "bg-green-600" : "bg-gray-200"
-      }`}
-      role="switch"
-      aria-checked={checked}
-    >
-      <span
-        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
-          checked ? "translate-x-5" : "translate-x-0"
-        }`}
-      />
-    </button>
-  );
-}
-
-// â”€â”€â”€ champ de formulaire â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-function Field({
-  label,
-  children,
-  className = "",
-}: {
-  label: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={className}>
-      <label className="block text-xs font-medium text-gray-500 mb-1.5">
-        {label}
-      </label>
-      {children}
+    <div className="relative">
+      <select
+        defaultValue={defaultValue}
+        className="w-full appearance-none px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2E7D32] cursor-pointer pr-8"
+      >
+        {options.map((o) => <option key={o}>{o}</option>)}
+      </select>
+      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
     </div>
   );
 }
 
-const inputCls =
-  "w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-transparent transition";
-
-const readonlyCls =
-  "w-full px-3 py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm text-gray-600 cursor-default";
-
-// â”€â”€â”€ page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 export default function ProfilPage() {
-  const [saved, setSaved] = useState(false);
-  const [savedPref, setSavedPref] = useState(false);
-
-  const [notifs, setNotifs] = useState({
-    alertesCritiques: true,
-    rapportHebdo: true,
-    rapportIA: false,
-    actualitesAgri: true,
-  });
-
-  function handleSave() {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
-
-  function handleSavePref() {
-    setSavedPref(true);
-    setTimeout(() => setSavedPref(false), 2000);
-  }
-
-  function toggleNotif(key: keyof typeof notifs) {
-    setNotifs((prev) => ({ ...prev, [key]: !prev[key] }));
-  }
+  const [firstName, setFirstName] = useState("Admin");
+  const [lastName,  setLastName]  = useState("AGRIFRIK");
+  const [email,     setEmail]     = useState("admin@agrifrik.com");
+  const [phone,     setPhone]     = useState("+225 07 00 00 00");
 
   return (
-    <div>
-      <Topbar title="Mon Profil" breadcrumb={["ParamÃ¨tres", "Profil"]} />
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <Topbar title="Mon Profil" breadcrumb={["Paramètres", "Profil"]} />
 
-      <div className="p-6 space-y-6 max-w-4xl">
+      <main className="flex-1 p-6">
+        <div className="flex gap-6 items-start">
 
-        {/* â”€â”€ Photo & identitÃ© â”€â”€ */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-5">
-            Photo &amp; identitÃ©
-          </h2>
+          {/* ── Left column ─────────────────────────────────────── */}
+          <div className="w-72 shrink-0 space-y-4">
 
-          <div className="flex items-center gap-5">
-            <div className="relative shrink-0">
-              <div
-                className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold text-white select-none"
-                style={{ backgroundColor: "#2E7D32" }}
-              >
-                JK
+            {/* Profile card */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-col items-center gap-3 text-center">
+              {/* Avatar */}
+              <div className="relative">
+                <div className="w-20 h-20 rounded-full bg-[#2E7D32] flex items-center justify-center text-white text-2xl font-bold select-none">
+                  AA
+                </div>
+                <button className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white border border-gray-200 shadow flex items-center justify-center hover:bg-gray-50 transition-colors">
+                  <Camera size={13} className="text-gray-500" />
+                </button>
               </div>
-              <button
-                className="absolute -bottom-1.5 -right-1.5 w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
-                title="Changer la photo"
-                type="button"
-              >
-                <Camera size={14} className="text-gray-500" />
-              </button>
-            </div>
-
-            <div>
-              <p className="text-lg font-bold text-gray-900">Jean-Baptiste Koffi</p>
-              <p className="text-sm text-gray-500">Directeur gÃ©nÃ©ral</p>
-              <p className="text-sm text-gray-400">AGROTEK CI</p>
-              <button
-                type="button"
-                className="mt-2 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-              >
+              <button className="text-xs text-[#2E7D32] hover:underline font-medium">
                 Changer la photo
               </button>
+
+              <div className="border-t border-gray-100 w-full pt-3 space-y-1">
+                <p className="font-bold text-gray-800">Admin AGRIFRIK</p>
+                <p className="text-xs text-gray-500">admin@agrifrik.com</p>
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium">
+                  Super Administrateur
+                </span>
+              </div>
+
+              <div className="border-t border-gray-100 w-full pt-3 space-y-1.5 text-left">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">Membre depuis</span>
+                  <span className="text-gray-700 font-medium">Mars 2023</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">Statut</span>
+                  <span className="flex items-center gap-1.5 text-emerald-600 font-medium">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                    En ligne
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Nav menu */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-2">
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      item.active
+                        ? "bg-[#2E7D32] text-white"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+                    }`}
+                  >
+                    <Icon size={15} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Right column ────────────────────────────────────── */}
+          <div className="flex-1 space-y-4 min-w-0">
+
+            {/* Profile form */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">
+                Informations personnelles
+              </h2>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5 font-medium">Prénom</label>
+                  <input
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5 font-medium">Nom</label>
+                  <input
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5 font-medium">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5 font-medium">Téléphone</label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5 font-medium">Poste</label>
+                  <SelectField
+                    options={["Super Administrateur","DAF","DRH","Chef terrain","Comptable","Technicien","Mécanicien","Stagiaire"]}
+                    defaultValue="Super Administrateur"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5 font-medium">Langue</label>
+                  <SelectField
+                    options={["Français (CI)","Français (FR)","English","Português"]}
+                    defaultValue="Français (CI)"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5 font-medium">Fuseau horaire</label>
+                  <SelectField
+                    options={["Africa/Abidjan UTC+0","Africa/Lagos UTC+1","Europe/Paris UTC+2"]}
+                    defaultValue="Africa/Abidjan UTC+0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5 font-medium">Devise</label>
+                  <SelectField
+                    options={["XOF (Franc CFA UEMOA)","EUR (Euro)","USD (Dollar américain)"]}
+                    defaultValue="XOF (Franc CFA UEMOA)"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 mt-5 pt-4 border-t border-gray-100">
+                <button className="flex items-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-xs font-medium px-4 py-2 rounded-xl transition-colors">
+                  <Save size={14} /> Enregistrer les modifications
+                </button>
+                <button className="flex items-center gap-2 border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-medium px-4 py-2 rounded-xl transition-colors">
+                  <X size={14} /> Annuler
+                </button>
+              </div>
+            </div>
+
+            {/* Recent activity */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                <Clock size={15} className="text-gray-400" />
+                Activité récente
+              </h2>
+              <div className="space-y-3">
+                {RECENT_ACTIVITY.map((ev, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="w-2 h-2 rounded-full bg-[#4CAF50] mt-1.5 shrink-0" />
+                    <div>
+                      <p className="text-sm text-gray-700">{ev.action}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{ev.date}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-
-        {/* â”€â”€ Informations personnelles â”€â”€ */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-5">
-            Informations personnelles
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="PrÃ©nom">
-              <input type="text" defaultValue="Jean-Baptiste" className={inputCls} />
-            </Field>
-            <Field label="Nom">
-              <input type="text" defaultValue="Koffi" className={inputCls} />
-            </Field>
-            <Field label="Email professionnel">
-              <input type="email" defaultValue="jb.koffi@agrotek-ci.com" className={inputCls} />
-            </Field>
-            <Field label="TÃ©lÃ©phone">
-              <input type="tel" defaultValue="+225 07 12 34 56" className={inputCls} />
-            </Field>
-            <Field label="Poste / Fonction">
-              <input type="text" defaultValue="Directeur gÃ©nÃ©ral" className={inputCls} />
-            </Field>
-            <Field label="DÃ©partement">
-              <input type="text" defaultValue="Direction gÃ©nÃ©rale" className={inputCls} />
-            </Field>
-            <Field label="Date de naissance">
-              <input type="date" defaultValue="1978-04-15" className={inputCls} />
-            </Field>
-            <Field label="NationalitÃ©">
-              <input type="text" defaultValue="Ivoirienne" className={inputCls} />
-            </Field>
-            <Field label="Langue prÃ©fÃ©rÃ©e">
-              <select className={inputCls + " bg-white"}>
-                <option value="fr">FranÃ§ais</option>
-                <option value="en">English</option>
-                <option value="dioula">Dioula</option>
-              </select>
-            </Field>
-            <Field label="Fuseau horaire">
-              <input type="text" defaultValue="Africa/Abidjan" readOnly className={readonlyCls} />
-            </Field>
-          </div>
-
-          <div className="mt-6 flex justify-end">
-            <button
-              type="button"
-              onClick={handleSave}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#2E7D32" }}
-            >
-              {saved ? (
-                <>
-                  <CheckCircle2 size={15} />
-                  EnregistrÃ© !
-                </>
-              ) : (
-                <>
-                  <Save size={15} />
-                  Enregistrer les modifications
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* â”€â”€ Informations entreprise â”€â”€ */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-5">
-            <Building2 size={16} className="text-gray-400" />
-            <h2 className="text-base font-semibold text-gray-900">
-              Informations entreprise
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Raison sociale">
-              <div className={readonlyCls}>AGROTEK CI SARL</div>
-            </Field>
-            <Field label="RCCM">
-              <div className={readonlyCls}>CI-ABJ-2019-B-12345</div>
-            </Field>
-            <Field label="RÃ©gime fiscal">
-              <div className={readonlyCls}>RÃ©el simplifiÃ© (SYSCOHADA)</div>
-            </Field>
-            <Field label="Capital social">
-              <div className={readonlyCls}>50 000 000 XOF</div>
-            </Field>
-            <Field label="SiÃ¨ge social" className="sm:col-span-2">
-              <div className={readonlyCls}>
-                SoubrÃ©, RÃ©gion de la Nawa, CÃ´te d&apos;Ivoire
-              </div>
-            </Field>
-            <Field label="ActivitÃ© principale" className="sm:col-span-2">
-              <div className={readonlyCls}>
-                Agriculture â€” Cultures pÃ©rennes (cacao, anacarde)
-              </div>
-            </Field>
-          </div>
-        </div>
-
-        {/* â”€â”€ RÃ©seaux & liens â”€â”€ */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-5">
-            RÃ©seaux &amp; liens
-          </h2>
-
-          <div className="space-y-4">
-            <Field label="LinkedIn">
-              <div className="relative">
-                <Link2
-                  size={15}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  type="url"
-                  placeholder="https://linkedin.com/in/..."
-                  defaultValue="https://linkedin.com/in/jb-koffi-agrotek"
-                  className={inputCls + " pl-9"}
-                />
-              </div>
-            </Field>
-
-            <Field label="Site web entreprise">
-              <div className="relative">
-                <Globe
-                  size={15}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  defaultValue="https://agrotek-ci.com"
-                  className={inputCls + " pl-9"}
-                />
-              </div>
-            </Field>
-
-            <Field label="WhatsApp professionnel">
-              <div className="relative">
-                <MessageCircle
-                  size={15}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  type="tel"
-                  placeholder="+225..."
-                  defaultValue="+225 07 12 34 56"
-                  className={inputCls + " pl-9"}
-                />
-              </div>
-            </Field>
-          </div>
-        </div>
-
-        {/* â”€â”€ Notifications par email â”€â”€ */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-5">
-            <Bell size={16} className="text-gray-400" />
-            <h2 className="text-base font-semibold text-gray-900">
-              Notifications par email
-            </h2>
-          </div>
-
-          <div className="space-y-4">
-            {(
-              [
-                {
-                  key: "alertesCritiques" as const,
-                  label: "Alertes critiques",
-                  desc: "Stocks faibles, pannes, alertes mÃ©tÃ©o sÃ©vÃ¨res",
-                },
-                {
-                  key: "rapportHebdo" as const,
-                  label: "Rapport hebdomadaire",
-                  desc: "RÃ©sumÃ© de l'activitÃ© chaque lundi matin",
-                },
-                {
-                  key: "rapportIA" as const,
-                  label: "Rapport IA",
-                  desc: "Analyse prÃ©dictive et recommandations automatiques",
-                },
-                {
-                  key: "actualitesAgri" as const,
-                  label: "ActualitÃ©s agricoles",
-                  desc: "Prix du marchÃ©, rÃ©glementations, bonnes pratiques",
-                },
-              ] as const
-            ).map((item) => (
-              <div
-                key={item.key}
-                className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0"
-              >
-                <div>
-                  <p className="text-sm font-medium text-gray-800">{item.label}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
-                </div>
-                <Toggle
-                  checked={notifs[item.key]}
-                  onChange={() => toggleNotif(item.key)}
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 flex justify-end">
-            <button
-              type="button"
-              onClick={handleSavePref}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#2E7D32" }}
-            >
-              {savedPref ? (
-                <>
-                  <CheckCircle2 size={15} />
-                  PrÃ©fÃ©rences enregistrÃ©es !
-                </>
-              ) : (
-                <>
-                  <Save size={15} />
-                  Enregistrer les prÃ©fÃ©rences
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-      </div>
+      </main>
     </div>
   );
 }
