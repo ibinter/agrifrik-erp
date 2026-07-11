@@ -2,600 +2,448 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
-import {
-  GripVertical,
-  X,
-  Plus,
-  Eye,
-  FileDown,
-  CalendarClock,
-  BarChart2,
-  LineChart,
-  PieChart,
-  Table2,
-  Type,
-  Minus,
-  FileText,
-  Hash,
-  LayoutDashboard,
-  ToggleLeft,
-  ToggleRight,
-} from "lucide-react";
 
-/* ══════════════════════════════════════════════════════════
-   TYPES
-══════════════════════════════════════════════════════════ */
+// ─── Mini SVG preview ─────────────────────────────────────────────────────────
 
-interface Block {
-  id: string;
-  type: string;
-  label: string;
+function MiniPreviewChart() {
+  const data = [42, 68, 55, 80, 72, 90, 65];
+  const W = 160, H = 60, maxV = 100;
+  const barW = 16, gap = 6;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {data.map((v, i) => {
+        const x = 8 + i * (barW + gap);
+        const h = (v / maxV) * (H - 8);
+        return <rect key={i} x={x} y={H - h} width={barW} height={h} rx="2" fill={i === data.length - 1 ? "#2E7D32" : "#A5D6A7"} />;
+      })}
+    </svg>
+  );
 }
 
-/* ══════════════════════════════════════════════════════════
-   BIBLIOTHÈQUE DE BLOCS
-══════════════════════════════════════════════════════════ */
+// ─── Color Picker Simulé ──────────────────────────────────────────────────────
 
-const LIBRARY = [
-  {
-    category: "Données",
-    icon: <Table2 size={14} className="text-purple-600" />,
-    items: [
-      { type: "tbl-prod", label: "Tableau production par culture" },
-      { type: "tbl-ventes", label: "Tableau ventes par client" },
-      { type: "tbl-fin", label: "Tableau financier résumé" },
-      { type: "tbl-emplois", label: "Tableau emplois" },
-    ],
-  },
-  {
-    category: "Graphiques",
-    icon: <BarChart2 size={14} className="text-blue-600" />,
-    items: [
-      { type: "chart-ca", label: "Graphique CA mensuel" },
-      { type: "chart-prod", label: "Graphique production cultures" },
-      { type: "chart-trezo", label: "Graphique trésorerie" },
-      { type: "chart-donut", label: "Donut répartition CA" },
-    ],
-  },
-  {
-    category: "Texte & Structure",
-    icon: <Type size={14} className="text-gray-600" />,
-    items: [
-      { type: "title", label: "Titre / Sous-titre" },
-      { type: "text", label: "Texte libre" },
-      { type: "sep", label: "Séparateur" },
-      { type: "pagebreak", label: "Page suivante" },
-    ],
-  },
-  {
-    category: "Indicateurs",
-    icon: <Hash size={14} className="text-green-600" />,
-    items: [
-      { type: "kpi1", label: "KPI unique" },
-      { type: "kpi4", label: "Groupe de 4 KPIs" },
-      { type: "dashboard", label: "Tableau de bord synthèse" },
-    ],
-  },
+function ColorPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
+  const options = ["#2E7D32", "#1565C0", "#212121"];
+  return (
+    <div className="flex gap-2">
+      {options.map((c) => (
+        <button
+          key={c}
+          onClick={() => onChange(c)}
+          className="w-8 h-8 rounded-full border-2 transition-all"
+          style={{ backgroundColor: c, borderColor: value === c ? "#fff" : "transparent", boxShadow: value === c ? `0 0 0 2px ${c}` : "none" }}
+          title={c}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─── Toggle ───────────────────────────────────────────────────────────────────
+
+function Toggle({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
+  return (
+    <label className="flex items-center justify-between cursor-pointer">
+      <span className="text-xs text-gray-700">{label}</span>
+      <button
+        onClick={onChange}
+        className={`relative w-9 h-5 rounded-full transition-colors ${checked ? "bg-[#2E7D32]" : "bg-gray-200"}`}
+      >
+        <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${checked ? "translate-x-4" : "translate-x-0.5"}`} />
+      </button>
+    </label>
+  );
+}
+
+// ─── Checkbox ─────────────────────────────────────────────────────────────────
+
+function Checkbox({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
+  return (
+    <label className="flex items-center gap-2 cursor-pointer">
+      <span
+        onClick={onChange}
+        className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${checked ? "bg-[#2E7D32] border-[#2E7D32]" : "border-gray-300"}`}
+      >
+        {checked && <svg viewBox="0 0 12 12" className="w-3 h-3"><polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" /></svg>}
+      </span>
+      <span className="text-xs text-gray-700">{label}</span>
+    </label>
+  );
+}
+
+// ─── Config State ─────────────────────────────────────────────────────────────
+
+interface Config {
+  titre: string;
+  type: string;
+  dateFrom: string;
+  dateTo: string;
+  destinataire: string;
+  langue: string;
+  dataKPI: boolean;
+  dataCours: boolean;
+  dataCert: boolean;
+  dataFinance: boolean;
+  dataRH: boolean;
+  dataRisques: boolean;
+  dataPrevisions: boolean;
+  dataESG: boolean;
+  logo: boolean;
+  tdm: boolean;
+  pagination: boolean;
+  couleur: string;
+}
+
+const defaultConfig: Config = {
+  titre: "Rapport de performance — S1 2025",
+  type: "Production",
+  dateFrom: "2025-01-01",
+  dateTo: "2025-06-30",
+  destinataire: "Usage interne",
+  langue: "Français",
+  dataKPI: true,
+  dataCours: true,
+  dataCert: true,
+  dataFinance: true,
+  dataRH: false,
+  dataRisques: false,
+  dataPrevisions: false,
+  dataESG: false,
+  logo: true,
+  tdm: true,
+  pagination: true,
+  couleur: "#2E7D32",
+};
+
+// ─── Preview Panel ────────────────────────────────────────────────────────────
+
+function PreviewPanel({ config, page }: { config: Config; page: number }) {
+  return (
+    <div className="bg-white shadow-xl rounded-lg overflow-hidden" style={{ aspectRatio: "210/297", maxHeight: "600px" }}>
+      {/* Page header */}
+      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        {config.logo && (
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: config.couleur }}>
+              <span className="text-white text-xs font-bold">A</span>
+            </div>
+            <span className="text-xs font-bold" style={{ color: config.couleur }}>AGRIFRIK</span>
+          </div>
+        )}
+        <div className="text-center flex-1">
+          <p className="text-xs font-semibold text-gray-800 truncate">{config.titre || "Rapport sans titre"}</p>
+          <p className="text-xs text-gray-400">{config.dateFrom} → {config.dateTo}</p>
+        </div>
+        <div className="text-xs text-gray-400">{page}/8</div>
+      </div>
+
+      {/* Page body */}
+      <div className="px-6 py-4 flex-1 overflow-hidden">
+        {page === 1 && (
+          <div className="space-y-3">
+            <div className="rounded-lg p-3 text-white text-center" style={{ backgroundColor: config.couleur }}>
+              <p className="text-xs font-bold">{config.titre}</p>
+              <p className="text-xs opacity-80 mt-0.5">{config.dateFrom} — {config.dateTo}</p>
+              <p className="text-xs opacity-70 mt-0.5">Destinataire : {config.destinataire}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-700 mb-2">1. Synthèse exécutive</p>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Ce rapport présente les performances d&apos;AGRIFRIK SAS pour la période
+                du {config.dateFrom} au {config.dateTo}.
+                Les données couvrent {[config.dataKPI && "KPI production", config.dataCours && "cours marché",
+                  config.dataCert && "certifications", config.dataFinance && "finance"].filter(Boolean).join(", ")}.
+              </p>
+            </div>
+            {config.dataKPI && (
+              <div>
+                <p className="text-xs font-semibold text-gray-700 mb-1">2. KPI Production</p>
+                <table className="w-full text-xs border-collapse">
+                  <thead><tr className="bg-gray-50">
+                    <th className="text-left px-2 py-1 text-gray-600">Indicateur</th>
+                    <th className="text-right px-2 py-1 text-gray-600">Valeur</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {[["Production totale", "87,6 t"], ["Rendement moyen", "784 kg/ha"], ["Grade AA", "62%"]].map(([k, v]) => (
+                      <tr key={k}><td className="px-2 py-1 text-gray-600">{k}</td><td className="px-2 py-1 text-right font-medium">{v}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {config.dataFinance && (
+              <div>
+                <p className="text-xs font-semibold text-gray-700 mb-1">3. Performance financière</p>
+                <MiniPreviewChart />
+                <p className="text-xs text-gray-400 text-center">CA mensuel (M XOF) — données fictives</p>
+              </div>
+            )}
+          </div>
+        )}
+        {page !== 1 && (
+          <div className="flex flex-col items-center justify-center h-40 text-gray-300">
+            <svg viewBox="0 0 48 48" className="w-10 h-10 mb-2"><rect x="8" y="4" width="32" height="40" rx="3" fill="none" stroke="currentColor" strokeWidth="2" /><line x1="14" y1="14" x2="34" y2="14" stroke="currentColor" strokeWidth="1.5" /><line x1="14" y1="20" x2="34" y2="20" stroke="currentColor" strokeWidth="1.5" /><line x1="14" y1="26" x2="26" y2="26" stroke="currentColor" strokeWidth="1.5" /></svg>
+            <p className="text-xs">Page {page} — contenu généré</p>
+          </div>
+        )}
+      </div>
+
+      {/* Page footer */}
+      <div className="px-6 py-2 border-t border-gray-100 flex items-center justify-between">
+        <p className="text-xs text-gray-400">AGRIFRIK — Confidentiel</p>
+        {config.pagination && <p className="text-xs text-gray-400">Page {page}/8</p>}
+      </div>
+    </div>
+  );
+}
+
+// ─── Library Blocks ───────────────────────────────────────────────────────────
+
+const BLOCKS = [
+  { icon: "📊", label: "Graphique bar" },
+  { icon: "📈", label: "Courbe temporelle" },
+  { icon: "🍩", label: "Donut camembert" },
+  { icon: "📋", label: "Tableau de données" },
+  { icon: "📝", label: "Zone de texte" },
+  { icon: "🗺️", label: "Carte parcelles" },
+  { icon: "🏆", label: "KPI cards" },
+  { icon: "📎", label: "Page de couverture" },
 ];
 
-/* ══════════════════════════════════════════════════════════
-   BLOCS PAR DÉFAUT (canvas initial)
-══════════════════════════════════════════════════════════ */
-
-const DEFAULT_BLOCKS: Block[] = [
-  { id: "b1", type: "title", label: "Titre" },
-  { id: "b2", type: "kpi4", label: "Groupe de 4 KPIs" },
-  { id: "b3", type: "chart-ca", label: "Graphique CA mensuel" },
-  { id: "b4", type: "tbl-ventes", label: "Tableau ventes par client" },
+const TEMPLATES = [
+  { name: "Rapport mensuel FAO", sections: 3, used: 8 },
+  { name: "Rapport qualité Barry Callebaut", sections: 5, used: 12 },
+  { name: "Rapport bailleur Banque Mondiale", sections: 7, used: 4 },
 ];
 
-/* ══════════════════════════════════════════════════════════
-   COMPOSANT PRINCIPAL
-══════════════════════════════════════════════════════════ */
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function RapportBuilderPage() {
-  const [blocks, setBlocks] = useState<Block[]>(DEFAULT_BLOCKS);
-  const [selectedId, setSelectedId] = useState<string>("b3");
+  const [config, setConfig] = useState<Config>(defaultConfig);
+  const [page, setPage] = useState(1);
+  const [generated, setGenerated] = useState(false);
+  const [dragging, setDragging] = useState<string | null>(null);
 
-  // Propriétés du panneau droit (simulées sur le bloc graphique)
-  const [chartType, setChartType] = useState("barres");
-  const [period, setPeriod] = useState("mois");
-  const [dataSource, setDataSource] = useState("ca");
-  const [chartTitle, setChartTitle] = useState("Évolution CA mensuel 2024");
-  const [showLegend, setShowLegend] = useState(true);
-  const [accentColor, setAccentColor] = useState("#2E7D32");
+  const set = <K extends keyof Config>(key: K, val: Config[K]) =>
+    setConfig((prev) => ({ ...prev, [key]: val }));
 
-  const removeBlock = (id: string) => {
-    setBlocks((prev) => prev.filter((b) => b.id !== id));
-    if (selectedId === id) setSelectedId("");
+  const toggleData = (key: keyof Config) =>
+    setConfig((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const handleGenerate = () => {
+    setGenerated(true);
+    setTimeout(() => setGenerated(false), 2000);
   };
-
-  const addBlockFromLib = (type: string, label: string) => {
-    const newBlock: Block = { id: `b${Date.now()}`, type, label };
-    setBlocks((prev) => [...prev, newBlock]);
-    setSelectedId(newBlock.id);
-  };
-
-  const selectedBlock = blocks.find((b) => b.id === selectedId);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      <Topbar
-        title="Constructeur de Rapports"
-        breadcrumb={["Rapports & BI", "Rapport Builder"]}
-      />
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <Topbar breadcrumb={["Rapports", "Générateur de Rapports"]} />
 
-      {/* ── 3 colonnes ─────────────────────────────────────────────────────── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex-1 flex overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
 
-        {/* ══════════════════════════════════════════════════════
-            GAUCHE — Bibliothèque de blocs (250px)
-        ══════════════════════════════════════════════════════ */}
-        <aside className="w-[250px] shrink-0 border-r border-gray-200 bg-white overflow-y-auto flex flex-col">
-          <div className="px-4 py-3 border-b border-gray-100 bg-[#F8FBF8]">
-            <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">Bibliothèque</p>
-          </div>
-          <div className="px-3 py-3 space-y-4 flex-1">
-            {LIBRARY.map((cat) => (
-              <div key={cat.category}>
-                <div className="flex items-center gap-1.5 mb-2">
-                  {cat.icon}
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{cat.category}</p>
-                </div>
-                <div className="space-y-1">
-                  {cat.items.map((item) => (
-                    <button
-                      key={item.type}
-                      onClick={() => addBlockFromLib(item.type, item.label)}
-                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg border border-gray-100 bg-[#F8FBF8] hover:border-[#2E7D32] hover:bg-green-50 transition-colors text-left group"
-                    >
-                      <Plus size={12} className="text-gray-400 group-hover:text-[#2E7D32] shrink-0" />
-                      <span className="text-xs text-gray-700 group-hover:text-gray-900 leading-tight">{item.label}</span>
-                    </button>
+        {/* ── Panneau gauche : Configuration ── */}
+        <aside className="w-72 flex-shrink-0 bg-white border-r border-gray-100 overflow-y-auto p-4 space-y-5">
+          <h2 className="text-sm font-bold text-gray-900">Configuration</h2>
+
+          {/* Paramètres de base */}
+          <section>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Paramètres de base</p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-600 block mb-1">Titre du rapport</label>
+                <input
+                  type="text"
+                  value={config.titre}
+                  onChange={(e) => set("titre", e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-[#2E7D32]"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-600 block mb-1">Type de rapport</label>
+                <select
+                  value={config.type}
+                  onChange={(e) => set("type", e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-[#2E7D32]"
+                >
+                  {["Production", "Finance", "Durabilité", "Bailleur", "Personnalisé"].map((t) => (
+                    <option key={t}>{t}</option>
                   ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-gray-600 block mb-1">Du</label>
+                  <input type="date" value={config.dateFrom} onChange={(e) => set("dateFrom", e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#2E7D32]" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600 block mb-1">Au</label>
+                  <input type="date" value={config.dateTo} onChange={(e) => set("dateTo", e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#2E7D32]" />
                 </div>
               </div>
-            ))}
+              <div>
+                <label className="text-xs text-gray-600 block mb-1">Destinataire</label>
+                <select
+                  value={config.destinataire}
+                  onChange={(e) => set("destinataire", e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-[#2E7D32]"
+                >
+                  {["Usage interne", "FAO", "Banque Mondiale", "ANADER", "Barry Callebaut", "Client personnalisé"].map((d) => (
+                    <option key={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-600 block mb-1">Langue</label>
+                <select
+                  value={config.langue}
+                  onChange={(e) => set("langue", e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-[#2E7D32]"
+                >
+                  {["Français", "Anglais", "Les deux"].map((l) => (
+                    <option key={l}>{l}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </section>
+
+          {/* Données incluses */}
+          <section>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Données incluses</p>
+            <div className="space-y-2">
+              <Checkbox checked={config.dataKPI} onChange={() => toggleData("dataKPI")} label="KPI Production" />
+              <Checkbox checked={config.dataCours} onChange={() => toggleData("dataCours")} label="Cours marché" />
+              <Checkbox checked={config.dataCert} onChange={() => toggleData("dataCert")} label="Certifications" />
+              <Checkbox checked={config.dataFinance} onChange={() => toggleData("dataFinance")} label="Finance" />
+              <Checkbox checked={config.dataRH} onChange={() => toggleData("dataRH")} label="RH" />
+              <Checkbox checked={config.dataRisques} onChange={() => toggleData("dataRisques")} label="Risques" />
+              <Checkbox checked={config.dataPrevisions} onChange={() => toggleData("dataPrevisions")} label="Prévisions" />
+              <Checkbox checked={config.dataESG} onChange={() => toggleData("dataESG")} label="ESG" />
+            </div>
+          </section>
+
+          {/* Mise en forme */}
+          <section>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Mise en forme</p>
+            <div className="space-y-3">
+              <Toggle checked={config.logo} onChange={() => toggleData("logo")} label="Inclure logo AGRIFRIK" />
+              <Toggle checked={config.tdm} onChange={() => toggleData("tdm")} label="Table des matières" />
+              <Toggle checked={config.pagination} onChange={() => toggleData("pagination")} label="Numérotation des pages" />
+              <div>
+                <p className="text-xs text-gray-600 mb-2">Couleur principale</p>
+                <ColorPicker value={config.couleur} onChange={(c) => set("couleur", c)} />
+              </div>
+            </div>
+          </section>
+
+          {/* Actions */}
+          <div className="space-y-2 pt-2">
+            <button
+              onClick={handleGenerate}
+              className="w-full py-2.5 rounded-xl text-white text-xs font-semibold transition-all hover:opacity-90 active:scale-95"
+              style={{ backgroundColor: config.couleur }}
+            >
+              {generated ? "✅ Rapport généré !" : "Générer le rapport"}
+            </button>
+            <button
+              className="w-full py-2 rounded-xl border border-gray-200 text-gray-600 text-xs font-medium hover:bg-gray-50"
+              onClick={() => alert("Modèle enregistré (simulation)")}>
+              Enregistrer comme modèle
+            </button>
           </div>
         </aside>
 
-        {/* ══════════════════════════════════════════════════════
-            CENTRE — Zone de construction (flex-1)
-        ══════════════════════════════════════════════════════ */}
-        <main className="flex-1 overflow-y-auto bg-gray-100 flex flex-col">
-          {/* En-tête zone */}
-          <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText size={16} className="text-[#2E7D32]" />
-              <span className="text-sm font-semibold text-gray-800">Rapport Mensuel Juillet 2025 — AGRIFRIK</span>
-              <span className="text-xs text-gray-400 ml-1">({blocks.length} blocs)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-lg">Aperçu en temps réel</span>
-            </div>
+        {/* ── Panneau centre : Prévisualisation ── */}
+        <main className="flex-1 flex flex-col overflow-hidden bg-gray-100">
+          {/* Toolbar */}
+          <div className="bg-white border-b border-gray-100 px-4 py-2 flex items-center gap-3 text-xs text-gray-600">
+            <span className="font-medium">Zoom 100%</span>
+            <span className="text-gray-300">|</span>
+            <span>Page {page} / 8</span>
+            <span className="text-gray-300">|</span>
+            <button onClick={() => setPage(Math.max(1, page - 1))} className="hover:text-gray-900 font-bold">◀</button>
+            <button onClick={() => setPage(Math.min(8, page + 1))} className="hover:text-gray-900 font-bold">▶</button>
+            <span className="text-gray-300">|</span>
+            <button className="hover:text-gray-900">⛶ Plein écran</button>
+            <div className="ml-auto text-gray-400 italic">{config.titre}</div>
           </div>
 
-          {/* Canvas rapport */}
-          <div className="flex-1 p-6">
-            <div className="max-w-2xl mx-auto space-y-3">
-
-              {blocks.length === 0 && (
-                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center">
-                  <LayoutDashboard size={32} className="mx-auto text-gray-300 mb-2" />
-                  <p className="text-sm text-gray-400">Ajoutez des blocs depuis la bibliothèque</p>
-                </div>
-              )}
-
-              {blocks.map((block) => (
-                <BlockCanvas
-                  key={block.id}
-                  block={block}
-                  selected={block.id === selectedId}
-                  onSelect={() => setSelectedId(block.id)}
-                  onRemove={() => removeBlock(block.id)}
-                />
-              ))}
+          {/* A4 preview */}
+          <div className="flex-1 overflow-auto p-6 flex justify-center">
+            <div className="w-full max-w-md">
+              <PreviewPanel config={config} page={page} />
+              {/* Page nav dots */}
+              <div className="flex justify-center gap-1.5 mt-3">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPage(i + 1)}
+                    className={`w-2 h-2 rounded-full transition-all ${page === i + 1 ? "scale-125" : "opacity-40"}`}
+                    style={{ backgroundColor: page === i + 1 ? config.couleur : "#9ca3af" }}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* Boutons bas */}
-          <div className="bg-white border-t border-gray-200 px-6 py-3 flex items-center gap-3">
-            <button className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 rounded-xl text-xs text-gray-700 hover:bg-gray-50 transition-colors">
-              <Eye size={14} /> Aperçu du rapport
-            </button>
-            <button className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 rounded-xl text-xs text-gray-700 hover:bg-gray-50 transition-colors">
-              <FileDown size={14} /> Générer PDF
-            </button>
-            <button className="flex items-center gap-1.5 px-5 py-2 bg-[#2E7D32] text-white rounded-xl text-xs font-medium hover:bg-[#1B5E20] transition-colors shadow-sm">
-              <CalendarClock size={14} /> Planifier envoi
-            </button>
           </div>
         </main>
 
-        {/* ══════════════════════════════════════════════════════
-            DROITE — Propriétés du bloc (250px)
-        ══════════════════════════════════════════════════════ */}
-        <aside className="w-[250px] shrink-0 border-l border-gray-200 bg-white overflow-y-auto flex flex-col">
-          <div className="px-4 py-3 border-b border-gray-100 bg-[#F8FBF8]">
-            <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">Propriétés</p>
-          </div>
+        {/* ── Panneau droit : Bibliothèque ── */}
+        <aside className="w-60 flex-shrink-0 bg-white border-l border-gray-100 overflow-y-auto p-4">
+          <h2 className="text-sm font-bold text-gray-900 mb-1">Bibliothèque de blocs</h2>
+          <p className="text-xs text-gray-400 mb-3">Glisser-déposer dans le rapport</p>
 
-          {!selectedBlock ? (
-            <div className="flex-1 flex items-center justify-center p-6 text-center">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                  <FileText size={18} className="text-gray-300" />
-                </div>
-                <p className="text-xs text-gray-400">Sélectionnez un bloc pour configurer ses propriétés</p>
+          <div className="grid grid-cols-2 gap-2 mb-6">
+            {BLOCKS.map((b) => (
+              <div
+                key={b.label}
+                draggable
+                onDragStart={() => setDragging(b.label)}
+                onDragEnd={() => setDragging(null)}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border cursor-grab active:cursor-grabbing transition-all select-none ${
+                  dragging === b.label
+                    ? "border-[#2E7D32] bg-green-50 scale-95"
+                    : "border-gray-200 bg-gray-50 hover:border-[#2E7D32] hover:bg-green-50"
+                }`}
+              >
+                <span className="text-xl">{b.icon}</span>
+                <span className="text-xs text-gray-600 text-center leading-tight">{b.label}</span>
               </div>
-            </div>
-          ) : (
-            <div className="flex-1 px-4 py-4 space-y-5">
-
-              {/* Nom du bloc */}
-              <div>
-                <div className="inline-flex items-center gap-1.5 bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded-full mb-3">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                  {selectedBlock.label}
-                </div>
-              </div>
-
-              {/* Type de graphique (visible si bloc graphique) */}
-              {selectedBlock.type.startsWith("chart") && (
-                <>
-                  <PropGroup label="Type de graphique">
-                    <div className="grid grid-cols-3 gap-1">
-                      {[
-                        { val: "barres", label: "Barres", icon: <BarChart2 size={12} /> },
-                        { val: "lignes", label: "Lignes", icon: <LineChart size={12} /> },
-                        { val: "donut", label: "Donut", icon: <PieChart size={12} /> },
-                      ].map((opt) => (
-                        <button
-                          key={opt.val}
-                          onClick={() => setChartType(opt.val)}
-                          className={`flex flex-col items-center gap-0.5 py-2 rounded-lg border text-[10px] transition-colors ${
-                            chartType === opt.val
-                              ? "border-[#2E7D32] bg-green-50 text-[#2E7D32]"
-                              : "border-gray-200 text-gray-500 hover:border-gray-300"
-                          }`}
-                        >
-                          {opt.icon}
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </PropGroup>
-
-                  <PropGroup label="Période">
-                    <select
-                      value={period}
-                      onChange={(e) => setPeriod(e.target.value)}
-                      className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#2E7D32] bg-white text-gray-700"
-                    >
-                      <option value="mois">Ce mois</option>
-                      <option value="trimestre">Trimestre</option>
-                      <option value="annee">Année</option>
-                    </select>
-                  </PropGroup>
-
-                  <PropGroup label="Données">
-                    <select
-                      value={dataSource}
-                      onChange={(e) => setDataSource(e.target.value)}
-                      className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#2E7D32] bg-white text-gray-700"
-                    >
-                      <option value="ca">CA</option>
-                      <option value="prod">Production</option>
-                      <option value="charges">Charges</option>
-                    </select>
-                  </PropGroup>
-
-                  <PropGroup label="Titre du graphique">
-                    <input
-                      type="text"
-                      value={chartTitle}
-                      onChange={(e) => setChartTitle(e.target.value)}
-                      className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#2E7D32] bg-white text-gray-700"
-                    />
-                  </PropGroup>
-
-                  <PropGroup label="Afficher légende">
-                    <button
-                      onClick={() => setShowLegend(!showLegend)}
-                      className="flex items-center gap-2 text-xs"
-                    >
-                      {showLegend
-                        ? <ToggleRight size={22} className="text-[#2E7D32]" />
-                        : <ToggleLeft size={22} className="text-gray-400" />}
-                      <span className={showLegend ? "text-[#2E7D32] font-medium" : "text-gray-400"}>
-                        {showLegend ? "Oui" : "Non"}
-                      </span>
-                    </button>
-                  </PropGroup>
-
-                  <PropGroup label="Couleur principale">
-                    <div className="flex gap-2 flex-wrap">
-                      {["#2E7D32", "#1565C0", "#E65100", "#6A1B9A", "#424242"].map((c) => (
-                        <button
-                          key={c}
-                          onClick={() => setAccentColor(c)}
-                          title={c}
-                          className={`w-7 h-7 rounded-lg transition-all ${
-                            accentColor === c ? "ring-2 ring-offset-1 ring-gray-500 scale-110" : "hover:scale-105"
-                          }`}
-                          style={{ backgroundColor: c }}
-                        />
-                      ))}
-                    </div>
-                  </PropGroup>
-                </>
-              )}
-
-              {/* Propriétés tableau */}
-              {selectedBlock.type.startsWith("tbl") && (
-                <>
-                  <PropGroup label="Colonnes affichées">
-                    {["Culture", "Surface", "Production", "CA"].map((col) => (
-                      <label key={col} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
-                        <input type="checkbox" defaultChecked className="accent-[#2E7D32]" />
-                        {col}
-                      </label>
-                    ))}
-                  </PropGroup>
-                  <PropGroup label="Lignes max">
-                    <input
-                      type="number"
-                      defaultValue={10}
-                      min={1}
-                      max={50}
-                      className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#2E7D32] bg-white text-gray-700"
-                    />
-                  </PropGroup>
-                </>
-              )}
-
-              {/* Propriétés KPI */}
-              {selectedBlock.type.startsWith("kpi") && (
-                <>
-                  <PropGroup label="Indicateurs">
-                    {["CA", "Production", "Trésorerie", "Effectifs"].map((k) => (
-                      <label key={k} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
-                        <input type="checkbox" defaultChecked className="accent-[#2E7D32]" />
-                        {k}
-                      </label>
-                    ))}
-                  </PropGroup>
-                  <PropGroup label="Style">
-                    <select className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#2E7D32] bg-white text-gray-700">
-                      <option>Cartes colorées</option>
-                      <option>Minimaliste</option>
-                      <option>Avec sparkline</option>
-                    </select>
-                  </PropGroup>
-                </>
-              )}
-
-              {/* Propriétés texte/titre */}
-              {(selectedBlock.type === "title" || selectedBlock.type === "text") && (
-                <>
-                  <PropGroup label="Contenu">
-                    <textarea
-                      rows={3}
-                      defaultValue={selectedBlock.type === "title" ? "Rapport Mensuel Juillet 2025 — AGRIFRIK" : ""}
-                      className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#2E7D32] bg-white text-gray-700 resize-none"
-                      placeholder="Votre texte..."
-                    />
-                  </PropGroup>
-                  {selectedBlock.type === "title" && (
-                    <PropGroup label="Taille">
-                      <select className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#2E7D32] bg-white text-gray-700">
-                        <option>Grand titre (H1)</option>
-                        <option>Titre section (H2)</option>
-                        <option>Sous-titre (H3)</option>
-                      </select>
-                    </PropGroup>
-                  )}
-                </>
-              )}
-
-              {/* Bouton appliquer */}
-              <button className="w-full py-2 bg-[#2E7D32] text-white text-xs font-medium rounded-xl hover:bg-[#1B5E20] transition-colors mt-2">
-                Appliquer les modifications
-              </button>
-            </div>
-          )}
-        </aside>
-
-      </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════
-   BLOC CANVAS
-══════════════════════════════════════════════════════════ */
-
-function BlockCanvas({
-  block, selected, onSelect, onRemove,
-}: {
-  block: Block; selected: boolean; onSelect: () => void; onRemove: () => void;
-}) {
-  return (
-    <div
-      onClick={onSelect}
-      className={`relative rounded-2xl border-2 transition-all cursor-pointer ${
-        selected
-          ? "border-[#2E7D32] shadow-md shadow-green-100"
-          : "border-gray-200 bg-white hover:border-gray-300"
-      }`}
-    >
-      {/* Barre de contrôle */}
-      <div className={`flex items-center gap-2 px-3 py-2 rounded-t-xl border-b ${selected ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-100"}`}>
-        <GripVertical size={14} className="text-gray-400 cursor-grab" />
-        <span className="text-xs font-medium text-gray-600 flex-1">{block.label}</span>
-        {!selected && (
-          <span className="text-[10px] text-gray-400 italic">Cliquer pour configurer</span>
-        )}
-        {selected && (
-          <span className="text-[10px] text-[#2E7D32] font-semibold">● Sélectionné</span>
-        )}
-        <button
-          onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          className="w-5 h-5 flex items-center justify-center rounded-md hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors"
-        >
-          <X size={12} />
-        </button>
-      </div>
-
-      {/* Contenu du bloc */}
-      <div className="p-4 bg-white rounded-b-xl">
-        <BlockPreview block={block} />
-      </div>
-    </div>
-  );
-}
-
-function BlockPreview({ block }: { block: Block }) {
-  /* Titre */
-  if (block.type === "title") {
-    return (
-      <div>
-        <h2 className="text-lg font-black text-gray-900 leading-tight">
-          Rapport Mensuel Juillet 2025 — AGRIFRIK
-        </h2>
-        <p className="text-xs text-gray-400 mt-1">Période : 01/07/2025 – 31/07/2025</p>
-      </div>
-    );
-  }
-
-  /* Groupe KPIs */
-  if (block.type === "kpi4") {
-    return (
-      <div className="grid grid-cols-4 gap-3">
-        {[
-          { label: "CA", value: "14,2 M", color: "bg-green-50 text-green-700" },
-          { label: "Production", value: "8,4 t", color: "bg-blue-50 text-blue-700" },
-          { label: "Trésorerie", value: "34,2 M", color: "bg-orange-50 text-orange-700" },
-          { label: "Employés", value: "287", color: "bg-purple-50 text-purple-700" },
-        ].map((kpi) => (
-          <div key={kpi.label} className={`rounded-xl p-3 text-center ${kpi.color} border border-current border-opacity-20`}>
-            <p className="text-lg font-black leading-none">{kpi.value}</p>
-            <p className="text-[10px] font-medium mt-1 opacity-70">{kpi.label}</p>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  /* Graphique CA */
-  if (block.type === "chart-ca") {
-    const bars = [62, 78, 55, 90, 104, 88, 112];
-    const labels = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul"];
-    const maxVal = Math.max(...bars);
-    return (
-      <div>
-        <p className="text-xs font-semibold text-gray-600 mb-2">Évolution CA mensuel 2024 (M XOF)</p>
-        <svg viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg" className="w-full">
-          {bars.map((v, i) => {
-            const bh = (v / maxVal) * 72;
-            const x = 10 + i * 55;
-            return (
-              <g key={i}>
-                <rect x={x} y={80 - bh} width={38} height={bh} fill="#2E7D32" rx={3} fillOpacity={0.85} />
-                <text x={x + 19} y={97} textAnchor="middle" fontSize={9} fill="#9ca3af">{labels[i]}</text>
-                <text x={x + 19} y={80 - bh - 3} textAnchor="middle" fontSize={8} fill="#2E7D32" fontWeight="bold">{v}</text>
-              </g>
-            );
-          })}
-        </svg>
-      </div>
-    );
-  }
-
-  /* Tableau ventes */
-  if (block.type === "tbl-ventes") {
-    return (
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="bg-[#F8FBF8] border-b border-gray-200">
-              <th className="text-left px-2 py-1.5 font-semibold text-gray-600">Client</th>
-              <th className="text-right px-2 py-1.5 font-semibold text-gray-600">Produit</th>
-              <th className="text-right px-2 py-1.5 font-semibold text-gray-600">Qtité</th>
-              <th className="text-right px-2 py-1.5 font-semibold text-gray-600">CA (M)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              { client: "CEMOI France", prod: "Cacao AA", qty: "18,4 t", ca: "18,0" },
-              { client: "OLAM CI", prod: "Cacao A/B", qty: "24,2 t", ca: "22,7" },
-              { client: "SIFCA Export", prod: "Anacarde", qty: "8,6 t", ca: "5,3" },
-            ].map((r, i) => (
-              <tr key={r.client} className={i % 2 === 0 ? "bg-white" : "bg-[#F8FBF8]"}>
-                <td className="px-2 py-1.5 font-medium text-gray-800">{r.client}</td>
-                <td className="px-2 py-1.5 text-right text-gray-600">{r.prod}</td>
-                <td className="px-2 py-1.5 text-right text-gray-600">{r.qty}</td>
-                <td className="px-2 py-1.5 text-right font-bold text-[#2E7D32]">{r.ca}</td>
-              </tr>
             ))}
-          </tbody>
-        </table>
+          </div>
+
+          {/* Drop zone simulée */}
+          <div
+            className="rounded-xl border-2 border-dashed border-gray-200 p-3 text-center mb-6 transition-all"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => {
+              if (dragging) alert(`Bloc "${dragging}" ajouté au rapport (simulation)`);
+              setDragging(null);
+            }}
+          >
+            <p className="text-xs text-gray-400">Déposer ici</p>
+            <svg viewBox="0 0 24 24" className="w-6 h-6 mx-auto mt-1 text-gray-300"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          </div>
+
+          {/* Modèles */}
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Modèles enregistrés</p>
+            <div className="space-y-2">
+              {TEMPLATES.map((t) => (
+                <button
+                  key={t.name}
+                  className="w-full text-left rounded-xl border border-gray-100 bg-gray-50 p-3 hover:border-[#2E7D32] hover:bg-green-50 transition-all"
+                  onClick={() => set("titre", t.name)}
+                >
+                  <p className="text-xs font-medium text-gray-800 leading-tight">{t.name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{t.sections} sections · Utilisé {t.used}×</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
       </div>
-    );
-  }
-
-  /* Séparateur */
-  if (block.type === "sep") {
-    return <hr className="border-gray-200" />;
-  }
-
-  /* Page suivante */
-  if (block.type === "pagebreak") {
-    return (
-      <div className="flex items-center gap-2 text-xs text-gray-400">
-        <div className="flex-1 border-t border-dashed border-gray-300" />
-        <span>— Saut de page —</span>
-        <div className="flex-1 border-t border-dashed border-gray-300" />
-      </div>
-    );
-  }
-
-  /* KPI unique */
-  if (block.type === "kpi1") {
-    return (
-      <div className="flex items-center gap-4 p-2">
-        <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-          <Hash size={20} className="text-[#2E7D32]" />
-        </div>
-        <div>
-          <p className="text-2xl font-black text-gray-900">14,2 M</p>
-          <p className="text-xs text-gray-500">XOF — Chiffre d'affaires</p>
-        </div>
-        <div className="ml-auto text-right">
-          <p className="text-xs font-bold text-green-600">▲ +12%</p>
-          <p className="text-[10px] text-gray-400">vs mois précédent</p>
-        </div>
-      </div>
-    );
-  }
-
-  /* Fallback générique */
-  return (
-    <div className="flex items-center justify-center h-16 text-xs text-gray-400 italic">
-      Aperçu : {block.label}
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════
-   GROUPE DE PROPRIÉTÉ
-══════════════════════════════════════════════════════════ */
-
-function PropGroup({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">{label}</p>
-      <div className="space-y-1.5">{children}</div>
     </div>
   );
 }

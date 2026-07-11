@@ -1,528 +1,440 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
 import {
-  Plus,
-  Clock,
   CheckCircle2,
+  Circle,
+  Clock,
   AlertTriangle,
-  ClipboardList,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  Plus,
+  ArrowUpDown,
   User,
-  Tag,
-  History,
+  Calendar,
+  Link2,
+  MoreHorizontal,
 } from "lucide-react";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+type Priority = "urgent" | "high" | "normal" | "low";
+type Status = "todo" | "inprogress" | "review" | "done";
 
-type Priorite = "urgent" | "haute" | "normale";
-type Colonne = "todo" | "encours" | "revision" | "termine";
-
-interface Tache {
+interface Task {
   id: number;
-  titre: string;
-  assigne: string;
-  echeance: string;
-  badge: string;
-  priorite: Priorite;
-  colonne: Colonne;
-  progression?: number;
-  soumisLe?: string;
+  title: string;
+  assignee: string;
+  priority: Priority;
+  status: Status;
+  category: string;
+  due: string;
+  linkedRef?: string;
+  warning?: string;
+  note?: string;
+  completedDate?: string;
 }
 
-// ─── Données ─────────────────────────────────────────────────────────────────
-
-const TACHES: Tache[] = [
-  // À faire
-  {
-    id: 1,
-    titre: "Commander KCl engrais (200 kg) — YARA Nederland",
-    assigne: "Jean-Baptiste K.",
-    echeance: "Avant 12/07",
-    badge: "Achats",
-    priorite: "urgent",
-    colonne: "todo",
-  },
-  {
-    id: 2,
-    titre: "Séchage d'urgence LOT-032 Anacarde (humidité 12,4%)",
-    assigne: "Ibrahim Sawadogo",
-    echeance: "Avant 11/07 18h",
-    badge: "Qualité",
-    priorite: "urgent",
-    colonne: "todo",
-  },
-  {
-    id: 3,
-    titre: "Traitement préventif mildiou PAR-B1 (Ridomil Gold)",
-    assigne: "Ibrahim Sawadogo",
-    echeance: "11/07 matin",
-    badge: "Production",
-    priorite: "haute",
-    colonne: "todo",
-  },
-  {
-    id: 4,
-    titre: "Sécuriser bâches séchoir B avant pluies 12/07",
-    assigne: "Bamba Oumar",
-    echeance: "11/07 midi",
-    badge: "Logistique",
-    priorite: "haute",
-    colonne: "todo",
-  },
-  {
-    id: 5,
-    titre: "Préparer dossier renouvellement contrat TOTAL Énergie",
-    assigne: "Jean-Baptiste K.",
-    echeance: "30/09/2025",
-    badge: "Finance",
-    priorite: "normale",
-    colonne: "todo",
-  },
-  {
-    id: 6,
-    titre: "Recruter 8 saisonniers pour récolte principale Oct 2025",
-    assigne: "Mariam Kouyaté",
-    echeance: "15/09/2025",
-    badge: "RH",
-    priorite: "normale",
-    colonne: "todo",
-  },
-  // En cours
-  {
-    id: 7,
-    titre: "Audit interne Rainforest Alliance — Préparer dossier",
-    assigne: "Ibrahim Sawadogo",
-    echeance: "15/09",
-    badge: "Qualité",
-    priorite: "haute",
-    colonne: "encours",
-    progression: 35,
-  },
-  {
-    id: 8,
-    titre: "Planning récolte cacao Oct-Nov 2025 (PAR-A1, A3, B1)",
-    assigne: "Mariam Kouyaté",
-    echeance: "31/08",
-    badge: "Production",
-    priorite: "normale",
-    colonne: "encours",
-    progression: 60,
-  },
-  {
-    id: 9,
-    titre: "Rapport bailleur FAO Q2 2025",
-    assigne: "Adjoua Messou",
-    echeance: "20/07",
-    badge: "Rapports",
-    priorite: "normale",
-    colonne: "encours",
-    progression: 80,
-  },
-  {
-    id: 10,
-    titre: "Négociation parcelles PAR-E3/E4 (3,6 ha)",
-    assigne: "Admin",
-    echeance: "31/07",
-    badge: "Terres",
-    priorite: "normale",
-    colonne: "encours",
-    progression: 45,
-  },
-  // En révision
-  {
-    id: 11,
-    titre: "Rapport terrain RT-2025-048 — PAR-A3",
-    assigne: "Ibrahim S.",
-    echeance: "",
-    badge: "Terrain",
-    priorite: "normale",
-    colonne: "revision",
-    soumisLe: "09/07",
-  },
-  {
-    id: 12,
-    titre: "Budget investissement drone supplémentaire",
-    assigne: "Jean-Baptiste K.",
-    echeance: "",
-    badge: "Finance",
-    priorite: "normale",
-    colonne: "revision",
-    soumisLe: "08/07",
-  },
-  {
-    id: 13,
-    titre: "Contrat Ritter Sport — version finale",
-    assigne: "Admin",
-    echeance: "",
-    badge: "Commerce",
-    priorite: "normale",
-    colonne: "revision",
-    soumisLe: "07/07",
-  },
-  {
-    id: 14,
-    titre: "Plan formation sécurité Q3 2025",
-    assigne: "Mariam K.",
-    echeance: "",
-    badge: "RH",
-    priorite: "normale",
-    colonne: "revision",
-    soumisLe: "06/07",
-  },
+const TASKS: Task[] = [
+  { id: 1, title: "Traitement Ridomil PAR-B1 (mildiou)", assignee: "Ibrahim S.", priority: "urgent", status: "todo", category: "Agriculture", due: "12/07" },
+  { id: 2, title: "Commander KCl 720 kg SCPA", assignee: "Bamba O.", priority: "high", status: "todo", category: "Achats", due: "15/07", linkedRef: "ACH-2025-092" },
+  { id: 3, title: "Renouvellement fermage PAR-B1+B2", assignee: "Dir. Admin", priority: "high", status: "todo", category: "Foncier", due: "14/07", warning: "Echeance critique" },
+  { id: 4, title: "Mise a jour registre phytosanitaire", assignee: "Konan Y.", priority: "normal", status: "todo", category: "Conformite", due: "20/07" },
+  { id: 5, title: "Entretien groupe electrogene GE-01", assignee: "Bamba O.", priority: "normal", status: "todo", category: "Maintenance", due: "25/07" },
+  { id: 6, title: "Fermentation LOT-2025-048 - suivi J5/6", assignee: "Ibrahim S.", priority: "urgent", status: "inprogress", category: "Production", due: "12/07" },
+  { id: 7, title: "Revision circuit hydraulique MAT-001 (pieces commandees)", assignee: "Bamba O.", priority: "high", status: "inprogress", category: "Maintenance", due: "15/07" },
+  { id: 8, title: "Recrutement Responsable Export", assignee: "RH", priority: "high", status: "inprogress", category: "RH", due: "18/07" },
+  { id: 9, title: "Mise a jour cartographie SIG parcelles", assignee: "Konan Y.", priority: "normal", status: "inprogress", category: "Cartographie", due: "31/07" },
+  { id: 10, title: "Rapport qualite LOT-2025-047", assignee: "Adjoua M.", priority: "high", status: "review", category: "Qualite", due: "13/07" },
+  { id: 11, title: "Budget H2 2025", assignee: "Dir. Financier", priority: "normal", status: "review", category: "Finance", due: "15/07" },
+  { id: 12, title: "Taille entretien PAR-A1+A2", assignee: "Ibrahim S.", priority: "normal", status: "done", category: "Agriculture", due: "11/07", completedDate: "11/07" },
+  { id: 13, title: "Controle humidite LOT-2025-045", assignee: "Ibrahim S.", priority: "normal", status: "done", category: "Production", due: "10/07", completedDate: "10/07" },
+  { id: 14, title: "Paiement fournisseur NSIA assurance", assignee: "Dir. Financier", priority: "normal", status: "done", category: "Finance", due: "08/07", completedDate: "08/07" },
+  { id: 15, title: "Formation securite chimique", assignee: "Konan Y.", priority: "normal", status: "done", category: "Formation", due: "05/07", completedDate: "05/07", note: "12 participants" },
+  { id: 16, title: "Inventaire entrepot A", assignee: "Bamba O.", priority: "normal", status: "done", category: "Logistique", due: "01/07", completedDate: "01/07" },
 ];
 
-// ─── Config priorité ──────────────────────────────────────────────────────────
-
-const PRIORITE: Record<Priorite, { label: string; dot: string; text: string; bg: string }> = {
-  urgent: {
-    label: "URGENT",
-    dot: "bg-red-500",
-    text: "text-red-700 dark:text-red-400",
-    bg: "bg-red-50 dark:bg-red-900/20",
-  },
-  haute: {
-    label: "HAUTE",
-    dot: "bg-amber-500",
-    text: "text-amber-700 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-900/20",
-  },
-  normale: {
-    label: "NORMALE",
-    dot: "bg-blue-500",
-    text: "text-blue-700 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-900/20",
-  },
+const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; dot: string }> = {
+  urgent: { label: "URGENT", color: "bg-red-100 text-red-700", dot: "bg-red-500" },
+  high: { label: "Haute", color: "bg-orange-100 text-orange-700", dot: "bg-orange-400" },
+  normal: { label: "Normale", color: "bg-gray-100 text-gray-600", dot: "bg-gray-400" },
+  low: { label: "Basse", color: "bg-blue-100 text-blue-600", dot: "bg-blue-400" },
 };
 
-// ─── Sous-composants ──────────────────────────────────────────────────────────
+const STATUS_CONFIG: Record<Status, { label: string; color: string }> = {
+  todo: { label: "A faire", color: "bg-gray-100 text-gray-600" },
+  inprogress: { label: "En cours", color: "bg-blue-100 text-blue-700" },
+  review: { label: "En revision", color: "bg-purple-100 text-purple-700" },
+  done: { label: "Termine", color: "bg-green-100 text-green-700" },
+};
 
-function BadgePriorite({ p }: { p: Priorite }) {
-  const cfg = PRIORITE[p];
+const JULY_2025: (number | null)[][] = [
+  [null, null, 1, 2, 3, 4, 5],
+  [6, 7, 8, 9, 10, 11, 12],
+  [13, 14, 15, 16, 17, 18, 19],
+  [20, 21, 22, 23, 24, 25, 26],
+  [27, 28, 29, 30, 31, null, null],
+];
+
+function parseDay(due: string): number | null {
+  const parts = due.split("/");
+  if (parts[1] === "07") return parseInt(parts[0]);
+  return null;
+}
+
+function PriorityBadge({ priority }: { priority: Priority }) {
+  const cfg = PRIORITY_CONFIG[priority];
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${cfg.bg} ${cfg.text}`}
-    >
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${cfg.color}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
       {cfg.label}
     </span>
   );
 }
 
-function BadgeModule({ label }: { label: string }) {
+function StatusBadge({ status }: { status: Status }) {
+  const cfg = STATUS_CONFIG[status];
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-      <Tag size={9} />
-      {label}
+    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
+      {cfg.label}
     </span>
   );
 }
 
-function AvatarMini({ nom }: { nom: string }) {
-  const initiales = nom
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+function TaskCard({ task }: { task: Task }) {
   return (
-    <div className="w-5 h-5 rounded-full bg-[#2E7D32] flex items-center justify-center text-white text-[9px] font-bold shrink-0">
-      {initiales}
-    </div>
-  );
-}
-
-function CarteTodo({ t }: { t: Tache }) {
-  return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <BadgePriorite p={t.priorite} />
-        <BadgeModule label={t.badge} />
+    <div className={`bg-white rounded-xl border p-3 shadow-sm hover:shadow-md transition-shadow ${task.priority === "urgent" ? "border-l-4 border-l-red-500 border-gray-100" : "border-gray-100"}`}>
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <p className="text-xs font-medium text-gray-800 leading-snug flex-1">{task.title}</p>
+        <button className="text-gray-400 hover:text-gray-600 flex-shrink-0"><MoreHorizontal size={14} /></button>
       </div>
-      <p className="text-sm font-medium text-gray-800 dark:text-gray-100 mb-3 leading-snug">
-        {t.titre}
-      </p>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <AvatarMini nom={t.assigne} />
-          <span className="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-[100px]">
-            {t.assigne}
-          </span>
+      <div className="flex flex-wrap gap-1 mb-2">
+        <PriorityBadge priority={task.priority} />
+        <span className="px-2 py-0.5 rounded-full text-xs bg-[#E8F5E9] text-[#2E7D32] font-medium">{task.category}</span>
+      </div>
+      {task.warning && (
+        <div className="flex items-center gap-1 mb-2">
+          <AlertTriangle size={11} className="text-orange-500" />
+          <span className="text-xs text-orange-600">{task.warning}</span>
         </div>
-        {t.echeance && (
-          <div className="flex items-center gap-1 text-[11px] text-gray-400">
-            <Clock size={11} />
-            {t.echeance}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CarteEnCours({ t }: { t: Tache }) {
-  const prog = t.progression ?? 0;
-  const barColor =
-    prog >= 70 ? "bg-green-500" : prog >= 40 ? "bg-amber-500" : "bg-blue-500";
-  return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <BadgePriorite p={t.priorite} />
-        <BadgeModule label={t.badge} />
-      </div>
-      <p className="text-sm font-medium text-gray-800 dark:text-gray-100 mb-3 leading-snug">
-        {t.titre}
-      </p>
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-1.5">
-          <AvatarMini nom={t.assigne} />
-          <span className="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-[100px]">
-            {t.assigne}
-          </span>
+      )}
+      {task.linkedRef && (
+        <div className="flex items-center gap-1 mb-2">
+          <Link2 size={11} className="text-blue-400" />
+          <span className="text-xs text-blue-600">{task.linkedRef}</span>
         </div>
-        {t.echeance && (
-          <div className="flex items-center gap-1 text-[11px] text-gray-400">
-            <Clock size={11} />
-            {t.echeance}
-          </div>
-        )}
-      </div>
-      <div>
-        <div className="flex justify-between text-[10px] text-gray-400 mb-1">
-          <span>Progression</span>
-          <span className="font-medium">{prog}%</span>
+      )}
+      {task.note && <p className="text-xs text-gray-500 mb-2 italic">{task.note}</p>}
+      <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
+        <div className="flex items-center gap-1 text-gray-500">
+          <User size={11} /><span className="text-xs">{task.assignee}</span>
         </div>
-        <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all ${barColor}`}
-            style={{ width: `${prog}%` }}
-          />
+        <div className="flex items-center gap-1 text-gray-500">
+          <Calendar size={11} /><span className="text-xs">{task.completedDate || task.due}</span>
         </div>
       </div>
     </div>
   );
 }
 
-function CarteRevision({ t }: { t: Tache }) {
+function KanbanView() {
+  const columns: { key: Status; title: string; bg: string; header: string }[] = [
+    { key: "todo", title: "A faire", bg: "bg-gray-50", header: "bg-gray-200 text-gray-700" },
+    { key: "inprogress", title: "En cours", bg: "bg-blue-50", header: "bg-blue-200 text-blue-700" },
+    { key: "review", title: "En revision", bg: "bg-purple-50", header: "bg-purple-200 text-purple-700" },
+    { key: "done", title: "Termine", bg: "bg-green-50", header: "bg-green-200 text-green-700" },
+  ];
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center gap-1.5 mb-2">
-        <CheckCircle2 size={13} className="text-green-600 shrink-0" />
-        <span className="text-[10px] font-semibold text-green-600 dark:text-green-400">
-          Soumis le {t.soumisLe}
-        </span>
-      </div>
-      <p className="text-sm font-medium text-gray-800 dark:text-gray-100 mb-3 leading-snug">
-        {t.titre}
-      </p>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <AvatarMini nom={t.assigne} />
-          <span className="text-[11px] text-gray-500 dark:text-gray-400">{t.assigne}</span>
-        </div>
-        <BadgeModule label={t.badge} />
+    <div className="overflow-x-auto pb-4">
+      <div className="flex gap-4 min-w-[900px]">
+        {columns.map((col) => {
+          const tasks = TASKS.filter((t) => t.status === col.key);
+          return (
+            <div key={col.key} className={`flex-1 min-w-[220px] rounded-2xl ${col.bg} p-3`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${col.header}`}>{col.title}</span>
+                  <span className="w-5 h-5 rounded-full bg-white text-xs font-bold text-gray-600 flex items-center justify-center shadow-sm">{tasks.length}</span>
+                </div>
+                <button className="text-gray-400 hover:text-[#2E7D32]"><Plus size={15} /></button>
+              </div>
+              <div className="flex flex-col gap-2">
+                {tasks.map((task) => <TaskCard key={task.id} task={task} />)}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-// ─── Colonne Kanban ───────────────────────────────────────────────────────────
+function ListView() {
+  const [filter, setFilter] = useState("all");
+  const [assigneeFilter, setAssigneeFilter] = useState("all");
+  const [sort, setSort] = useState("due");
+  const assignees = Array.from(new Set(TASKS.map((t) => t.assignee)));
 
-function ColonneKanban({
-  titre,
-  count,
-  headerColor,
-  children,
-}: {
-  titre: string;
-  count: number;
-  headerColor: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex-1 min-w-[240px] flex flex-col">
-      <div
-        className={`flex items-center justify-between px-4 py-3 rounded-t-xl ${headerColor}`}
-      >
-        <h3 className="text-sm font-semibold text-white">{titre}</h3>
-        <span className="bg-white/25 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-          {count}
-        </span>
-      </div>
-      <div className="flex-1 bg-gray-100/70 dark:bg-gray-900/40 rounded-b-xl p-3 flex flex-col gap-3 min-h-[300px] overflow-y-auto">
-        {children}
-      </div>
-    </div>
-  );
-}
+  const filtered = TASKS.filter((t) => {
+    if (filter === "mine") return t.assignee === "Ibrahim S.";
+    if (filter === "urgent") return t.priority === "urgent";
+    if (filter === "week") return ["12/07", "13/07", "14/07", "15/07"].includes(t.due);
+    if (assigneeFilter !== "all") return t.assignee === assigneeFilter;
+    return true;
+  });
 
-// ─── KPI ─────────────────────────────────────────────────────────────────────
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === "priority") {
+      const order: Priority[] = ["urgent", "high", "normal", "low"];
+      return order.indexOf(a.priority) - order.indexOf(b.priority);
+    }
+    if (sort === "assignee") return a.assignee.localeCompare(b.assignee);
+    return a.due.localeCompare(b.due);
+  });
 
-function KpiCard({
-  label,
-  valeur,
-  icon: Icon,
-  couleur,
-}: {
-  label: string;
-  valeur: number | string;
-  icon: React.ElementType;
-  couleur: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-800 dark:border-gray-700 p-5 flex items-center gap-4 shadow-sm">
-      <div className={`w-11 h-11 rounded-xl ${couleur} flex items-center justify-center shrink-0`}>
-        <Icon size={20} className="text-white" />
-      </div>
-      <div>
-        <p className="text-2xl font-bold text-gray-900 dark:text-white">{valeur}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{label}</p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-type FiltreChip = "toutes" | "mes" | "urgentes";
-
-const ASSIGNES = ["Tous", "Ibrahim Sawadogo", "Mariam Kouyaté", "Jean-Baptiste K.", "Bamba Oumar", "Adjoua Messou", "Admin"];
-const PROJETS = ["Tous les projets", "Cacao", "Anacarde", "RH", "Finance", "Logistique"];
-
-export default function TachesPage() {
-  const [chip, setChip] = useState<FiltreChip>("toutes");
-  const [assigne, setAssigne] = useState("Tous");
-  const [projet, setProjet] = useState("Tous les projets");
-
-  const filtrer = (taches: Tache[]) =>
-    taches.filter((t) => {
-      if (chip === "urgentes" && t.priorite !== "urgent") return false;
-      if (assigne !== "Tous" && !t.assigne.includes(assigne.split(" ")[0])) return false;
-      return true;
-    });
-
-  const todo = filtrer(TACHES.filter((t) => t.colonne === "todo"));
-  const encours = filtrer(TACHES.filter((t) => t.colonne === "encours"));
-  const revision = filtrer(TACHES.filter((t) => t.colonne === "revision"));
+  const FILTER_TABS = [
+    { k: "all", l: "Toutes" },
+    { k: "mine", l: "Mes taches" },
+    { k: "urgent", l: "Urgentes" },
+    { k: "week", l: "Cette semaine" },
+  ];
+  const SORT_TABS = [
+    { k: "due", l: "Date" },
+    { k: "priority", l: "Priorite" },
+    { k: "assignee", l: "Assigne" },
+  ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Topbar title="Gestion des Tâches" breadcrumb={["Collaboration", "Tâches"]} />
-
-      <div className="flex-1 p-6 space-y-6">
-        {/* KPIs */}
-        <div className="grid grid-cols-3 gap-4">
-          <KpiCard label="Tâches totales" valeur={42} icon={ClipboardList} couleur="bg-[#2E7D32]" />
-          <KpiCard label="En retard" valeur={3} icon={AlertTriangle} couleur="bg-red-500" />
-          <KpiCard label="Terminées ce mois" valeur={28} icon={CheckCircle2} couleur="bg-blue-600" />
-        </div>
-
-        {/* Barre filtres + bouton */}
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Chips */}
-          {(
-            [
-              { key: "toutes", label: "Toutes" },
-              { key: "mes", label: "Mes tâches" },
-              { key: "urgentes", label: "Urgentes" },
-            ] as { key: FiltreChip; label: string }[]
-          ).map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setChip(c.key)}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                chip === c.key
-                  ? "bg-[#2E7D32] text-white"
-                  : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-green-500"
-              }`}
-            >
-              {c.label}
+    <div>
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="flex rounded-xl border border-gray-200 overflow-hidden text-xs">
+          {FILTER_TABS.map((f) => (
+            <button key={f.k} onClick={() => setFilter(f.k)}
+              className={`px-3 py-1.5 font-medium transition-colors ${filter === f.k ? "bg-[#2E7D32] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}>
+              {f.l}
             </button>
           ))}
+        </div>
+        <select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}
+          className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none">
+          <option value="all">Tous les assignes</option>
+          {assignees.map((a) => <option key={a} value={a}>{a}</option>)}
+        </select>
+        <div className="ml-auto flex items-center gap-2 text-xs text-gray-500">
+          <ArrowUpDown size={13} /><span>Trier par :</span>
+          {SORT_TABS.map((s) => (
+            <button key={s.k} onClick={() => setSort(s.k)}
+              className={`px-2 py-1 rounded-lg transition-colors ${sort === s.k ? "bg-[#2E7D32] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+              {s.l}
+            </button>
+          ))}
+        </div>
+      </div>
 
-          {/* Select assigné */}
-          <div className="flex items-center gap-1.5">
-            <User size={13} className="text-gray-400" />
-            <select
-              value={assigne}
-              onChange={(e) => setAssigne(e.target.value)}
-              className="text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              {ASSIGNES.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
+      <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-[#F8FBF8] border-b border-gray-100">
+                {["#", "Tache", "Assigne", "Priorite", "Statut", "Categorie", "Echeance", "Actions"].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left font-semibold text-gray-500">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((task, i) => (
+                <tr key={task.id} className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${task.status === "done" ? "opacity-60" : ""}`}>
+                  <td className="px-4 py-2.5 text-gray-400">{i + 1}</td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      {task.status === "done" ? <CheckCircle2 size={13} className="text-green-500 flex-shrink-0" /> : <Circle size={13} className="text-gray-300 flex-shrink-0" />}
+                      <span className={`font-medium text-gray-800 ${task.status === "done" ? "line-through text-gray-400" : ""}`}>{task.title}</span>
+                      {task.warning && <AlertTriangle size={12} className="text-orange-500" />}
+                      {task.linkedRef && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px]">{task.linkedRef}</span>}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-600">{task.assignee}</td>
+                  <td className="px-4 py-2.5"><PriorityBadge priority={task.priority} /></td>
+                  <td className="px-4 py-2.5"><StatusBadge status={task.status} /></td>
+                  <td className="px-4 py-2.5"><span className="px-2 py-0.5 rounded-full bg-[#E8F5E9] text-[#2E7D32] text-[10px] font-medium">{task.category}</span></td>
+                  <td className="px-4 py-2.5"><div className="flex items-center gap-1 text-gray-600"><Calendar size={11} /><span>{task.completedDate || task.due}</span></div></td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-1">
+                      <button className="px-2 py-1 text-[10px] bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors">Voir</button>
+                      <button className="px-2 py-1 text-[10px] bg-[#E8F5E9] text-[#2E7D32] rounded-lg hover:bg-[#C8E6C9] transition-colors">Editer</button>
+                    </div>
+                  </td>
+                </tr>
               ))}
-            </select>
-          </div>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-          {/* Select projet */}
-          <div className="flex items-center gap-1.5">
-            <Tag size={13} className="text-gray-400" />
-            <select
-              value={projet}
-              onChange={(e) => setProjet(e.target.value)}
-              className="text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              {PROJETS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
+      <div className="mt-4 flex flex-wrap gap-3 text-xs">
+        <div className="flex items-center gap-1.5 bg-white rounded-xl border border-gray-100 px-3 py-2">
+          <span className="font-semibold text-gray-700">16</span><span className="text-gray-500">taches</span>
+        </div>
+        <div className="flex items-center gap-1.5 bg-white rounded-xl border border-gray-100 px-3 py-2">
+          <span className="w-2 h-2 rounded-full bg-red-500" /><span className="font-semibold text-red-600">5</span><span className="text-gray-500">en retard</span>
+        </div>
+        <div className="flex items-center gap-1.5 bg-white rounded-xl border border-gray-100 px-3 py-2">
+          <Clock size={13} className="text-blue-500" /><span className="font-semibold text-blue-600">8</span><span className="text-gray-500">cette semaine</span>
+        </div>
+        <div className="flex items-center gap-1.5 bg-white rounded-xl border border-gray-100 px-3 py-2">
+          <AlertTriangle size={13} className="text-orange-500" /><span className="font-semibold text-orange-600">3</span><span className="text-gray-500">urgentes</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CalendarView() {
+  const [selectedDay, setSelectedDay] = useState(11);
+  const tasksByDay: Record<number, Task[]> = {};
+  TASKS.forEach((t) => {
+    const d = parseDay(t.due);
+    if (d) {
+      if (!tasksByDay[d]) tasksByDay[d] = [];
+      tasksByDay[d].push(t);
+    }
+  });
+  const selectedTasks = tasksByDay[selectedDay] || [];
+  const DAYS_HEADER = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+  const STATS = [
+    { l: "Total", v: "16", c: "text-gray-700" },
+    { l: "Terminees", v: "5", c: "text-green-600" },
+    { l: "En cours", v: "4", c: "text-blue-600" },
+    { l: "Urgentes", v: "3", c: "text-red-600" },
+  ];
+  return (
+    <div className="flex gap-4">
+      <div className="flex-1">
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <div className="flex items-center justify-between mb-4">
+            <button className="p-1.5 hover:bg-gray-100 rounded-lg"><ChevronLeft size={16} /></button>
+            <h3 className="text-sm font-semibold text-gray-800">Juillet 2025</h3>
+            <button className="p-1.5 hover:bg-gray-100 rounded-lg"><ChevronRight size={16} /></button>
+          </div>
+          <div className="grid grid-cols-7 mb-2">
+            {DAYS_HEADER.map((d) => <div key={d} className="text-center text-xs font-semibold text-gray-500 py-1">{d}</div>)}
+          </div>
+          {JULY_2025.map((week, wi) => (
+            <div key={wi} className="grid grid-cols-7 gap-1 mb-1">
+              {week.map((day, di) => {
+                const tasks = day ? tasksByDay[day] || [] : [];
+                const hasUrgent = tasks.some((t) => t.priority === "urgent");
+                const isSelected = day === selectedDay;
+                const isToday = day === 11;
+                const cls = [
+                  "relative rounded-xl p-1.5 min-h-[52px] transition-all",
+                  day === null ? "invisible" : "cursor-pointer",
+                  hasUrgent && !isSelected ? "bg-orange-50 border border-orange-200" : "",
+                  isSelected ? "bg-[#2E7D32] text-white shadow-md" : "hover:bg-gray-50 border border-transparent hover:border-gray-200",
+                ].join(" ");
+                return (
+                  <div key={di} onClick={() => day !== null && setSelectedDay(day)} className={cls}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-xs font-semibold ${isSelected ? "text-white" : isToday ? "text-[#2E7D32]" : "text-gray-700"}`}>{day}</span>
+                      {isToday && !isSelected && <span className="w-1.5 h-1.5 rounded-full bg-[#2E7D32]" />}
+                    </div>
+                    {tasks.length > 0 && (
+                      <div className="flex flex-wrap gap-0.5">
+                        {tasks.slice(0, 3).map((t) => (
+                          <span key={t.id} className={`w-2 h-2 rounded-full ${isSelected ? "bg-white opacity-80" : PRIORITY_CONFIG[t.priority].dot}`} />
+                        ))}
+                        {tasks.length > 3 && <span className={`text-[9px] font-bold ${isSelected ? "text-white" : "text-gray-500"}`}>+{tasks.length - 3}</span>}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
+            {[{ c: "bg-red-500", l: "Urgent" }, { c: "bg-orange-400", l: "Haute" }, { c: "bg-gray-400", l: "Normale" }].map((item) => (
+              <div key={item.l} className="flex items-center gap-1.5"><span className={`w-2.5 h-2.5 rounded-full ${item.c}`} />{item.l}</div>
+            ))}
+            <div className="flex items-center gap-1.5 ml-auto"><span className="w-2.5 h-2.5 rounded-full bg-orange-100 border border-orange-300" />Urgent ce jour</div>
+          </div>
+        </div>
+      </div>
+      <div className="w-72 flex-shrink-0">
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h4 className="text-sm font-semibold text-gray-800 mb-1">{selectedDay} juillet 2025</h4>
+          <p className="text-xs text-gray-500 mb-4">{selectedTasks.length} tache{selectedTasks.length !== 1 ? "s" : ""}</p>
+          {selectedTasks.length === 0 ? (
+            <div className="text-center py-8">
+              <CheckCircle2 size={32} className="text-gray-200 mx-auto mb-2" />
+              <p className="text-xs text-gray-400">Aucune tache ce jour</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {selectedTasks.map((task) => (
+                <div key={task.id} className={`rounded-xl border p-3 ${task.priority === "urgent" ? "border-l-4 border-l-red-500 border-gray-100" : "border-gray-100"}`}>
+                  <div className="flex items-start gap-2 mb-2">
+                    <div className={`w-2 h-2 rounded-full mt-0.5 flex-shrink-0 ${PRIORITY_CONFIG[task.priority].dot}`} />
+                    <p className="text-xs font-medium text-gray-800 leading-snug">{task.title}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <PriorityBadge priority={task.priority} />
+                    <StatusBadge status={task.status} />
+                  </div>
+                  <div className="flex items-center gap-1 mt-2 text-gray-500">
+                    <User size={10} /><span className="text-xs">{task.assignee}</span>
+                  </div>
+                </div>
               ))}
-            </select>
+            </div>
+          )}
+        </div>
+        <div className="rounded-2xl border border-gray-100 bg-white p-4 mt-4">
+          <h4 className="text-xs font-semibold text-gray-600 mb-3">Ce mois</h4>
+          <div className="grid grid-cols-2 gap-2">
+            {STATS.map((s) => (
+              <div key={s.l} className="bg-gray-50 rounded-xl p-2.5 text-center">
+                <div className={`text-lg font-bold ${s.c}`}>{s.v}</div>
+                <div className="text-[10px] text-gray-500">{s.l}</div>
+              </div>
+            ))}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-          {/* Bouton nouvelle tâche */}
-          <div className="ml-auto">
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-xl text-xs font-medium transition-colors shadow-sm">
-              <Plus size={14} />
-              Nouvelle tâche
+export default function TachesPage() {
+  const [tab, setTab] = useState<"kanban" | "liste" | "calendrier">("kanban");
+  return (
+    <div className="flex flex-col h-full">
+      <Topbar breadcrumb={["Collaboration", "Taches"]} />
+      <div className="flex-1 overflow-auto p-6 bg-[#F4F6F4]">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Gestionnaire de taches</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Suivi operationnel agricole - Juillet 2025</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 px-3 py-2 text-xs bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors">
+              <Filter size={13} />Filtres
+            </button>
+            <button className="flex items-center gap-2 px-3 py-2 text-xs bg-[#2E7D32] text-white rounded-xl hover:bg-[#1B5E20] transition-colors font-medium">
+              <Plus size={13} />Nouvelle tache
             </button>
           </div>
         </div>
-
-        {/* Kanban */}
-        <div className="flex gap-4 items-start overflow-x-auto pb-4">
-          {/* À faire */}
-          <ColonneKanban titre="À faire" count={12} headerColor="bg-blue-600">
-            {todo.map((t) => (
-              <CarteTodo key={t.id} t={t} />
-            ))}
-          </ColonneKanban>
-
-          {/* En cours */}
-          <ColonneKanban titre="En cours" count={8} headerColor="bg-amber-500">
-            {encours.map((t) => (
-              <CarteEnCours key={t.id} t={t} />
-            ))}
-          </ColonneKanban>
-
-          {/* En révision */}
-          <ColonneKanban titre="En révision" count={4} headerColor="bg-purple-600">
-            {revision.map((t) => (
-              <CarteRevision key={t.id} t={t} />
-            ))}
-          </ColonneKanban>
-
-          {/* Terminé */}
-          <ColonneKanban titre="Terminé" count={28} headerColor="bg-[#2E7D32]">
-            <div className="flex flex-col items-center justify-center flex-1 py-10 gap-4 text-center">
-              <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <CheckCircle2 size={28} className="text-[#2E7D32]" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">28</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  tâches terminées ce mois
-                </p>
-              </div>
-              <button className="flex items-center gap-2 px-4 py-2 text-xs font-medium border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                <History size={13} />
-                Voir l&apos;historique
-              </button>
-            </div>
-          </ColonneKanban>
+        <div className="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1 mb-6 w-fit">
+          {([{ k: "kanban" as const, l: "Kanban" }, { k: "liste" as const, l: "Liste" }, { k: "calendrier" as const, l: "Calendrier" }]).map((t) => (
+            <button key={t.k} onClick={() => setTab(t.k)}
+              className={`px-5 py-2 rounded-xl text-sm font-medium transition-all ${tab === t.k ? "bg-[#2E7D32] text-white shadow-sm" : "text-gray-600 hover:bg-gray-50"}`}>
+              {t.l}
+            </button>
+          ))}
         </div>
+        {tab === "kanban" && <KanbanView />}
+        {tab === "liste" && <ListView />}
+        {tab === "calendrier" && <CalendarView />}
       </div>
     </div>
   );

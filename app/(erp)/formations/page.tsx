@@ -2,390 +2,496 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
-import {
-  BookOpen,
-  Users,
-  Clock,
-  Wallet,
-  Award,
-  AlertCircle,
-  CheckCircle,
-  Calendar,
-  ChevronRight,
-} from "lucide-react";
-
-/* ─── DATA ─────────────────────────────────────────────────── */
 
 const formations = [
-  { titre: "Bonnes pratiques Rainforest Alliance", type: "Terrain",     organisme: "ANADER CI",      dates: "10-14 Mar", duree: "5j / 40h", participants: "32 agents",   cout: "320 000 XOF",  statut: "Terminée",   eval: "4,2 / 5" },
-  { titre: "Sécurité & EPI",                       type: "Sécurité",    organisme: "Interne",         dates: "08 Avr",    duree: "1j / 8h",  participants: "287 emp.",    cout: "45 000 XOF",   statut: "Terminée",   eval: "4,5 / 5" },
-  { titre: "Gestion post-récolte cacao",           type: "Technique",   organisme: "CNRA",            dates: "22-23 Juil",duree: "2j / 16h", participants: "15 agents",   cout: "150 000 XOF",  statut: "Planifiée",  eval: "—" },
-  { titre: "Conduite tracteur (permis)",           type: "Matériels",   organisme: "Auto-école Pro",  dates: "01-30 Juin",duree: "30j",       participants: "4 agents",    cout: "280 000 XOF",  statut: "Terminée",   eval: "Permis ✅" },
-  { titre: "Comptabilité SYSCOHADA révisé",        type: "Finance",     organisme: "OHADA CI",        dates: "15-19 Avr", duree: "5j",        participants: "3 agents",    cout: "375 000 XOF",  statut: "Terminée",   eval: "4,0 / 5" },
-  { titre: "Pilotage drone DJI Agras",             type: "Technique",   organisme: "DJI Africa",      dates: "02-04 Avr", duree: "3j",        participants: "2 pilotes",   cout: "180 000 XOF",  statut: "Terminée",   eval: "Brevet ✅" },
-  { titre: "Leadership & Management",              type: "Management",  organisme: "HEC Abidjan",     dates: "01-05 Sep", duree: "5j",        participants: "5 managers",  cout: "750 000 XOF",  statut: "Planifiée",  eval: "—" },
-  { titre: "Gestion financière PME",               type: "Finance",     organisme: "CGECI",           dates: "20-21 Sep", duree: "2j",        participants: "8 cadres",    cout: "320 000 XOF",  statut: "Planifiée",  eval: "—" },
-  { titre: "Normes ISO 22000",                     type: "Qualité",     organisme: "Bureau Véritas",  dates: "10 Oct",    duree: "1j",        participants: "12 agents",   cout: "144 000 XOF",  statut: "Planifiée",  eval: "—" },
-  { titre: "Premiers secours PSC1",                type: "Sécurité",    organisme: "CRI",             dates: "Nov TBD",   duree: "1j",        participants: "20 agents",   cout: "200 000 XOF",  statut: "À planifier",eval: "—" },
+  { id: "FORM-001", intitule: "Sécurité chimique & EPI", type: "Obligatoire", formateur: "ANADER", date: "05/07/2025", duree: "8h", participants: "15/15", cout: 240000, statut: "Terminée" },
+  { id: "FORM-002", intitule: "Bonnes pratiques agricoles RA", type: "Certification", formateur: "ANADER", date: "12/07/2025", duree: "16h", participants: "14/15", cout: 480000, statut: "En cours" },
+  { id: "FORM-003", intitule: "Pilotage drone DJI Agras T30", type: "Technique", formateur: "DJI CI", date: "18/07/2025", duree: "8h", participants: "4/4", cout: 360000, statut: "Planifiée" },
+  { id: "FORM-004", intitule: "Gestion financière coopérative", type: "Gestion", formateur: "MICROCOOP", date: "25/07/2025", duree: "8h", participants: "8/8", cout: 320000, statut: "Planifiée" },
+  { id: "FORM-005", intitule: "Traçabilité Hyperledger", type: "Digital", formateur: "AGRIFRIK IT", date: "01/08/2025", duree: "4h", participants: "6/6", cout: 120000, statut: "Planifiée" },
+  { id: "FORM-006", intitule: "Premiers secours (SST)", type: "Obligatoire", formateur: "Croix-Rouge CI", date: "08/08/2025", duree: "8h", participants: "15/15", cout: 450000, statut: "Planifiée" },
+  { id: "FORM-007", intitule: "Gestion des sols & fertilisation", type: "Agronomie", formateur: "CNRA", date: "15/08/2025", duree: "8h", participants: "8/8", cout: 280000, statut: "Planifiée" },
+  { id: "FORM-008", intitule: "Leadership & management", type: "Management", formateur: "Consultant", date: "05/09/2025", duree: "16h", participants: "5/5", cout: 750000, statut: "Planifiée" },
+  { id: "FORM-009", intitule: "Récolte & post-récolte cacao", type: "Technique", formateur: "CNRA", date: "01/10/2025", duree: "8h", participants: "12/15", cout: 240000, statut: "Planifiée" },
+  { id: "FORM-010", intitule: "Anglais commercial (export)", type: "Langue", formateur: "Alliance Française", date: "01/10/2025", duree: "32h", participants: "3/5", cout: 480000, statut: "Planifiée" },
+  { id: "FORM-011", intitule: "Réglementation phytosanitaire", type: "Régl.", formateur: "MINADER", date: "15/10/2025", duree: "8h", participants: "6/8", cout: 160000, statut: "Planifiée" },
+  { id: "FORM-012", intitule: "Audit interne RA", type: "Certification", formateur: "Rainforest Alliance", date: "01/11/2025", duree: "8h", participants: "4/4", cout: 420000, statut: "Planifiée" },
 ];
 
-const typeColor: Record<string, string> = {
-  Terrain:    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  Sécurité:   "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  Technique:  "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  Matériels:  "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  Finance:    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-  Management: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
-  Qualité:    "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400",
-};
-
-const statutBadge: Record<string, string> = {
-  Terminée:    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  Planifiée:   "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  "À planifier": "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+const typeColors: Record<string, string> = {
+  "Obligatoire": "bg-red-100 text-red-700",
+  "Certification": "bg-purple-100 text-purple-700",
+  "Technique": "bg-blue-100 text-blue-700",
+  "Gestion": "bg-yellow-100 text-yellow-700",
+  "Digital": "bg-cyan-100 text-cyan-700",
+  "Agronomie": "bg-green-100 text-green-700",
+  "Management": "bg-orange-100 text-orange-700",
+  "Langue": "bg-pink-100 text-pink-700",
+  "Régl.": "bg-gray-100 text-gray-700",
 };
 
 const statutIcon: Record<string, string> = {
-  Terminée: "✅",
-  Planifiée: "📅",
-  "À planifier": "⏳",
-};
-
-/* ─── MATRICE COMPÉTENCES ───────────────────────────────────── */
-
-const competences = ["Cacao", "Anacarde", "Matériels", "Qualité", "EPI", "Comptabilité", "Informatique", "Langues"];
-
-type Niveau = 3 | 2 | 1 | 0;
-interface Employe {
-  nom: string;
-  niveaux: Niveau[];
-}
-
-const employes: Employe[] = [
-  { nom: "Jean-Baptiste K.",  niveaux: [3, 2, 2, 3, 2, 1, 2, 3] },
-  { nom: "Konan Yao",         niveaux: [3, 3, 1, 3, 3, 1, 1, 1] },
-  { nom: "Ibrahim Sawadogo",  niveaux: [3, 1, 3, 2, 3, 1, 2, 1] },
-  { nom: "Adjoua Messou",     niveaux: [1, 1, 1, 2, 2, 3, 3, 2] },
-  { nom: "Bamba Oumar",       niveaux: [2, 2, 3, 1, 3, 0, 1, 1] },
-  { nom: "Mariam Kouyaté",    niveaux: [1, 0, 1, 2, 2, 2, 3, 3] },
-  { nom: "Kouassi Diomandé",  niveaux: [3, 2, 2, 1, 2, 1, 0, 1] },
-  { nom: "Ali Traoré",        niveaux: [1, 1, 2, 1, 3, 0, 1, 1] },
-];
-
-function NiveauCell({ n }: { n: Niveau }) {
-  if (n === 0) return <span className="text-gray-300 dark:text-gray-600 text-xs">—</span>;
-  const label = ["", "Débutant", "Confirmé", "Expert"][n];
-  const colors = ["", "text-amber-400", "text-blue-500", "text-green-500"];
-  return (
-    <span title={label} className={`text-sm ${colors[n]}`}>
-      {"⭐".repeat(n)}
-    </span>
-  );
-}
-
-// Identifie les gaps : niveau 0 sur compétences critiques
-function isGap(n: Niveau, col: number): boolean {
-  // Comptabilité (5), Informatique (6) requis pour cadres → gap si 0
-  return n === 0;
-}
-
-/* ─── CERTIFICATIONS ────────────────────────────────────────── */
-
-const certifications = [
-  { employe: "Ibrahim Sawadogo", cert: "Permis phyto A",              organisme: "MINADER",    obtenu: "15/05/2025", validite: "14/05/2027", statut: "Valide" },
-  { employe: "Bamba Oumar",      cert: "Permis conduire tracteur",    organisme: "ANTT",        obtenu: "30/06/2025", validite: "Permanent",  statut: "Valide" },
-  { employe: "Ibrahim Sawadogo", cert: "Brevet pilote drone DJI",     organisme: "DJI Africa",  obtenu: "04/04/2025", validite: "03/04/2027", statut: "Valide" },
-  { employe: "Adjoua Messou",    cert: "Certificat SYSCOHADA",        organisme: "OHADA CI",    obtenu: "19/04/2025", validite: "18/04/2028", statut: "Valide" },
-  { employe: "Mariam Kouyaté",   cert: "Certification RH UEMOA",     organisme: "CGRHCI",      obtenu: "15/03/2024", validite: "14/03/2026", statut: "Valide" },
-  { employe: "Konan Yao",        cert: "Certificat RA producteur",    organisme: "RA",          obtenu: "01/03/2025", validite: "28/02/2026", statut: "Valide" },
-  { employe: "Jean-Baptiste K.", cert: "Leadership HEC",              organisme: "HEC Abidjan", obtenu: "—",          validite: "—",          statut: "En cours" },
-  { employe: "Kouassi Diomandé", cert: "ISO 22000 auditeur interne", organisme: "Bureau Véritas", obtenu: "—",       validite: "—",          statut: "Planifiée" },
-];
-
-const certStatutBadge: Record<string, string> = {
-  Valide:    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  "En cours": "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  Planifiée: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
-};
-
-const certStatutIcon: Record<string, string> = {
-  Valide: "✅",
+  "Terminée": "✅",
   "En cours": "🔵",
-  Planifiée: "📅",
+  "Planifiée": "📅",
 };
 
-/* ─── COMPOSANT PRINCIPAL ───────────────────────────────────── */
+const statutColors: Record<string, string> = {
+  "Terminée": "bg-green-100 text-green-700",
+  "En cours": "bg-blue-100 text-blue-700",
+  "Planifiée": "bg-gray-100 text-gray-600",
+};
 
-type Tab = "formations" | "calendrier" | "competences" | "certifications";
+const calJuillet = [
+  { jour: 5, label: "Sécurité chimique", type: "Obligatoire" },
+  { jour: 12, label: "BPA RA J1", type: "Certification" },
+  { jour: 13, label: "BPA RA J2", type: "Certification" },
+  { jour: 18, label: "Drone DJI", type: "Technique" },
+  { jour: 25, label: "Gestion financière", type: "Gestion" },
+];
+
+const calAout = [
+  { jour: 1, label: "Traçabilité", type: "Digital" },
+  { jour: 8, label: "Premiers secours", type: "Obligatoire" },
+  { jour: 15, label: "Gestion sols", type: "Agronomie" },
+];
+
+const typeCalColors: Record<string, string> = {
+  "Obligatoire": "bg-red-50 text-red-700 border-red-200",
+  "Certification": "bg-purple-50 text-purple-700 border-purple-200",
+  "Technique": "bg-blue-50 text-blue-700 border-blue-200",
+  "Gestion": "bg-yellow-50 text-yellow-700 border-yellow-200",
+  "Digital": "bg-cyan-50 text-cyan-700 border-cyan-200",
+  "Agronomie": "bg-green-50 text-green-700 border-green-200",
+  "Management": "bg-orange-50 text-orange-700 border-orange-200",
+  "Langue": "bg-pink-50 text-pink-700 border-pink-200",
+};
+
+function buildWeeks(year: number, month: number, events: { jour: number; label: string; type: string }[]) {
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const offset = (firstDay + 6) % 7;
+  type Cell = { day: number; events: typeof events } | null;
+  const cells: Cell[] = [];
+  for (let i = 0; i < offset; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push({ day: d, events: events.filter(e => e.jour === d) });
+  }
+  const weeks: Cell[][] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  return weeks;
+}
+
+const employes = ["Ibrahim S.", "Konan Y.", "Adjoua M.", "Bamba O.", "Fanta K.", "Aïcha D.", "Sékou B.", "Moussa T."];
+const competences = ["Agronomie cacao", "Certif RA", "Conduite tracteur", "Pilotage drone", "Traçabilité num.", "Phytosanitaire", "Premiers secours", "Anglais", "Comptabilité", "Management"];
+
+const matrice: number[][] = [
+  [3, 3, 2, 1, 2, 3, 2, 1, 1, 2],
+  [3, 2, 3, 0, 1, 2, 2, 0, 0, 1],
+  [2, 3, 0, 0, 3, 1, 2, 2, 3, 1],
+  [2, 2, 3, 2, 1, 3, 1, 0, 0, 0],
+  [2, 1, 2, 0, 2, 2, 2, 0, 2, 0],
+  [1, 2, 0, 0, 3, 1, 3, 3, 2, 1],
+  [3, 2, 3, 3, 1, 2, 1, 0, 0, 0],
+  [2, 1, 2, 1, 2, 2, 2, 1, 1, 3],
+];
+
+const niveauLabel = ["❌", "⭐", "⭐⭐", "⭐⭐⭐"];
+const niveauBg = [
+  "bg-red-50 text-red-500",
+  "bg-orange-50 text-orange-600",
+  "bg-blue-50 text-blue-600",
+  "bg-green-50 text-green-700",
+];
+
+const radarAxes = ["Agronomie", "Certif RA", "Drone", "Traçabilité", "Phyto", "Management"];
+const radarValues = [1.0, 1.0, 0.33, 0.67, 1.0, 0.67];
+
+function polarPoint(cx: number, cy: number, r: number, angleDeg: number) {
+  const rad = (angleDeg - 90) * (Math.PI / 180);
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function radarPolygon(cx: number, cy: number, maxR: number, values: number[]) {
+  return values.map((v, i) => {
+    const pt = polarPoint(cx, cy, v * maxR, (360 / values.length) * i);
+    return `${pt.x},${pt.y}`;
+  }).join(" ");
+}
 
 export default function FormationsPage() {
-  const [tab, setTab] = useState<Tab>("formations");
+  const [tab, setTab] = useState<"formations" | "calendrier" | "competences">("formations");
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "formations",    label: "Formations" },
-    { key: "calendrier",    label: "Calendrier" },
-    { key: "competences",   label: "Compétences" },
-    { key: "certifications",label: "Certifications" },
-  ];
+  const weeksJuillet = buildWeeks(2025, 6, calJuillet);
+  const weeksAout = buildWeeks(2025, 7, calAout);
+
+  const cx = 120, cy = 120, maxR = 88;
+  const n = radarAxes.length;
 
   return (
-    <div>
-      <Topbar title="Formations & Compétences" breadcrumb={["RH", "Formations"]} />
-
-      <div className="p-6 space-y-6">
-
-        {/* ── KPI ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {[
-            { label: "Formations 2025",       val: "12",          icon: BookOpen, color: "#2E7D32", bg: "#E8F5E9" },
-            { label: "Heures total",           val: "860 h",       icon: Clock,    color: "#1565C0", bg: "#E3F2FD" },
-            { label: "Employés formés",        val: "145",         icon: Users,    color: "#E65100", bg: "#FFF3E0" },
-            { label: "Budget consommé",        val: "1,2 / 1,5 M XOF", icon: Wallet, color: "#6A1B9A", bg: "#F3E5F5", progress: 80 },
-            { label: "Certifications obtenues",val: "38",          icon: Award,    color: "#00695C", bg: "#E0F2F1" },
-          ].map((k) => {
-            const Icon = k.icon;
-            return (
-              <div key={k.label} className="rounded-xl p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="rounded-lg p-2 shrink-0" style={{ background: k.bg }}>
-                    <Icon size={16} style={{ color: k.color }} />
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 leading-tight">{k.label}</span>
-                </div>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">{k.val}</p>
-                {"progress" in k && (
-                  <div className="mt-2">
-                    <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-purple-500 rounded-full" style={{ width: `${k.progress}%` }} />
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1">{k.progress}% utilisé</p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+    <div className="flex flex-col min-h-screen bg-[#F8FBF8]">
+      <Topbar />
+      <div className="flex-1 p-6 space-y-6">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <span>RH</span>
+          <span>/</span>
+          <span className="text-[#2E7D32] font-medium">Formations</span>
         </div>
 
-        {/* ── ONGLETS ── */}
-        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700">
-          {tabs.map((t) => (
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Gestion des Formations</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Plan de formation 2025 — Suivi, calendrier et compétences</p>
+          </div>
+          <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2">
+            + Nouvelle formation
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 bg-white rounded-xl p-1 border border-gray-100 w-fit">
+          {(["formations", "calendrier", "competences"] as const).map(t => (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors ${
-                tab === t.key
-                  ? "border-b-2 border-green-700 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20"
-                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                tab === t ? "bg-[#2E7D32] text-white" : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              {t.label}
+              {t === "formations" ? "Formations" : t === "calendrier" ? "Calendrier" : "Compétences"}
             </button>
           ))}
         </div>
 
-        {/* ══════════════════════════════════════════════════════
-            ONGLET : FORMATIONS
-        ══════════════════════════════════════════════════════ */}
+        {/* ======== ONGLET FORMATIONS ======== */}
         {tab === "formations" && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-wrap gap-2">
-              <h2 className="font-semibold text-gray-900 dark:text-white text-base flex items-center gap-2">
-                <BookOpen size={18} className="text-green-700" />
-                Toutes les formations 2025
-              </h2>
-              <button className="inline-flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
-                + Nouvelle formation
-              </button>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="rounded-2xl border border-gray-100 bg-white p-5">
+                <p className="text-xs text-gray-500 font-medium">Formations planifiées 2025</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">12</p>
+                <p className="text-xs text-gray-400 mt-1">1 terminée · 1 en cours · 10 planifiées</p>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-white p-5">
+                <p className="text-xs text-gray-500 font-medium">Heures dispensées YTD</p>
+                <p className="text-3xl font-bold text-[#2E7D32] mt-2">62h</p>
+                <p className="text-xs text-gray-400 mt-1">sur 136h prévues (45,6%)</p>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-white p-5">
+                <p className="text-xs text-gray-500 font-medium">Taux de complétion</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">87%</p>
+                <div className="mt-2 h-1.5 bg-gray-100 rounded-full">
+                  <div className="h-1.5 bg-[#4CAF50] rounded-full" style={{ width: "87%" }} />
+                </div>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-white p-5">
+                <p className="text-xs text-gray-500 font-medium">Budget formation</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">4,8 M</p>
+                <p className="text-xs text-gray-400 mt-1">Utilisé : 2,1 M XOF (44%)</p>
+                <div className="mt-2 h-1.5 bg-gray-100 rounded-full">
+                  <div className="h-1.5 bg-[#E65100] rounded-full" style={{ width: "44%" }} />
+                </div>
+              </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[900px]">
-                <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">
-                    {["Formation", "Type", "Organisme", "Dates", "Durée", "Participants", "Coût", "Statut", "Évaluation"].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {formations.map((f, i) => (
-                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white max-w-[220px]">{f.titre}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${typeColor[f.type] ?? "bg-gray-100 text-gray-600"}`}>
-                          {f.type}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">{f.organisme}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">{f.dates}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">{f.duree}</td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-200 whitespace-nowrap">{f.participants}</td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-200 whitespace-nowrap">{f.cout}</td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${statutBadge[f.statut] ?? "bg-gray-100 text-gray-600"}`}>
-                          {statutIcon[f.statut]} {f.statut}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-200 whitespace-nowrap">{f.eval}</td>
+
+            <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+              <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                <h2 className="font-semibold text-gray-900">Formations 2025</h2>
+                <span className="text-xs text-gray-400">12 formations · 136h · 4 300 000 XOF</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#F8FBF8] text-xs text-gray-500 uppercase tracking-wide">
+                      <th className="text-left p-3 font-medium">#</th>
+                      <th className="text-left p-3 font-medium">Intitulé</th>
+                      <th className="text-left p-3 font-medium">Type</th>
+                      <th className="text-left p-3 font-medium">Formateur</th>
+                      <th className="text-left p-3 font-medium">Date</th>
+                      <th className="text-left p-3 font-medium">Durée</th>
+                      <th className="text-left p-3 font-medium">Participants</th>
+                      <th className="text-right p-3 font-medium">Coût (XOF)</th>
+                      <th className="text-left p-3 font-medium">Statut</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {formations.map(f => (
+                      <tr key={f.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="p-3 text-xs text-gray-400 font-mono">{f.id}</td>
+                        <td className="p-3 font-medium text-gray-900">{f.intitule}</td>
+                        <td className="p-3">
+                          <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${typeColors[f.type] || "bg-gray-100 text-gray-600"}`}>
+                            {f.type}
+                          </span>
+                        </td>
+                        <td className="p-3 text-gray-600 text-xs">{f.formateur}</td>
+                        <td className="p-3 text-gray-600 text-xs whitespace-nowrap">{f.date}</td>
+                        <td className="p-3 text-gray-700 font-medium text-xs">{f.duree}</td>
+                        <td className="p-3 text-gray-700 text-xs">{f.participants}</td>
+                        <td className="p-3 text-right text-gray-900 font-medium text-xs">{f.cout.toLocaleString("fr-FR")}</td>
+                        <td className="p-3">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statutColors[f.statut]}`}>
+                            {statutIcon[f.statut]} {f.statut}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-[#F8FBF8] font-semibold text-sm">
+                      <td colSpan={5} className="p-3 text-gray-700">TOTAL 2025</td>
+                      <td className="p-3 text-[#2E7D32]">136h</td>
+                      <td className="p-3" />
+                      <td className="p-3 text-right text-gray-900">4 300 000</td>
+                      <td className="p-3" />
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════
-            ONGLET : CALENDRIER
-        ══════════════════════════════════════════════════════ */}
+        {/* ======== ONGLET CALENDRIER ======== */}
         {tab === "calendrier" && (
-          <div className="space-y-4">
-            {["Janvier–Mars", "Avril–Juin", "Juillet–Septembre", "Octobre–Décembre"].map((trim, ti) => {
-              const slice = formations.slice(ti * 2, ti * 2 + 3);
-              return (
-                <div key={trim} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-                  <div className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-                    <h3 className="font-semibold text-gray-700 dark:text-gray-200 text-sm flex items-center gap-2">
-                      <Calendar size={15} className="text-green-700" />
-                      {trim} 2025
-                    </h3>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-4">
+                {/* Juillet */}
+                <div className="rounded-2xl border border-gray-100 bg-white p-5">
+                  <h3 className="font-semibold text-gray-800 mb-4">Juillet 2025</h3>
+                  <div className="grid grid-cols-7 gap-1 text-xs text-center mb-1">
+                    {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map(d => (
+                      <div key={d} className="text-gray-400 font-medium py-1">{d}</div>
+                    ))}
                   </div>
-                  <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {slice.map((f, i) => (
-                      <div key={i} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                        <div className="w-20 shrink-0 text-center">
-                          <p className="text-xs font-bold text-green-700 dark:text-green-400">{f.dates}</p>
-                          <p className="text-xs text-gray-400">{f.duree}</p>
-                        </div>
-                        <ChevronRight size={14} className="text-gray-300 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 dark:text-white text-sm truncate">{f.titre}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{f.organisme} · {f.participants}</p>
-                        </div>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${typeColor[f.type] ?? ""}`}>{f.type}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${statutBadge[f.statut] ?? ""}`}>
-                          {statutIcon[f.statut]} {f.statut}
-                        </span>
+                  <div className="space-y-1">
+                    {weeksJuillet.map((week, wi) => (
+                      <div key={wi} className="grid grid-cols-7 gap-1">
+                        {week.map((cell, ci) => (
+                          <div key={ci} className={`min-h-[56px] rounded-lg p-1 text-xs ${cell ? "bg-gray-50" : ""}`}>
+                            {cell && (
+                              <>
+                                <span className={`block text-right font-medium ${cell.events.length > 0 ? "text-[#2E7D32]" : "text-gray-400"}`}>
+                                  {cell.day}
+                                </span>
+                                {cell.events.map((ev, ei) => (
+                                  <div key={ei} className={`mt-0.5 px-1 py-0.5 rounded text-[10px] font-medium border truncate ${typeCalColors[ev.type] || "bg-gray-100 text-gray-600 border-gray-200"}`}>
+                                    {ev.label}
+                                  </div>
+                                ))}
+                              </>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
                 </div>
-              );
-            })}
+
+                {/* Août */}
+                <div className="rounded-2xl border border-gray-100 bg-white p-5">
+                  <h3 className="font-semibold text-gray-800 mb-4">Août 2025</h3>
+                  <div className="grid grid-cols-7 gap-1 text-xs text-center mb-1">
+                    {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map(d => (
+                      <div key={d} className="text-gray-400 font-medium py-1">{d}</div>
+                    ))}
+                  </div>
+                  <div className="space-y-1">
+                    {weeksAout.map((week, wi) => (
+                      <div key={wi} className="grid grid-cols-7 gap-1">
+                        {week.map((cell, ci) => (
+                          <div key={ci} className={`min-h-[56px] rounded-lg p-1 text-xs ${cell ? "bg-gray-50" : ""}`}>
+                            {cell && (
+                              <>
+                                <span className={`block text-right font-medium ${cell.events.length > 0 ? "text-[#2E7D32]" : "text-gray-400"}`}>
+                                  {cell.day}
+                                </span>
+                                {cell.events.map((ev, ei) => (
+                                  <div key={ei} className={`mt-0.5 px-1 py-0.5 rounded text-[10px] font-medium border truncate ${typeCalColors[ev.type] || "bg-gray-100 text-gray-600 border-gray-200"}`}>
+                                    {ev.label}
+                                  </div>
+                                ))}
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Légende */}
+                <div className="rounded-2xl border border-gray-100 bg-white p-4 flex flex-wrap gap-2">
+                  {Object.entries(typeCalColors).map(([type, cls]) => (
+                    <span key={type} className={`px-2 py-1 rounded-lg text-xs font-medium border ${cls}`}>{type}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Prochaine formation */}
+              <div>
+                <div className="rounded-2xl border-2 border-[#2E7D32] bg-white p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs font-bold text-white bg-[#2E7D32] px-2 py-0.5 rounded-lg">FORM-002</span>
+                    <span className="text-xs text-gray-500">Prochaine formation</span>
+                  </div>
+                  <h3 className="font-bold text-gray-900 text-base leading-snug">Bonnes pratiques agricoles RA</h3>
+
+                  <div className="mt-4 space-y-2 text-sm text-gray-600">
+                    <div className="flex items-start gap-2">
+                      <span>📅</span>
+                      <span>12/07/2025 → 13/07/2025</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span>⏱</span>
+                      <span>16h de formation</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span>👥</span>
+                      <span>14 participants confirmés</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-gray-100 space-y-2 text-xs text-gray-600">
+                    <p><span className="font-semibold text-gray-800">Formateur :</span> ANADER — Konan Arsène, technicien sénior</p>
+                    <p><span className="font-semibold text-gray-800">Lieu :</span> Salle de formation — Site Soubré Nord</p>
+                    <p><span className="font-semibold text-gray-800">Support :</span> Manuel BPA RA v4.2</p>
+                    <p><span className="font-semibold text-gray-800">Certificats :</span> RA BPA 2025</p>
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-gray-100 space-y-1">
+                    <p className="text-xs text-green-600 font-semibold">✅ 14/15 participants confirmés</p>
+                    <p className="text-xs text-orange-600">⚠ 1 absence : Bamba O. (maintenance MAT-001)</p>
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <span>Taux de remplissage</span>
+                      <span>93%</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full">
+                      <div className="h-2 bg-[#4CAF50] rounded-full" style={{ width: "93%" }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════
-            ONGLET : COMPÉTENCES
-        ══════════════════════════════════════════════════════ */}
+        {/* ======== ONGLET COMPÉTENCES ======== */}
         {tab === "competences" && (
-          <div className="space-y-4">
-            {/* Légende */}
-            <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-5 py-3">
-              <span className="font-semibold text-gray-700 dark:text-gray-300">Niveaux :</span>
-              <span className="text-green-500">⭐⭐⭐ Expert</span>
-              <span className="text-blue-500">⭐⭐ Confirmé</span>
-              <span className="text-amber-400">⭐ Débutant</span>
-              <span className="text-gray-300 dark:text-gray-600">— Non évalué</span>
-              <span className="ml-auto px-2 py-0.5 rounded bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 font-medium">
-                Fond rouge = gap identifié
-              </span>
-            </div>
-
-            {/* Matrice */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">
-                      <th className="px-4 py-3 text-left sticky left-0 bg-gray-50 dark:bg-gray-700/50 z-10 min-w-[160px]">Employé</th>
-                      {competences.map((c) => (
-                        <th key={c} className="px-3 py-3 text-center whitespace-nowrap">{c}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {employes.map((e, i) => (
-                      <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white sticky left-0 bg-white dark:bg-gray-800 z-10 whitespace-nowrap">{e.nom}</td>
-                        {e.niveaux.map((n, ci) => (
-                          <td
-                            key={ci}
-                            className={`px-3 py-3 text-center ${
-                              isGap(n, ci)
-                                ? "bg-red-50 dark:bg-red-900/20"
-                                : ""
-                            }`}
-                          >
-                            <NiveauCell n={n} />
-                          </td>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              {/* Matrice */}
+              <div className="xl:col-span-2 rounded-2xl border border-gray-100 bg-white overflow-hidden">
+                <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                  <h2 className="font-semibold text-gray-900">Matrice de compétences</h2>
+                  <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2">
+                    Exporter matrice
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="text-xs">
+                    <thead>
+                      <tr className="bg-[#F8FBF8]">
+                        <th className="text-left p-3 font-medium text-gray-500 min-w-[110px] sticky left-0 bg-[#F8FBF8]">Employé</th>
+                        {competences.map(c => (
+                          <th key={c} className="p-2 font-medium text-gray-500 text-center min-w-[90px] whitespace-nowrap">{c}</th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {employes.map((emp, ei) => (
+                        <tr key={emp} className="hover:bg-gray-50">
+                          <td className="p-3 font-semibold text-gray-800 sticky left-0 bg-white">{emp}</td>
+                          {matrice[ei].map((niveau, ci) => (
+                            <td key={ci} className="p-2 text-center">
+                              <span className={`inline-block px-1.5 py-0.5 rounded-lg text-xs font-medium ${niveauBg[niveau]}`}>
+                                {niveauLabel[niveau]}
+                              </span>
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Légende */}
+                <div className="p-4 border-t border-gray-100 flex flex-wrap items-center gap-3">
+                  <span className="text-xs text-gray-500 font-medium">Légende :</span>
+                  <span className="text-xs bg-red-50 text-red-500 px-2 py-1 rounded-lg">❌ Non formé</span>
+                  <span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-lg">⭐ Débutant</span>
+                  <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg">⭐⭐ Compétent</span>
+                  <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-lg">⭐⭐⭐ Expert</span>
+                </div>
               </div>
-            </div>
 
-            {/* Recommandations */}
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl px-5 py-4">
-              <p className="flex items-center gap-2 text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2">
-                <AlertCircle size={16} /> Gaps prioritaires identifiés
-              </p>
-              <ul className="text-xs text-amber-700 dark:text-amber-400 space-y-1 list-disc list-inside">
-                <li>Mariam Kouyaté — Anacarde non évaluée (gap)</li>
-                <li>Bamba Oumar — Comptabilité non évaluée (gap)</li>
-                <li>Kouassi Diomandé — Informatique non évalué (gap)</li>
-                <li>Ali Traoré — Comptabilité non évaluée (gap)</li>
-              </ul>
-            </div>
-          </div>
-        )}
+              {/* Radar Ibrahim */}
+              <div className="rounded-2xl border border-gray-100 bg-white p-5">
+                <h3 className="font-semibold text-gray-900 mb-0.5">Radar des compétences</h3>
+                <p className="text-xs text-gray-400 mb-4">Ibrahim Sawadogo</p>
 
-        {/* ══════════════════════════════════════════════════════
-            ONGLET : CERTIFICATIONS
-        ══════════════════════════════════════════════════════ */}
-        {tab === "certifications" && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-wrap gap-2">
-              <h2 className="font-semibold text-gray-900 dark:text-white text-base flex items-center gap-2">
-                <Award size={18} className="text-green-700" />
-                Certifications individuelles
-              </h2>
-              <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                <span className="flex items-center gap-1"><CheckCircle size={13} className="text-green-600" /> {certifications.filter(c => c.statut === "Valide").length} valides</span>
-                <span className="flex items-center gap-1"><span className="text-blue-500">🔵</span> {certifications.filter(c => c.statut === "En cours").length} en cours</span>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[800px]">
-                <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">
-                    {["Employé", "Certification", "Organisme", "Obtenu le", "Valide jusqu'au", "Statut"].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left">{h}</th>
+                <div className="flex justify-center">
+                  <svg width="240" height="240" viewBox="0 0 240 240">
+                    {/* Grilles */}
+                    {[0.25, 0.5, 0.75, 1.0].map((scale, si) => (
+                      <polygon
+                        key={si}
+                        points={radarPolygon(cx, cy, maxR * scale, Array(n).fill(1))}
+                        fill="none"
+                        stroke="#e5e7eb"
+                        strokeWidth={si === 3 ? 1.5 : 0.8}
+                      />
                     ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {certifications.map((c, i) => (
-                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap">{c.employe}</td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-200">{c.cert}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">{c.organisme}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">{c.obtenu}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">{c.validite}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${certStatutBadge[c.statut] ?? ""}`}>
-                          {certStatutIcon[c.statut]} {c.statut}
-                        </span>
-                      </td>
-                    </tr>
+                    {/* Axes */}
+                    {radarAxes.map((_, i) => {
+                      const pt = polarPoint(cx, cy, maxR, (360 / n) * i);
+                      return <line key={i} x1={cx} y1={cy} x2={pt.x} y2={pt.y} stroke="#e5e7eb" strokeWidth={0.8} />;
+                    })}
+                    {/* Polygone données */}
+                    <polygon
+                      points={radarPolygon(cx, cy, maxR, radarValues)}
+                      fill="#2E7D32"
+                      fillOpacity={0.18}
+                      stroke="#2E7D32"
+                      strokeWidth={2}
+                    />
+                    {/* Points */}
+                    {radarValues.map((v, i) => {
+                      const pt = polarPoint(cx, cy, v * maxR, (360 / n) * i);
+                      return <circle key={i} cx={pt.x} cy={pt.y} r={4} fill="#2E7D32" />;
+                    })}
+                    {/* Labels axes */}
+                    {radarAxes.map((label, i) => {
+                      const pt = polarPoint(cx, cy, maxR + 18, (360 / n) * i);
+                      return (
+                        <text key={i} x={pt.x} y={pt.y} textAnchor="middle" dominantBaseline="middle" fontSize={9} fill="#6b7280" fontWeight={500}>
+                          {label}
+                        </text>
+                      );
+                    })}
+                  </svg>
+                </div>
+
+                <div className="mt-3 space-y-2">
+                  {radarAxes.map((ax, i) => (
+                    <div key={ax} className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600">{ax}</span>
+                      <div className="flex gap-0.5">
+                        {[0.33, 0.67, 1.0].map((threshold, l) => (
+                          <div key={l} className={`w-5 h-1.5 rounded-full ${radarValues[i] >= threshold ? "bg-[#2E7D32]" : "bg-gray-200"}`} />
+                        ))}
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </div>
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

@@ -2,295 +2,394 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
-import {
-  Download,
-  ChevronLeft,
-  ChevronRight,
-  Activity,
-  AlertTriangle,
-  Info,
-  ShieldAlert,
-  Wifi,
-} from "lucide-react";
 
-interface LogEntry {
-  id: number;
-  datetime: string;
-  level: "INFO" | "WARNING" | "ERROR" | "CRITICAL";
-  module: string;
-  user: string;
-  action: string;
-  ip: string;
-  details: string;
+const ACTIVITE = [
+  { time: "11/07 11:42", user: "Ibrahim Sawadogo", icon: "✏️", action: "Modifié lot LOT-2025-048 (fermentation J5)", module: "Transformation", moduleColor: "bg-amber-100 text-amber-700" },
+  { time: "11/07 11:38", user: "Adjoua Messou", icon: "📄", action: "Créé rapport CQ-LOT-047", module: "Qualité", moduleColor: "bg-blue-100 text-blue-700" },
+  { time: "11/07 11:15", user: "Admin", icon: "🔐", action: "Connexion réussie — IP: 41.204.65.22 (Soubré)", module: "Auth", moduleColor: "bg-green-100 text-green-700" },
+  { time: "11/07 10:52", user: "Konan Yao", icon: "📍", action: "Mise à jour cartographie PAR-A1 (GPS)", module: "Cartographie", moduleColor: "bg-purple-100 text-purple-700" },
+  { time: "11/07 10:44", user: "Ibrahim Sawadogo", icon: "➕", action: 'Créé tâche "Traitement Ridomil PAR-B1"', module: "Tâches", moduleColor: "bg-indigo-100 text-indigo-700" },
+  { time: "11/07 10:31", user: "Bamba Oumar", icon: "📦", action: "BC ACH-2025-091 émis (335 120 XOF)", module: "Achats", moduleColor: "bg-orange-100 text-orange-700" },
+  { time: "11/07 10:18", user: "Admin", icon: "👤", action: 'Utilisateur "Fanta Koné" réactivé', module: "Admin", moduleColor: "bg-gray-100 text-gray-700" },
+  { time: "11/07 09:55", user: "Adjoua Messou", icon: "📊", action: 'Rapport "KPI Qualité Juillet" généré', module: "Rapports", moduleColor: "bg-teal-100 text-teal-700" },
+  { time: "11/07 09:42", user: "Ibrahim Sawadogo", icon: "🌡️", action: "Température fermentation J4 enregistrée: 52°C", module: "Transformation", moduleColor: "bg-amber-100 text-amber-700" },
+  { time: "11/07 09:30", user: "Admin", icon: "⚙️", action: "Paramètres SMTP mis à jour", module: "Paramètres", moduleColor: "bg-gray-100 text-gray-700" },
+  { time: "11/07 09:12", user: "Konan Yao", icon: "🌱", action: "Parcelle PAR-C2 : traitement phytosanitaire validé", module: "Cultures", moduleColor: "bg-green-100 text-green-700" },
+  { time: "11/07 08:58", user: "Bamba Oumar", icon: "🚚", action: "Réception livraison LIV-2025-034 (NPK 800 kg)", module: "Stocks", moduleColor: "bg-blue-100 text-blue-700" },
+  { time: "11/07 08:45", user: "Ibrahim Sawadogo", icon: "✏️", action: "Lot LOT-2025-047 : fermentation J3 — pH 5,2", module: "Transformation", moduleColor: "bg-amber-100 text-amber-700" },
+  { time: "11/07 08:30", user: "Admin", icon: "🔐", action: "Connexion réussie — IP: 41.204.65.22 (Soubré)", module: "Auth", moduleColor: "bg-green-100 text-green-700" },
+  { time: "11/07 08:15", user: "Adjoua Messou", icon: "✅", action: "Contrôle qualité LOT-2025-045 : Grade AA validé", module: "Qualité", moduleColor: "bg-blue-100 text-blue-700" },
+  { time: "10/07 17:48", user: "Konan Yao", icon: "📋", action: "Planning cultural Sem 28 soumis pour validation", module: "Planning", moduleColor: "bg-purple-100 text-purple-700" },
+  { time: "10/07 16:30", user: "Bamba Oumar", icon: "💰", action: "Devis DEV-2025-012 envoyé à ECOM Côte d'Ivoire", module: "Commerce", moduleColor: "bg-orange-100 text-orange-700" },
+  { time: "10/07 15:22", user: "Ibrahim Sawadogo", icon: "➕", action: "Nouveau lot LOT-2025-049 créé (12 400 kg cacao)", module: "Transformation", moduleColor: "bg-amber-100 text-amber-700" },
+  { time: "10/07 14:10", user: "Admin", icon: "👥", action: "Formation RH : 8 agents inscrits (Juillet 2025)", module: "RH", moduleColor: "bg-pink-100 text-pink-700" },
+  { time: "10/07 13:05", user: "Adjoua Messou", icon: "🔬", action: "Analyse taux humidité : lot 047 → 7,8% (conforme)", module: "Qualité", moduleColor: "bg-blue-100 text-blue-700" },
+  { time: "10/07 11:58", user: "Konan Yao", icon: "🗺️", action: "Boundary PAR-D1 mis à jour (ajout 2,3 ha)", module: "Cartographie", moduleColor: "bg-purple-100 text-purple-700" },
+  { time: "10/07 10:44", user: "Bamba Oumar", icon: "📦", action: "Sortie stock INT-GAZ : 80 L (machine irrigation)", module: "Stocks", moduleColor: "bg-blue-100 text-blue-700" },
+  { time: "10/07 09:30", user: "Ibrahim Sawadogo", icon: "🌡️", action: "Température fermentation J2 lot 048 : 48°C", module: "Transformation", moduleColor: "bg-amber-100 text-amber-700" },
+  { time: "10/07 08:15", user: "Admin", icon: "📧", action: "Notification alerte météo : pluies prévues 12-13/07", module: "Alertes", moduleColor: "bg-red-100 text-red-700" },
+  { time: "09/07 17:00", user: "Adjoua Messou", icon: "📄", action: "Rapport mensuel Juin 2025 finalisé et archivé", module: "Rapports", moduleColor: "bg-teal-100 text-teal-700" },
+  { time: "09/07 15:30", user: "Konan Yao", icon: "✏️", action: "Fiche parcelle PAR-B3 : densité replantation 1 100 p/ha", module: "Cultures", moduleColor: "bg-green-100 text-green-700" },
+  { time: "09/07 14:00", user: "Bamba Oumar", icon: "🧾", action: "Facture FAC-2025-028 émise (SCOPA — 4 800 kg cacao)", module: "Factures", moduleColor: "bg-orange-100 text-orange-700" },
+  { time: "09/07 12:30", user: "Ibrahim Sawadogo", icon: "➕", action: "Tâche tri manuel cacao créée — lot 046", module: "Tâches", moduleColor: "bg-indigo-100 text-indigo-700" },
+  { time: "09/07 10:00", user: "Admin", icon: "⚙️", action: "Mise à jour système AGRIFRIK v2.4.1 appliquée", module: "Admin", moduleColor: "bg-gray-100 text-gray-700" },
+  { time: "09/07 08:30", user: "Adjoua Messou", icon: "🔐", action: "Connexion réussie — IP: 41.204.65.xx (Soubré)", module: "Auth", moduleColor: "bg-green-100 text-green-700" },
+];
+
+const SECURITE_ALERTES = [
+  { date: "10/07 23:14", niveau: "warning", levelLabel: "Attention", event: "Tentative connexion échouée (2×) — admin@agrifrik.com", ip: "185.142.x.x (Paris)", action: "Bloqué après 3e échec" },
+  { date: "08/07 14:22", niveau: "info", levelLabel: "Info", event: "Nouvelle session — Mobile (Android)", ip: "41.204.65.xx (Abidjan)", action: "OK" },
+  { date: "06/07 08:15", niveau: "info", levelLabel: "Info", event: "Connexion depuis IP inconnue — Konan Y.", ip: "154.72.x.x (Yamoussoukro)", action: "Validé par SMS" },
+  { date: "01/07 00:00", niveau: "warning", levelLabel: "Attention", event: "Export base de données (backup automatique)", ip: "Système", action: "OK" },
+  { date: "28/06 16:40", niveau: "info", levelLabel: "Info", event: "Activation 2FA — Adjoua Messou", ip: "Système", action: "Activé ✅" },
+];
+
+const SESSIONS_ACTIVES = [
+  { user: "Ibrahim Sawadogo", device: "Mobile Android", ip: "41.204.x.x", depuis: "09h15", loc: "Soubré" },
+  { user: "Adjoua Messou", device: "Chrome — Desktop", ip: "41.204.x.x", depuis: "09h32", loc: "Soubré" },
+  { user: "Konan Yao", device: "Chrome — Desktop", ip: "41.206.x.x", depuis: "09h48", loc: "Gagnoa" },
+  { user: "Admin (vous)", device: "Chrome — Desktop", ip: "41.204.x.x", depuis: "Actuel", loc: "Soubré" },
+];
+
+const ERREURS = [
+  {
+    date: "11/07 10:04",
+    niveau: "error",
+    module: "Météo API",
+    message: "OpenWeatherMap: Rate limit atteint (1 000/h)",
+    stack: "HTTP 429",
+    statut: "warning",
+    statutLabel: "En cours — Quota reset à 11h00",
+  },
+  {
+    date: "10/07 22:00",
+    niveau: "warning",
+    module: "Backup",
+    message: "Backup nocturne : 4 048 Mo — 98% espace disque Supabase",
+    stack: "—",
+    statut: "warning",
+    statutLabel: "À surveiller",
+  },
+  {
+    date: "09/07 14:22",
+    niveau: "error",
+    module: "Sync BICICI",
+    message: "Timeout connexion API Open Banking (30s)",
+    stack: "NET_ERR_TIMEOUT",
+    statut: "ok",
+    statutLabel: "Résolu auto à 14:24",
+  },
+];
+
+// SVG sparkline for error chart
+function ErrorSparkline() {
+  const data = [0, 1, 0, 0, 2, 1, 0, 0, 1, 0, 3, 1, 0, 0, 0, 1, 2, 0, 0, 1, 0, 0, 1, 0, 2, 0, 1, 1, 0, 0];
+  const W = 360, H = 80, PX = 12, PY = 10;
+  const max = Math.max(...data);
+  const step = (W - PX * 2) / (data.length - 1);
+  const pts = data.map((v, i) => {
+    const x = PX + i * step;
+    const y = PY + (H - PY * 2) * (1 - v / max);
+    return `${x},${y}`;
+  });
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm">
+      <polyline
+        points={pts.join(" ")}
+        fill="none"
+        stroke="#EF4444"
+        strokeWidth={1.5}
+        strokeLinejoin="round"
+      />
+      {data.map((v, i) => v > 0 && (
+        <circle
+          key={i}
+          cx={PX + i * step}
+          cy={PY + (H - PY * 2) * (1 - v / max)}
+          r={3}
+          fill="#EF4444"
+        />
+      ))}
+      <line x1={PX} y1={H - PY} x2={W - PX} y2={H - PY} stroke="#E5E7EB" strokeWidth={1} />
+      <text x={PX} y={H - 2} fontSize={8} fill="#9CA3AF">J-30</text>
+      <text x={W - PX} y={H - 2} textAnchor="end" fontSize={8} fill="#9CA3AF">Aujourd&apos;hui</text>
+    </svg>
+  );
 }
 
-const LOG_DATA: LogEntry[] = [
-  { id: 1,  datetime: "11/07/2025 09:47:22", level: "INFO",     module: "Auth",     user: "admin@agrifrik.com", action: "Connexion réussie",   ip: "192.168.1.12", details: "Navigateur Chrome 125" },
-  { id: 2,  datetime: "11/07/2025 09:45:18", level: "INFO",     module: "Stocks",   user: "ibrahim.s",          action: "Mouvement stock",     ip: "192.168.1.15", details: "Entrée 240kg Cacao Grade A — Entrepôt A Zone 2" },
-  { id: 3,  datetime: "11/07/2025 09:30:05", level: "WARNING",  module: "API",      user: "Système",            action: "Latence élevée",      ip: "—",            details: "Endpoint /api/meteo — 2 340ms (seuil : 1 000ms)" },
-  { id: 4,  datetime: "11/07/2025 09:15:42", level: "INFO",     module: "Ventes",   user: "adjoua.m",           action: "Nouveau devis",       ip: "192.168.1.18", details: "DEV-2025-089 — Barry Callebaut — 12,4 M XOF" },
-  { id: 5,  datetime: "11/07/2025 08:42:11", level: "CRITICAL", module: "Stocks",   user: "Système",            action: "Alerte déclenchée",   ip: "—",            details: "KCl engrais sous seuil critique (45kg < 50kg)" },
-  { id: 6,  datetime: "11/07/2025 08:30:00", level: "INFO",     module: "Système",  user: "Cron",               action: "Backup automatique",  ip: "—",            details: "Backup DB réussi — 142 MB — Durée 1m 22s" },
-  { id: 7,  datetime: "10/07/2025 18:45:33", level: "ERROR",    module: "Auth",     user: "unknown",            action: "Échec connexion ×3",  ip: "41.203.14.88", details: "Compte bloqué temporairement 15 min" },
-  { id: 8,  datetime: "10/07/2025 17:22:08", level: "INFO",     module: "Factures", user: "jean-baptiste.k",    action: "Facture éditée",      ip: "192.168.1.20", details: "FAC-2025-041 — Barry Callebaut — 12,44 M XOF" },
-  { id: 9,  datetime: "10/07/2025 16:05:11", level: "INFO",     module: "RH",       user: "mariam.k",           action: "Bulletin généré",     ip: "192.168.1.19", details: "287 bulletins paie Juillet 2025" },
-  { id: 10, datetime: "10/07/2025 14:18:55", level: "WARNING",  module: "Qualité",  user: "Système",            action: "Non-conformité",      ip: "—",            details: "LOT-032 Anacarde — humidité 12.4% > 10% norme" },
-  { id: 11, datetime: "10/07/2025 12:30:00", level: "INFO",     module: "Achats",   user: "koffi.a",            action: "Bon de commande",     ip: "192.168.1.30", details: "BC-2025-044 — YARA Nederland — NPK 500kg" },
-  { id: 12, datetime: "10/07/2025 11:10:45", level: "INFO",     module: "Ventes",   user: "adjoua.m",           action: "Contrat signé",       ip: "192.168.1.18", details: "CTR-2025-018 — Cemoi Chocolatier — 18 tonnes" },
-  { id: 13, datetime: "10/07/2025 09:55:12", level: "WARNING",  module: "Finance",  user: "Système",            action: "Budget dépassé",      ip: "—",            details: "Poste R&D dépassé de 8% — 118 000 XOF" },
-  { id: 14, datetime: "09/07/2025 17:40:28", level: "INFO",     module: "Stocks",   user: "fatou.b",            action: "Inventaire",          ip: "192.168.1.14", details: "Inventaire mensuel Entrepôt B — 47 références" },
-  { id: 15, datetime: "09/07/2025 15:22:09", level: "ERROR",    module: "Ventes",   user: "Système",            action: "Échec export PDF",    ip: "—",            details: "FAC-2025-039 — Timeout génération — Résolu après retry" },
-  { id: 16, datetime: "09/07/2025 14:05:33", level: "INFO",     module: "RH",       user: "mariam.k",           action: "Congé approuvé",      ip: "192.168.1.19", details: "Ibrahim S. — Congé annuel 14/07-25/07/2025" },
-  { id: 17, datetime: "09/07/2025 12:48:17", level: "INFO",     module: "Qualité",  user: "ibrahim.s",          action: "Contrôle lot",        ip: "192.168.1.15", details: "LOT-031 Cacao — Conforme — Grade A — Humidité 9,1%" },
-  { id: 18, datetime: "09/07/2025 10:15:44", level: "WARNING",  module: "Système",  user: "Système",            action: "Disque >80%",         ip: "—",            details: "Serveur principal — 82% capacité — Action recommandée" },
-  { id: 19, datetime: "08/07/2025 16:30:58", level: "INFO",     module: "Auth",     user: "kouassi.d",          action: "Connexion réussie",   ip: "192.168.1.22", details: "Application mobile v2.3.1" },
-  { id: 20, datetime: "08/07/2025 09:00:00", level: "CRITICAL", module: "Finance",  user: "Système",            action: "Alerte contrats",     ip: "—",            details: "2 contrats fournisseurs expirent le 31/12/2025 — Renouvellement non initié" },
-];
-
-const LEVEL_CONFIG: Record<string, { badge: string; dot: string; icon: React.ReactNode }> = {
-  INFO:     { badge: "bg-blue-100 text-blue-700",   dot: "bg-blue-500",   icon: <Info size={12} className="text-blue-500" /> },
-  WARNING:  { badge: "bg-yellow-100 text-yellow-700", dot: "bg-yellow-500", icon: <AlertTriangle size={12} className="text-yellow-500" /> },
-  ERROR:    { badge: "bg-red-100 text-red-700",     dot: "bg-red-500",    icon: <AlertTriangle size={12} className="text-red-600" /> },
-  CRITICAL: { badge: "bg-red-200 text-red-800",    dot: "bg-red-700",    icon: <ShieldAlert size={12} className="text-red-700" /> },
-};
-
-const MODULE_STATS = [
-  { module: "Dashboard",  req: 342, errors: 0,               avg: "145ms",   warn: false },
-  { module: "Stocks",     req: 184, errors: 0,               avg: "98ms",    warn: false },
-  { module: "Ventes",     req: 127, errors: "1 (résolu)",    avg: "112ms",   warn: false },
-  { module: "Auth",       req: 89,  errors: 3,               avg: "67ms",    warn: false },
-  { module: "API Météo",  req: 48,  errors: 0,               avg: "2 340ms", warn: true },
-];
-
-const LEVELS = ["Tous", "INFO", "WARNING", "ERROR", "CRITICAL"];
-const MODULES = ["Tous", ...Array.from(new Set(LOG_DATA.map((l) => l.module)))];
-const USERS = ["Tous", ...Array.from(new Set(LOG_DATA.map((l) => l.user)))];
-
-const TOTAL_PAGES = 62;
-
 export default function LogsPage() {
-  const [levelFilter, setLevelFilter] = useState("Tous");
-  const [moduleFilter, setModuleFilter] = useState("Tous");
-  const [userFilter, setUserFilter] = useState("Tous");
-  const [period, setPeriod] = useState("7j");
-  const [page, setPage] = useState(1);
+  const [tab, setTab] = useState(0);
+  const [search, setSearch] = useState("");
+  const [filterUser, setFilterUser] = useState("Tous");
+  const [filterModule, setFilterModule] = useState("Tous");
 
-  const filtered = LOG_DATA.filter((l) => {
-    if (levelFilter !== "Tous" && l.level !== levelFilter) return false;
-    if (moduleFilter !== "Tous" && l.module !== moduleFilter) return false;
-    if (userFilter !== "Tous" && l.user !== userFilter) return false;
-    return true;
+  const tabs = ["Activité", "Sécurité", "Erreurs"];
+
+  const users = ["Tous", ...Array.from(new Set(ACTIVITE.map((a) => a.user)))];
+  const modules = ["Tous", ...Array.from(new Set(ACTIVITE.map((a) => a.module)))];
+
+  const filteredActivite = ACTIVITE.filter((a) => {
+    const q = search.toLowerCase();
+    const matchSearch = a.action.toLowerCase().includes(q) || a.user.toLowerCase().includes(q);
+    const matchUser = filterUser === "Tous" || a.user === filterUser;
+    const matchModule = filterModule === "Tous" || a.module === filterModule;
+    return matchSearch && matchUser && matchModule;
   });
 
-  const kpis = [
-    { label: "Événements aujourd'hui", value: "1 247", color: "text-gray-800",   bg: "bg-gray-100",   icon: <Activity size={18} className="text-gray-600" /> },
-    { label: "Erreurs",                value: "3",     color: "text-red-700",    bg: "bg-red-100",    icon: <AlertTriangle size={18} className="text-red-600" /> },
-    { label: "Avertissements",         value: "18",    color: "text-yellow-700", bg: "bg-yellow-100", icon: <AlertTriangle size={18} className="text-yellow-600" /> },
-    { label: "Connexions",             value: "42",    color: "text-green-700",  bg: "bg-green-100",  icon: <Wifi size={18} className="text-green-600" /> },
-  ];
-
-  const visiblePages = [1, 2, 3, 4, 5];
-
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar title="Journaux Système" breadcrumb={["Administration", "Logs"]} />
+    <div className="min-h-screen bg-[#F8FBF8]">
+      <Topbar breadcrumb={["Admin", "Journaux système"]} />
 
-      <main className="flex-1 p-6 space-y-5 max-w-7xl mx-auto w-full">
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-gray-500">Journal d&apos;audit complet — actions utilisateurs et événements système.</p>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2E7D32] text-white text-sm font-medium hover:bg-[#256027] transition-colors">
-            <Download size={15} />
-            Exporter les logs
-          </button>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Journal d&apos;activité et de sécurité</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Traçabilité complète des actions système et utilisateurs</p>
+          </div>
+          <div className="flex gap-2">
+            <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-3 py-1.5 hover:bg-[#1B5E20] transition-colors">
+              Télécharger les logs (CSV)
+            </button>
+            <button className="border border-red-200 text-red-600 rounded-xl text-xs font-medium px-3 py-1.5 hover:bg-red-50 transition-colors">
+              Effacer les logs &gt; 90j
+            </button>
+          </div>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {kpis.map((k) => (
-            <div key={k.label} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full ${k.bg} flex items-center justify-center flex-shrink-0`}>
-                {k.icon}
-              </div>
-              <div>
-                <p className={`text-2xl font-bold ${k.color}`}>{k.value}</p>
-                <p className="text-xs text-gray-500 font-medium leading-tight">{k.label}</p>
-              </div>
-            </div>
+        {/* Tabs */}
+        <div className="flex gap-1 bg-white border border-gray-100 rounded-xl p-1 w-fit">
+          {tabs.map((t, i) => (
+            <button
+              key={t}
+              onClick={() => setTab(i)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                tab === i ? "bg-[#2E7D32] text-white" : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {t}
+            </button>
           ))}
         </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-wrap gap-3 items-end">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-medium">Niveau</label>
-            <select
-              value={levelFilter}
-              onChange={(e) => { setLevelFilter(e.target.value); setPage(1); }}
-              className="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-[#2E7D32]"
-            >
-              {LEVELS.map((l) => <option key={l}>{l}</option>)}
-            </select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-medium">Module</label>
-            <select
-              value={moduleFilter}
-              onChange={(e) => { setModuleFilter(e.target.value); setPage(1); }}
-              className="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-[#2E7D32]"
-            >
-              {MODULES.map((m) => <option key={m}>{m}</option>)}
-            </select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-medium">Utilisateur</label>
-            <select
-              value={userFilter}
-              onChange={(e) => { setUserFilter(e.target.value); setPage(1); }}
-              className="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-[#2E7D32]"
-            >
-              {USERS.map((u) => <option key={u}>{u}</option>)}
-            </select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-medium">Période</label>
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-[#2E7D32]"
-            >
-              <option value="1j">Aujourd&apos;hui</option>
-              <option value="7j">7 derniers jours</option>
-              <option value="30j">30 derniers jours</option>
-              <option value="all">Toute la période</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Logs table */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-[#F8FBF8] border-b border-gray-100">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Horodatage</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Niveau</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Module</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Utilisateur</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Action</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">IP</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Détails</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filtered.map((log) => {
-                  const cfg = LEVEL_CONFIG[log.level];
-                  return (
-                    <tr
-                      key={log.id}
-                      className={`hover:bg-gray-50 transition-colors ${log.level === "CRITICAL" ? "bg-red-50/40" : ""}`}
-                    >
-                      <td className="px-4 py-3 text-xs font-mono text-gray-500 whitespace-nowrap">{log.datetime}</td>
-                      <td className="px-4 py-3">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap flex items-center gap-1 w-fit ${cfg.badge}`}>
-                          {cfg.icon}
-                          {log.level}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full whitespace-nowrap">
-                          {log.module}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-xs font-medium text-gray-800 whitespace-nowrap">{log.user}</td>
-                      <td className="px-4 py-3 text-xs text-gray-700 whitespace-nowrap">{log.action}</td>
-                      <td className="px-4 py-3 text-[10px] font-mono text-gray-400 whitespace-nowrap">{log.ip}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500 max-w-xs truncate">{log.details}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-            <p className="text-xs text-gray-400">
-              Affichage 1-{filtered.length} sur 1 247 entrées — Page {page} sur {TOTAL_PAGES}
-            </p>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50"
-              >
-                <ChevronLeft size={14} />
-              </button>
-              {visiblePages.map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors ${
-                    page === p
-                      ? "bg-[#2E7D32] text-white"
-                      : "border border-gray-200 text-gray-500 hover:bg-gray-50"
-                  }`}
-                >
-                  {p}
-                </button>
+        {/* TAB 0 — Activité */}
+        {tab === 0 && (
+          <div className="space-y-4">
+            {/* Stats bar */}
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: "Actions aujourd'hui", value: "284", color: "text-[#2E7D32]" },
+                { label: "Modules actifs", value: "5", color: "text-blue-700" },
+                { label: "Utilisateurs connectés", value: "4", color: "text-purple-700" },
+              ].map((s) => (
+                <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4">
+                  <p className="text-xs text-gray-500">{s.label}</p>
+                  <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
+                </div>
               ))}
-              <span className="text-xs text-gray-400 px-1">...</span>
-              <button
-                onClick={() => setPage(TOTAL_PAGES)}
-                className={`w-7 h-7 rounded-lg text-xs font-medium border border-gray-200 text-gray-500 hover:bg-gray-50 ${page === TOTAL_PAGES ? "bg-[#2E7D32] text-white border-[#2E7D32]" : ""}`}
-              >
-                {TOTAL_PAGES}
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(TOTAL_PAGES, p + 1))}
-                className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50"
-              >
-                <ChevronRight size={14} />
-              </button>
             </div>
-          </div>
-        </div>
 
-        {/* Module stats */}
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-gray-800">Statistiques par module</h2>
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-[#F8FBF8] border-b border-gray-100">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Module</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Requêtes/j</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Erreurs</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Temps moyen</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {MODULE_STATS.map((s) => (
-                    <tr key={s.module} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-xs font-semibold text-gray-800">{s.module}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{s.req} req/j</td>
-                      <td className="px-4 py-3 text-xs">
-                        <span className={`px-2 py-0.5 rounded-full font-medium ${s.errors === 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
-                          {s.errors === 0 ? "0" : s.errors}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-gray-600 font-mono">
-                        {s.avg}
-                        {s.warn && <span className="ml-1 text-yellow-600">⚠️</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Filtres */}
+            <div className="flex flex-wrap gap-3 items-center">
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#2E7D32] w-48"
+              />
+              <select
+                value={filterUser}
+                onChange={(e) => setFilterUser(e.target.value)}
+                className="border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#2E7D32]"
+              >
+                {users.map((u) => <option key={u}>{u}</option>)}
+              </select>
+              <select
+                value={filterModule}
+                onChange={(e) => setFilterModule(e.target.value)}
+                className="border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#2E7D32]"
+              >
+                {modules.map((m) => <option key={m}>{m}</option>)}
+              </select>
+              <span className="text-xs text-gray-500">{filteredActivite.length} entrées</span>
+            </div>
+
+            {/* Timeline */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-0">
+              {filteredActivite.map((a, i) => (
+                <div key={i} className="flex gap-4 group">
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-sm flex-shrink-0 mt-1">
+                      {a.icon}
+                    </div>
+                    {i < filteredActivite.length - 1 && (
+                      <div className="w-px flex-1 bg-gray-100 my-1" />
+                    )}
+                  </div>
+                  <div className="flex-1 pb-4">
+                    <div className="flex flex-wrap items-start gap-2">
+                      <span className="text-xs text-gray-400 whitespace-nowrap mt-0.5">{a.time}</span>
+                      <span className="text-xs font-semibold text-gray-800">{a.user}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${a.moduleColor}`}>{a.module}</span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">{a.action}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </section>
-      </main>
+        )}
+
+        {/* TAB 1 — Sécurité */}
+        {tab === 1 && (
+          <div className="space-y-5">
+            {/* Résumé */}
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: "Sessions actives", value: "4", color: "text-[#2E7D32]" },
+                { label: "Dernière activité suspecte", value: "10/07 (bloquée)", color: "text-amber-600" },
+                { label: "2FA activé", value: "12/15 utilisateurs (80%)", color: "text-blue-700" },
+              ].map((s) => (
+                <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4">
+                  <p className="text-xs text-gray-500">{s.label}</p>
+                  <p className={`text-sm font-bold mt-1 ${s.color}`}>{s.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Alertes sécurité */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Alertes de sécurité récentes</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Date", "Niveau", "Événement", "IP", "Action"].map((h) => (
+                        <th key={h} className="py-2.5 px-3 text-left text-gray-500 font-medium whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {SECURITE_ALERTES.map((a, i) => (
+                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50">
+                        <td className="py-2.5 px-3 text-gray-600 whitespace-nowrap">{a.date}</td>
+                        <td className="py-2.5 px-3">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                            a.niveau === "warning" ? "bg-yellow-100 text-yellow-700" : "bg-green-100 text-green-700"
+                          }`}>
+                            {a.niveau === "warning" ? "🟡" : "🟢"} {a.levelLabel}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-gray-800">{a.event}</td>
+                        <td className="py-2.5 px-3 text-gray-500 font-mono">{a.ip}</td>
+                        <td className="py-2.5 px-3 text-gray-600">{a.action}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Sessions actives */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Sessions actives</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Utilisateur", "Appareil", "IP", "Connecté depuis", "Localisation"].map((h) => (
+                        <th key={h} className="py-2.5 px-3 text-left text-gray-500 font-medium whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {SESSIONS_ACTIVES.map((s, i) => (
+                      <tr key={i} className={`border-t border-gray-50 hover:bg-gray-50 ${s.user.includes("(vous)") ? "bg-green-50" : ""}`}>
+                        <td className="py-2.5 px-3 font-semibold text-gray-800">{s.user}</td>
+                        <td className="py-2.5 px-3 text-gray-600">{s.device}</td>
+                        <td className="py-2.5 px-3 text-gray-500 font-mono">{s.ip}</td>
+                        <td className="py-2.5 px-3 text-gray-600">{s.depuis}</td>
+                        <td className="py-2.5 px-3">
+                          <span className="inline-flex items-center gap-1 text-gray-600">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                            {s.loc}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2 — Erreurs */}
+        {tab === 2 && (
+          <div className="space-y-5">
+            {/* Erreurs actives */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">
+                Erreurs actives
+                <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs">{ERREURS.length}</span>
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Date", "Niveau", "Module", "Message", "Stack / Code", "Statut"].map((h) => (
+                        <th key={h} className="py-2.5 px-3 text-left text-gray-500 font-medium whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ERREURS.map((e, i) => (
+                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50">
+                        <td className="py-2.5 px-3 text-gray-600 whitespace-nowrap">{e.date}</td>
+                        <td className="py-2.5 px-3">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                            e.niveau === "error" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"
+                          }`}>
+                            {e.niveau === "error" ? "🔴" : "🟡"} {e.niveau === "error" ? "Erreur" : "Warning"}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 font-medium text-gray-800">{e.module}</td>
+                        <td className="py-2.5 px-3 text-gray-700 max-w-xs">{e.message}</td>
+                        <td className="py-2.5 px-3 font-mono text-gray-500">{e.stack}</td>
+                        <td className="py-2.5 px-3">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                            e.statut === "ok" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                          }`}>
+                            {e.statut === "ok" ? "✅" : "⚠️"} {e.statutLabel}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Sparkline erreurs */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-1">Métriques d&apos;erreurs — 30 derniers jours</h2>
+              <p className="text-xs text-gray-500 mb-4">Max 3/jour — Moyenne 0,4 erreurs/jour</p>
+              <ErrorSparkline />
+            </div>
+
+            {/* Boutons d'action */}
+            <div className="flex gap-3">
+              <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
+                Télécharger les logs (CSV)
+              </button>
+              <button className="border border-red-200 text-red-600 rounded-xl text-xs font-medium px-4 py-2 hover:bg-red-50 transition-colors">
+                Effacer les logs &gt; 90j
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

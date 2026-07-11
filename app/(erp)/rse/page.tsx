@@ -3,416 +3,500 @@
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ===================== DATA =====================
 
-type Tab = "environnement" | "social" | "economie" | "reporting";
-
-// ─── Score global & piliers ───────────────────────────────────────────────────
-
-const piliers = [
-  { label: "Environnement", score: 78, color: "#2E7D32", bg: "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300" },
-  { label: "Social", score: 88, color: "#1565C0", bg: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300" },
-  { label: "Économie locale", score: 85, color: "#E65100", bg: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300" },
-  { label: "Gouvernance", score: 79, color: "#6A1B9A", bg: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300" },
+const engagements = [
+  { icon: "🌱", titre: "Zéro déforestation", objectif: "0 ha déforesté depuis 2015", valeur: 100, statut: "Atteint", couleur: "green" },
+  { icon: "💧", titre: "Réduction consommation eau -15%", objectif: "Actuel : -7,7%", valeur: 51, statut: "En cours", couleur: "blue" },
+  { icon: "🌿", titre: "100% certifié RA d'ici 2026", objectif: "Actuel : 68%", valeur: 68, statut: "En cours", couleur: "green" },
+  { icon: "👥", titre: "50% femmes dans la coopérative", objectif: "Actuel : 33,8% (48/142)", valeur: 68, statut: "En cours", couleur: "purple" },
+  { icon: "🎓", titre: "100h de formation/an", objectif: "YTD : 62h", valeur: 62, statut: "En cours", couleur: "orange" },
+  { icon: "♻️", titre: "Zéro brûlage déchets", objectif: "Atteint depuis Jan 2024", valeur: 100, statut: "Atteint", couleur: "green" },
 ];
 
-// ─── SVG circle score ─────────────────────────────────────────────────────────
+const biodiversiteData = [
+  { an: "2020", valeur: 3200, max: 5000 },
+  { an: "2021", valeur: 3640, max: 5000 },
+  { an: "2022", valeur: 4020, max: 5000 },
+  { an: "2023", valeur: 4240, max: 5000 },
+  { an: "2024", valeur: 4850, max: 5000 },
+];
 
-function CircleScore({ score, color, label }: { score: number; color: string; label: string }) {
-  const r = 32;
+const phytosanitaires = [
+  { produit: "Ridomil Gold 68 WG", matiere: "Métalaxyl + Mancozèbe", homologCI: true, raAuto: "oui", qte: "84 kg", evolution: "-12%" },
+  { produit: "Confidor 200 SL", matiere: "Imidaclopride", homologCI: true, raAuto: "restreint", qte: "4,2 L", evolution: "-45%" },
+  { produit: "Unden 50 EC", matiere: "Propoxur", homologCI: true, raAuto: "interdit", qte: "0 L", evolution: "-100% ✅" },
+];
+
+const primesRA = [
+  { nom: "Konan Y.", montant: 380000 },
+  { nom: "Ibrahim S.", montant: 350000 },
+  { nom: "Adjoua M.", montant: 320000 },
+  { nom: "Sékou B.", montant: 290000 },
+  { nom: "Fanta K.", montant: 270000 },
+  { nom: "Moussa T.", montant: 250000 },
+  { nom: "Aïcha D.", montant: 230000 },
+  { nom: "Bamba O.", montant: 210000 },
+  { nom: "Diallo A.", montant: 200000 },
+  { nom: "Awa S.", montant: 185000 },
+  { nom: "Coulibaly R.", montant: 170000 },
+  { nom: "Traoré N.", montant: 150000 },
+];
+
+const securiteData = [
+  { indicateur: "Accidents du travail", v2023: 2, v2024: 0, objectif: "0 ✅" },
+  { indicateur: "Incidents phytosanitaires", v2023: 1, v2024: 0, objectif: "0 ✅" },
+  { indicateur: "Jours perdus accidents", v2023: 8, v2024: 0, objectif: "0 ✅" },
+  { indicateur: "Habilitations EPI", v2023: "12/15", v2024: "15/15", objectif: "15/15 ✅" },
+];
+
+const certifications = [
+  { ref: "Rainforest Alliance 2020", statut: "Certifié", audit: "Jun 2025", validite: "Mar 2026" },
+  { ref: "GlobalG.A.P. v6", statut: "Certifié", audit: "Avr 2025", validite: "Avr 2026" },
+  { ref: "ISO 9001:2015", statut: "Certifié", audit: "Mai 2025", validite: "Mai 2028" },
+  { ref: "Loi Devoir de Vigilance (FR)", statut: "Conforme", audit: "—", validite: "—" },
+  { ref: "FCPR (Fournisseur cacao responsable)", statut: "Enregistré", audit: "—", validite: "2026" },
+];
+
+// ===================== HELPERS =====================
+
+function ScoreCircle({ score, label, color = "#2E7D32" }: { score: number; label: string; color?: string }) {
+  const r = 54;
   const circ = 2 * Math.PI * r;
   const dash = (score / 100) * circ;
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <svg width="84" height="84" viewBox="0 0 84 84">
-        <circle cx="42" cy="42" r={r} fill="none" stroke="#e5e7eb" strokeWidth="7" />
+    <div className="flex flex-col items-center">
+      <svg width="128" height="128" viewBox="0 0 128 128">
+        <circle cx="64" cy="64" r={r} fill="none" stroke="#e5e7eb" strokeWidth="10" />
         <circle
-          cx="42"
-          cy="42"
-          r={r}
-          fill="none"
-          stroke={color}
-          strokeWidth="7"
+          cx="64" cy="64" r={r} fill="none"
+          stroke={color} strokeWidth="10"
           strokeDasharray={`${dash} ${circ - dash}`}
-          strokeDashoffset={circ / 4}
           strokeLinecap="round"
+          transform="rotate(-90 64 64)"
         />
-        <text x="42" y="45" textAnchor="middle" fontSize="16" fontWeight="800" fill={color}>
+        <text x="64" y="60" textAnchor="middle" dominantBaseline="middle" fontSize="22" fontWeight="700" fill="#111827">
           {score}
         </text>
-        <text x="42" y="57" textAnchor="middle" fontSize="8" fill="#9ca3af">/100</text>
+        <text x="64" y="78" textAnchor="middle" dominantBaseline="middle" fontSize="11" fill="#6b7280">
+          /100
+        </text>
       </svg>
-      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 text-center">{label}</span>
+      <span className="text-xs font-medium text-gray-500 mt-1">{label}</span>
     </div>
   );
 }
 
-// ─── Indicateur ligne ─────────────────────────────────────────────────────────
-
-function IndicLine({
-  label,
-  value,
-  sub,
-  ok,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  ok?: boolean;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4 py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
-      <div className="flex-1">
-        <p className="text-sm text-gray-700 dark:text-gray-300">{label}</p>
-        {sub && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{sub}</p>}
-      </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        <span className="text-sm font-bold text-gray-900 dark:text-white">{value}</span>
-        {ok !== undefined && (
-          <span className={ok ? "text-emerald-500" : "text-amber-500"} title={ok ? "Objectif atteint" : "En cours"}>
-            {ok ? "✅" : "🟡"}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── ODD Tableau ─────────────────────────────────────────────────────────────
-
-const odds = [
-  { num: "ODD 1", titre: "Pas de pauvreté", score: 85, statut: "Bon" },
-  { num: "ODD 2", titre: "Faim zéro", score: 90, statut: "Excellent" },
-  { num: "ODD 3", titre: "Bonne santé", score: 88, statut: "Bon" },
-  { num: "ODD 5", titre: "Égalité des sexes", score: 62, statut: "En cours" },
-  { num: "ODD 8", titre: "Travail décent", score: 84, statut: "Bon" },
-  { num: "ODD 12", titre: "Consommation responsable", score: 78, statut: "Bon" },
-  { num: "ODD 13", titre: "Action pour le climat", score: 72, statut: "En cours" },
-  { num: "ODD 15", titre: "Vie terrestre", score: 80, statut: "Bon" },
-];
-
-const engagements = [
-  { annee: "2025", action: "Atteindre 100% lots exportés certifiés RA" },
-  { annee: "2025", action: "Obtenir label AB sur 2 parcelles pilotes" },
-  { annee: "2026", action: "Porter parité femmes à 45% de l'effectif" },
-  { annee: "2026", action: "Réduire consommation eau de 30% vs 2023" },
-  { annee: "2027", action: "Bilan carbone négatif sur l'ensemble des exploitations" },
-  { annee: "2027", action: "100% emballages biodégradables pour l'export" },
-];
-
-// ─── Page principale ─────────────────────────────────────────────────────────
+const maxPrime = Math.max(...primesRA.map(p => p.montant));
 
 export default function RSEPage() {
-  const [tab, setTab] = useState<Tab>("environnement");
-  const scoreGlobal = 82;
-
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "environnement", label: "Environnement" },
-    { key: "social", label: "Social" },
-    { key: "economie", label: "Économie locale" },
-    { key: "reporting", label: "Reporting" },
-  ];
+  const [tab, setTab] = useState<"overview" | "env" | "social" | "gouv">("overview");
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Topbar title="Responsabilité Sociétale" breadcrumb={["Administration", "RSE"]} />
-
-      <main className="flex-1 p-6 space-y-6 max-w-screen-xl mx-auto w-full">
-
-        {/* ── Score RSE global ── */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:bg-gray-900 dark:border-gray-800">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-
-            {/* Score principal */}
-            <div className="flex-1">
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-1">
-                Score RSE global — AGRIFRIK 2025
-              </p>
-              <div className="flex items-end gap-3 mb-3">
-                <span className="text-5xl font-extrabold text-[#2E7D32] dark:text-emerald-400">
-                  {scoreGlobal}
-                </span>
-                <span className="text-2xl font-bold text-gray-300 dark:text-gray-600 mb-1">/100</span>
-                <span className="text-sm font-semibold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 mb-1">
-                  +4 pts vs 2024
-                </span>
-              </div>
-              <div className="w-full h-3 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden mb-1">
-                <div
-                  className="h-full rounded-full bg-[#2E7D32] transition-all"
-                  style={{ width: `${scoreGlobal}%` }}
-                />
-              </div>
-              <p className="text-xs text-gray-400 dark:text-gray-500">
-                Évaluation interne — Référentiel GRI / ISO 26000 · Audité annuellement
-              </p>
-            </div>
-
-            {/* 4 piliers en cercles */}
-            <div className="flex flex-wrap gap-6 justify-center lg:justify-end">
-              {piliers.map((p) => (
-                <CircleScore key={p.label} score={p.score} color={p.color} label={p.label} />
-              ))}
-            </div>
-          </div>
+    <div className="flex flex-col min-h-screen bg-[#F8FBF8]">
+      <Topbar />
+      <div className="flex-1 p-6 space-y-6">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <span>Admin</span>
+          <span>/</span>
+          <span className="text-[#2E7D32] font-medium">RSE & Durabilité</span>
         </div>
 
-        {/* ── Onglets ── */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
-
-          {/* Tab bar */}
-          <div className="flex border-b border-gray-100 dark:border-gray-800 overflow-x-auto">
-            {tabs.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`shrink-0 px-5 py-3.5 text-sm font-semibold transition-colors border-b-2 ${
-                  tab === t.key
-                    ? "border-[#2E7D32] text-[#2E7D32] dark:text-emerald-400"
-                    : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Rapport RSE</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Responsabilité Sociétale des Entreprises — Exercice 2025</p>
           </div>
+          <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2">
+            Exporter rapport PDF
+          </button>
+        </div>
 
-          {/* Contenu onglet */}
-          <div className="p-5">
+        {/* Tabs */}
+        <div className="flex gap-1 bg-white rounded-xl p-1 border border-gray-100 w-fit flex-wrap">
+          {([
+            { key: "overview", label: "Vue d'ensemble" },
+            { key: "env", label: "Environnement" },
+            { key: "social", label: "Social" },
+            { key: "gouv", label: "Gouvernance" },
+          ] as const).map(t => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                tab === t.key ? "bg-[#2E7D32] text-white" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-            {/* ── Environnement ── */}
-            {tab === "environnement" && (
-              <div className="space-y-1">
-                <IndicLine
-                  label="Surface sous certification Rainforest Alliance"
-                  value="62 ha"
-                  sub="100% des parcelles actives certifiées"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Bilan carbone estimé"
-                  value="-18,4 t CO2eq"
-                  sub="Séquestration forêt cacaoyère — Score positif"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Irrigation goutte-à-goutte"
-                  value="100%"
-                  sub="Consommation : 145 000 m³/an · -22% vs 2023"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Zéro plastique usage unique"
-                  value="Depuis 2024"
-                  sub="Compostage 100% déchets végétaux"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Biodiversité — espèces d'oiseaux recensées"
-                  value="34 espèces"
-                  sub="8 arbres d'ombrage par hectare"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Label Agriculture Biologique (parcelles pilotes)"
-                  value="En cours"
-                  sub="Certification prévue Q4 2025"
-                  ok={false}
-                />
+        {/* ======== ONGLET VUE D'ENSEMBLE ======== */}
+        {tab === "overview" && (
+          <div className="space-y-6">
+            {/* Score ESG global */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-6">
+              <h2 className="font-semibold text-gray-900 text-center mb-1">Score ESG Global</h2>
+              <p className="text-xs text-gray-400 text-center mb-6">Excellent pour une PME agricole africaine</p>
+              <div className="flex flex-wrap justify-center gap-10">
+                <ScoreCircle score={78} label="Score Global" color="#2E7D32" />
+                <ScoreCircle score={74} label="E — Environnement" color="#4CAF50" />
+                <ScoreCircle score={82} label="S — Social" color="#1B5E20" />
+                <ScoreCircle score={78} label="G — Gouvernance" color="#E65100" />
               </div>
-            )}
-
-            {/* ── Social ── */}
-            {tab === "social" && (
-              <div className="space-y-1">
-                <IndicLine
-                  label="Emplois directs créés"
-                  value="287 emplois"
-                  sub="+ 120 emplois indirects (transport, prestataires)"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Parité femmes"
-                  value="38%"
-                  sub="Objectif 50% d'ici 2027"
-                  ok={false}
-                />
-                <IndicLine
-                  label="Formations dispensées"
-                  value="12 / an"
-                  sub="100% techniciens certifiés Rainforest Alliance"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Sécurité — Accidents graves 2025"
-                  value="0 accident"
-                  sub="Taux de fréquence : 2,1 — Objectif < 3 ✅"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Coopérative agricole"
-                  value="142 membres"
-                  sub="Micro-crédit : 84 bénéficiaires · Taux remboursement : 97%"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Couverture santé"
-                  value="100% CDI/CDD"
-                  sub="Mutuelle santé · 1 infirmier sur site"
-                  ok={true}
-                />
-              </div>
-            )}
-
-            {/* ── Économie locale ── */}
-            {tab === "economie" && (
-              <div className="space-y-1">
-                <IndicLine
-                  label="Achats locaux — fournisseurs ivoiriens"
-                  value="68%"
-                  sub="Part des intrants achetés en Côte d'Ivoire"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Taxes payées en Côte d'Ivoire (2024)"
-                  value="22,4 M XOF"
-                  sub="Contribuable modèle — BCC Abidjan"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Investissement communautaire"
-                  value="2,8 M XOF"
-                  sub="Forages d'eau, réhabilitation école, dispensaire village"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Prime qualité payée aux producteurs coopérative"
-                  value="+12% vs marché"
-                  sub="Prix plancher garanti même en cas de chute des cours"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Fournisseurs locaux référencés"
-                  value="34 fournisseurs"
-                  sub="dont 18 PME ivoiriennes certifiées"
-                  ok={true}
-                />
-                <IndicLine
-                  label="Part CA réinvestie localement"
-                  value="61%"
-                  sub="Salaires, achats, taxes et investissements CI"
-                  ok={true}
-                />
-              </div>
-            )}
-
-            {/* ── Reporting ── */}
-            {tab === "reporting" && (
-              <div className="space-y-6">
-
-                {/* ODD */}
-                <div>
-                  <h3 className="text-sm font-bold text-gray-800 dark:text-white mb-3">
-                    Contribution aux ODD (Objectifs de Développement Durable)
-                  </h3>
-                  <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-[#F8FBF8] dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-                          {["ODD", "Domaine", "Score", "Statut"].map((h) => (
-                            <th
-                              key={h}
-                              className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                            >
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {odds.map((o, i) => (
-                          <tr
-                            key={i}
-                            className="border-b border-gray-50 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/30"
-                          >
-                            <td className="px-4 py-3">
-                              <span className="text-xs font-bold text-[#2E7D32] dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded">
-                                {o.num}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{o.titre}</td>
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-2">
-                                <div className="w-20 h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full ${
-                                      o.score >= 80 ? "bg-emerald-500" : "bg-amber-400"
-                                    }`}
-                                    style={{ width: `${o.score}%` }}
-                                  />
-                                </div>
-                                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                                  {o.score}/100
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3">
-                              <span
-                                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                                  o.statut === "Excellent"
-                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                    : o.statut === "Bon"
-                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                                }`}
-                              >
-                                {o.statut}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+              <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#4CAF50]" />
+                  <span>E : 74/100</span>
                 </div>
-
-                {/* Rapport RSE 2024 */}
-                <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-[#F8FBF8] dark:bg-gray-800 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">Rapport RSE 2024</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      Rapport annuel complet — GRI Standards · 48 pages · PDF
-                    </p>
-                  </div>
-                  <button className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-[#2E7D32] text-white text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
-                    Télécharger PDF
-                  </button>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#1B5E20]" />
+                  <span>S : 82/100</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#E65100]" />
+                  <span>G : 78/100</span>
+                </div>
+              </div>
+            </div>
 
-                {/* Engagements 2025-2027 */}
-                <div>
-                  <h3 className="text-sm font-bold text-gray-800 dark:text-white mb-3">
-                    Prochains engagements 2025–2027
-                  </h3>
-                  <div className="space-y-2">
-                    {engagements.map((e, i) => (
+            {/* Engagements RSE */}
+            <div>
+              <h2 className="font-semibold text-gray-900 mb-3">6 Engagements RSE 2025</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {engagements.map((eng, i) => (
+                  <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <span className="text-2xl">{eng.icon}</span>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        eng.statut === "Atteint"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}>
+                        {eng.statut === "Atteint" ? "✅ Atteint" : "🟡 En cours"}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 text-sm leading-snug">{eng.titre}</h3>
+                    <p className="text-xs text-gray-500 mt-1">{eng.objectif}</p>
+                    <div className="mt-3 h-1.5 bg-gray-100 rounded-full">
                       <div
-                        key={i}
-                        className="flex items-center gap-3 rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3"
-                      >
-                        <span className="shrink-0 text-xs font-bold text-[#E65100] bg-orange-50 dark:bg-orange-900/20 px-2 py-0.5 rounded">
-                          {e.annee}
-                        </span>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">{e.action}</p>
-                      </div>
+                        className={`h-1.5 rounded-full ${eng.statut === "Atteint" ? "bg-[#4CAF50]" : "bg-[#E65100]"}`}
+                        style={{ width: `${eng.valeur}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-400 mt-1 inline-block">{eng.valeur}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======== ONGLET ENVIRONNEMENT ======== */}
+        {tab === "env" && (
+          <div className="space-y-6">
+            {/* Métriques carbone */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="rounded-2xl border border-gray-100 bg-white p-5">
+                <p className="text-xs text-gray-500 font-medium">Émissions directes (Scope 1)</p>
+                <p className="text-2xl font-bold text-orange-600 mt-2">184 tCO₂e</p>
+                <p className="text-xs text-gray-400 mt-1">Transport + groupes électrogènes</p>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-white p-5">
+                <p className="text-xs text-gray-500 font-medium">Émissions indirectes (Scope 2)</p>
+                <p className="text-2xl font-bold text-yellow-600 mt-2">12 tCO₂e</p>
+                <p className="text-xs text-gray-400 mt-1">Consommation électricité</p>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-white p-5">
+                <p className="text-xs text-gray-500 font-medium">Séquestration forêts/ombrage</p>
+                <p className="text-2xl font-bold text-[#2E7D32] mt-2">-842 tCO₂e</p>
+                <p className="text-xs text-gray-400 mt-1">Arbres d'ombrage & forêt</p>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-white p-5 border-[#2E7D32]">
+                <p className="text-xs text-gray-500 font-medium">Bilan net carbone</p>
+                <p className="text-2xl font-bold text-[#2E7D32] mt-2">-646 tCO₂e</p>
+                <p className="text-xs text-green-600 font-semibold mt-1">🌱 Puits carbone net</p>
+              </div>
+            </div>
+
+            {/* Biodiversité bar chart SVG */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="font-semibold text-gray-900 mb-1">Biodiversité — Arbres d'ombrage</h2>
+              <p className="text-xs text-gray-400 mb-4">Évolution du parc d'arbres d'ombrage 2020–2024</p>
+              <div className="overflow-x-auto">
+                <svg width="500" height="180" viewBox="0 0 500 180">
+                  {/* Grilles horizontales */}
+                  {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
+                    const y = 140 - t * 120;
+                    return (
+                      <g key={i}>
+                        <line x1="40" y1={y} x2="490" y2={y} stroke="#f3f4f6" strokeWidth={1} />
+                        <text x="35" y={y + 4} textAnchor="end" fontSize={9} fill="#9ca3af">
+                          {Math.round(t * 5000).toLocaleString("fr-FR")}
+                        </text>
+                      </g>
+                    );
+                  })}
+                  {/* Barres */}
+                  {biodiversiteData.map((d, i) => {
+                    const barW = 60;
+                    const gap = 30;
+                    const x = 60 + i * (barW + gap);
+                    const h = (d.valeur / d.max) * 120;
+                    const y = 140 - h;
+                    return (
+                      <g key={d.an}>
+                        <rect x={x} y={y} width={barW} height={h} rx={6} fill="#2E7D32" fillOpacity={0.85} />
+                        <text x={x + barW / 2} y={y - 6} textAnchor="middle" fontSize={9} fill="#2E7D32" fontWeight={600}>
+                          {d.valeur.toLocaleString("fr-FR")}
+                        </text>
+                        <text x={x + barW / 2} y={155} textAnchor="middle" fontSize={10} fill="#6b7280">
+                          {d.an}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+              <p className="text-xs text-gray-400 text-right mt-2">Nombre d'arbres d'ombrage plantés (cumulé)</p>
+            </div>
+
+            {/* Tableau phytosanitaires */}
+            <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+              <div className="p-5 border-b border-gray-100">
+                <h2 className="font-semibold text-gray-900">Utilisation des produits phytosanitaires 2024</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#F8FBF8] text-xs text-gray-500 uppercase tracking-wide">
+                      <th className="text-left p-3 font-medium">Produit</th>
+                      <th className="text-left p-3 font-medium">Matière active</th>
+                      <th className="text-center p-3 font-medium">Homologué CI</th>
+                      <th className="text-center p-3 font-medium">RA autorisé</th>
+                      <th className="text-left p-3 font-medium">Qté utilisée</th>
+                      <th className="text-left p-3 font-medium">Évolution</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {phytosanitaires.map(p => (
+                      <tr key={p.produit} className="hover:bg-gray-50">
+                        <td className="p-3 font-medium text-gray-900 text-sm">{p.produit}</td>
+                        <td className="p-3 text-gray-600 text-xs">{p.matiere}</td>
+                        <td className="p-3 text-center">
+                          {p.homologCI ? <span className="text-green-600 font-semibold">✅</span> : <span className="text-red-500">❌</span>}
+                        </td>
+                        <td className="p-3 text-center">
+                          {p.raAuto === "oui" && <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium">✅ Autorisé</span>}
+                          {p.raAuto === "restreint" && <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-medium">⚠️ Restreint</span>}
+                          {p.raAuto === "interdit" && <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-medium">❌ Interdit RA</span>}
+                        </td>
+                        <td className="p-3 text-gray-900 font-medium text-sm">{p.qte}</td>
+                        <td className="p-3">
+                          <span className={`text-xs font-semibold ${p.evolution.includes("-") ? "text-green-600" : "text-red-600"}`}>
+                            {p.evolution}
+                          </span>
+                        </td>
+                      </tr>
                     ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======== ONGLET SOCIAL ======== */}
+        {tab === "social" && (
+          <div className="space-y-6">
+            {/* Impact coopérative */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="rounded-2xl border border-gray-100 bg-white p-5 text-center">
+                <p className="text-3xl font-bold text-gray-900">142</p>
+                <p className="text-xs text-gray-500 mt-1">Coopérants</p>
+                <p className="text-xs text-[#2E7D32] font-medium mt-0.5">dont 48 femmes (33,8%)</p>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-white p-5 text-center">
+                <p className="text-3xl font-bold text-gray-900">32</p>
+                <p className="text-xs text-gray-500 mt-1">Villages dans la zone Nawa</p>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-white p-5 text-center">
+                <p className="text-3xl font-bold text-[#2E7D32]">87</p>
+                <p className="text-xs text-gray-500 mt-1">Enfants scolarisés</p>
+                <p className="text-xs text-gray-400 mt-0.5">grâce aux primes RA</p>
+              </div>
+            </div>
+
+            {/* Distribution primes — bar chart horizontal SVG */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="font-semibold text-gray-900 mb-4">Distribution des primes qualité RA</h2>
+              <div className="space-y-2">
+                {primesRA.map(p => (
+                  <div key={p.nom} className="flex items-center gap-3">
+                    <span className="text-xs text-gray-600 w-24 shrink-0">{p.nom}</span>
+                    <div className="flex-1 h-5 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-5 bg-[#2E7D32] rounded-full flex items-center justify-end pr-2"
+                        style={{ width: `${(p.montant / maxPrime) * 100}%` }}
+                      >
+                        <span className="text-[10px] text-white font-medium whitespace-nowrap">
+                          {p.montant.toLocaleString("fr-FR")} XOF
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Programme bien-être */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="font-semibold text-gray-900 mb-4">Programme bien-être employés</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex items-start gap-3 p-3 bg-green-50 rounded-xl">
+                  <span className="text-green-600 font-bold text-lg mt-0.5">✅</span>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Assurance maladie</p>
+                    <p className="text-xs text-gray-500">15/15 permanents couverts</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-xl">
+                  <span className="text-blue-600 font-bold text-lg mt-0.5">💰</span>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Avances sur salaire sans intérêt</p>
+                    <p className="text-xs text-gray-500">8 dossiers en cours</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-xl">
+                  <span className="text-orange-600 font-bold text-lg mt-0.5">🏠</span>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Logement sur site</p>
+                    <p className="text-xs text-gray-500">6 employés bénéficiaires</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-green-50 rounded-xl">
+                  <span className="text-green-600 font-bold text-lg mt-0.5">✅</span>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Mutuelle CGRAE</p>
+                    <p className="text-xs text-gray-500">Cotisations à jour</p>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* Santé-sécurité */}
+            <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+              <div className="p-5 border-b border-gray-100">
+                <h2 className="font-semibold text-gray-900">Indicateurs santé-sécurité</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#F8FBF8] text-xs text-gray-500 uppercase tracking-wide">
+                      <th className="text-left p-3 font-medium">Indicateur</th>
+                      <th className="text-center p-3 font-medium">2023</th>
+                      <th className="text-center p-3 font-medium">2024</th>
+                      <th className="text-center p-3 font-medium">Objectif</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {securiteData.map(s => (
+                      <tr key={s.indicateur} className="hover:bg-gray-50">
+                        <td className="p-3 text-gray-900 font-medium">{s.indicateur}</td>
+                        <td className="p-3 text-center text-gray-600">{s.v2023}</td>
+                        <td className="p-3 text-center font-bold text-[#2E7D32]">{s.v2024}</td>
+                        <td className="p-3 text-center text-green-600 font-semibold text-xs">{s.objectif}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
-      </main>
+        )}
+
+        {/* ======== ONGLET GOUVERNANCE ======== */}
+        {tab === "gouv" && (
+          <div className="space-y-6">
+            {/* Organes de gouvernance */}
+            <div>
+              <h2 className="font-semibold text-gray-900 mb-3">Organes de gouvernance</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { titre: "Conseil d'Administration", membres: "5 membres (2 indépendants)", reunions: "4 réunions/an" },
+                  { titre: "Comité d'Audit", membres: "3 membres", reunions: "2 réunions/an" },
+                  { titre: "Comité RSE", membres: "4 membres (dont 1 repr. coopérative)", reunions: "4 réunions/an" },
+                ].map(org => (
+                  <div key={org.titre} className="rounded-2xl border border-gray-100 bg-white p-5">
+                    <div className="w-10 h-10 rounded-xl bg-[#F8FBF8] flex items-center justify-center mb-3 text-xl">
+                      🏛
+                    </div>
+                    <h3 className="font-semibold text-gray-900 text-sm">{org.titre}</h3>
+                    <p className="text-xs text-gray-500 mt-1">{org.membres}</p>
+                    <p className="text-xs text-[#2E7D32] font-medium mt-1">{org.reunions}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Certifications */}
+            <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+              <div className="p-5 border-b border-gray-100">
+                <h2 className="font-semibold text-gray-900">Conformité & Certifications</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#F8FBF8] text-xs text-gray-500 uppercase tracking-wide">
+                      <th className="text-left p-3 font-medium">Référentiel</th>
+                      <th className="text-center p-3 font-medium">Statut</th>
+                      <th className="text-center p-3 font-medium">Dernier audit</th>
+                      <th className="text-center p-3 font-medium">Validité</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {certifications.map(c => (
+                      <tr key={c.ref} className="hover:bg-gray-50">
+                        <td className="p-3 font-medium text-gray-900">{c.ref}</td>
+                        <td className="p-3 text-center">
+                          <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                            ✅ {c.statut}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center text-gray-600 text-xs">{c.audit}</td>
+                        <td className="p-3 text-center text-gray-600 text-xs">{c.validite}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Anti-corruption */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="font-semibold text-gray-900 mb-4">Politique anti-corruption</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
+                  <span className="text-2xl">✅</span>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">Code de conduite</p>
+                    <p className="text-xs text-gray-600 mt-0.5">Signé par 15/15 permanents</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
+                  <span className="text-2xl">✅</span>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">Incidents signalés en 2024</p>
+                    <p className="text-xs text-gray-600 mt-0.5">Aucun incident — bilan net 0</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
