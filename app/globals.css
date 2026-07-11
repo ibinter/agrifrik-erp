@@ -187,3 +187,35 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  /* Cacher sidebar, topbar, boutons d'action */
+  nav, aside, .sidebar, [data-print-hide] {
+    display: none !important;
+  }
+
+  /* Fond blanc, texte noir */
+  body { background: white !important; color: black !important; }
+
+  /* Cards sans ombre */
+  .rounded-2xl { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+
+  /* Tableaux pleine largeur */
+  table { width: 100% !important; }
+
+  /* En-tête d'impression AGRIFRIK */
+  @page {
+    margin: 1.5cm;
+    size: A4;
+  }
+
+  /* Éviter coupures dans les tables */
+  tr { page-break-inside: avoid; }
+
+  /* Couleur badges lisibles en N&B */
+  .bg-green-100, .bg-orange-100, .bg-red-100 {
+    background: #f3f4f6 !important;
+    color: black !important;
+  }
+}

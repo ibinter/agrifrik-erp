@@ -2,862 +2,297 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
-import {
-  Package,
-  Scale,
-  TrendingDown,
-  Sun,
-  Award,
-  Thermometer,
-  Droplets,
-  Clock,
-  CheckCircle,
-  AlertTriangle,
-  ArrowRight,
-  RotateCcw,
-  Wind,
-  FlaskConical,
-} from "lucide-react";
+import { ChevronRight, AlertTriangle, CheckCircle, Clock, Thermometer, Droplets, Award } from "lucide-react";
 
-// ─── KPIs ────────────────────────────────────────────────────────────────────
-const kpis = [
-  {
-    label: "Lots en cours",
-    value: "8",
-    unit: "",
-    sub: "fermentation + séchage",
-    iconColor: "#2E7D32",
-    iconBg: "#E8F5E9",
-    icon: Package,
-  },
-  {
-    label: "Volume en transformation",
-    value: "3 840",
-    unit: "kg",
-    sub: "masse cumulée active",
-    iconColor: "#1565C0",
-    iconBg: "#E3F2FD",
-    icon: Scale,
-  },
-  {
-    label: "Taux de perte",
-    value: "22,4",
-    unit: "%",
-    sub: "normal : 20–25 %",
-    iconColor: "#E65100",
-    iconBg: "#FFF3E0",
-    icon: TrendingDown,
-  },
-  {
-    label: "Rendement séchage",
-    value: "77,6",
-    unit: "%",
-    sub: "humidité finale < 8 %",
-    iconColor: "#F9A825",
-    iconBg: "#FFFDE7",
-    icon: Sun,
-  },
-  {
-    label: "Lots certifiés Grade A/AA",
-    value: "94",
-    unit: "%",
-    sub: "sur lots terminés",
-    iconColor: "#6A1B9A",
-    iconBg: "#F3E5F5",
-    icon: Award,
-  },
-];
+const TABS = ["Vue d'ensemble", "Fermentation", "Séchage", "Qualité finale"] as const;
+type Tab = typeof TABS[number];
 
-// ─── FERMENTATION DATA ───────────────────────────────────────────────────────
-const bacs = [
-  {
-    id: "A1",
-    lot: "LOT-052",
-    variete: "Amelonado T800",
-    origine: "PAR-A1",
-    masseInitiale: 680,
-    debut: "08/07/2025 06:00",
-    jour: 3,
-    total: 6,
-    temp: 48,
-    tempOk: true,
-    ph: 4.2,
-    phOk: true,
-    dernierRetournement: "09/07 06:00",
-    prochainRetournement: "11/07 06:00",
-    aspect: "Bonne coloration brune, odeur fermentée normale",
-    finPrevue: "14/07",
-    done: false,
-  },
-  {
-    id: "A2",
-    lot: "LOT-053",
-    variete: "Hybride Mercedes",
-    origine: "PAR-A3",
-    masseInitiale: 520,
-    debut: "09/07/2025",
-    jour: 2,
-    total: 6,
-    temp: 42,
-    tempOk: false,
-    ph: 3.8,
-    phOk: true,
-    dernierRetournement: "09/07 08:00",
-    prochainRetournement: "11/07 08:00",
-    aspect: "Légèrement froid — ajouter couvercle",
-    finPrevue: "15/07",
-    done: false,
-  },
-  {
-    id: "A3",
-    lot: "LOT-050",
-    variete: "Amelonado",
-    origine: "PAR-B2",
-    masseInitiale: 620,
-    debut: "05/07/2025",
-    jour: 5,
-    total: 6,
-    temp: 50,
-    tempOk: true,
-    ph: 4.8,
-    phOk: true,
-    dernierRetournement: "09/07 07:00",
-    prochainRetournement: "11/07 07:00",
-    aspect: "Couleur brun foncé, très bonne évolution",
-    finPrevue: "12/07",
-    done: false,
-  },
-  {
-    id: "B1",
-    lot: "LOT-048",
-    variete: "Amelonado T800",
-    origine: "PAR-C1",
-    masseInitiale: 480,
-    debut: "04/07/2025",
-    jour: 6,
-    total: 6,
-    temp: null,
-    tempOk: true,
-    ph: null,
-    phOk: true,
-    dernierRetournement: "09/07 06:00",
-    prochainRetournement: "—",
-    aspect: "Excellente. Indice de fermentation : 94%",
-    finPrevue: "10/07",
-    done: true,
-  },
-  {
-    id: "B2",
-    lot: "LOT-049",
-    variete: "Hybride Mercedes",
-    origine: "PAR-A2",
-    masseInitiale: 720,
-    debut: "06/07/2025",
-    jour: 4,
-    total: 6,
-    temp: 47,
-    tempOk: true,
-    ph: 4.5,
-    phOk: true,
-    dernierRetournement: "09/07 07:00",
-    prochainRetournement: "11/07 07:00",
-    aspect: "Odeur excellente, progression normale",
-    finPrevue: "13/07",
-    done: false,
-  },
-  {
-    id: "C1",
-    lot: "LOT-051",
-    variete: "Amelonado",
-    origine: "PAR-D1",
-    masseInitiale: 820,
-    debut: "09/07/2025",
-    jour: 1,
-    total: 7,
-    temp: 38,
-    tempOk: true,
-    ph: 3.5,
-    phOk: true,
-    dernierRetournement: "—",
-    prochainRetournement: "11/07 06:00",
-    aspect: "Début normal, température en montée",
-    finPrevue: "17/07",
-    done: false,
-  },
-];
-
-const journalRetournements = [
-  { bac: "A1", lot: "LOT-052", dateHeure: "09/07 06:00", operateur: "Ibrahim S.", tempAvant: "46°C", tempApres: "48°C", obs: "Normal" },
-  { bac: "A2", lot: "LOT-053", dateHeure: "09/07 08:00", operateur: "Konan Y.", tempAvant: "40°C", tempApres: "42°C", obs: "Légèrement froid — ajouter couvercle" },
-  { bac: "B2", lot: "LOT-049", dateHeure: "09/07 07:00", operateur: "Ibrahim S.", tempAvant: "48°C", tempApres: "47°C", obs: "Odeur excellente" },
-  { bac: "A3", lot: "LOT-050", dateHeure: "07/07 07:00", operateur: "Konan Y.", tempAvant: "44°C", tempApres: "50°C", obs: "Montée rapide normale" },
-  { bac: "B1", lot: "LOT-048", dateHeure: "08/07 06:00", operateur: "Ibrahim S.", tempAvant: "49°C", tempApres: "48°C", obs: "Dernière phase — fin imminente" },
-  { bac: "C1", lot: "LOT-051", dateHeure: "09/07 06:00", operateur: "Diallo M.", tempAvant: "28°C", tempApres: "38°C", obs: "Démarrage correct" },
-  { bac: "A1", lot: "LOT-052", dateHeure: "07/07 06:00", operateur: "Ibrahim S.", tempAvant: "42°C", tempApres: "46°C", obs: "Bonne montée" },
-  { bac: "B2", lot: "LOT-049", dateHeure: "07/07 07:00", operateur: "Diallo M.", tempAvant: "45°C", tempApres: "48°C", obs: "Normal" },
-];
-
-// ─── SECHAGE DATA ─────────────────────────────────────────────────────────────
-const sechoirs = [
-  {
-    id: "Séchoir Solaire A",
-    lot: "LOT-048",
-    type: "solaire",
-    masseAvant: 416,
-    humiditéInitiale: 42,
-    humiditéActuelle: 38,
-    humiditéCible: 8,
-    jour: 1,
-    dureeEstimee: "10–12 jours",
-    statut: "en_cours",
-    alerte: null,
-    meteo: "☀️ 34°C prévu 11/07",
-  },
-  {
-    id: "Séchoir Solaire B",
-    lot: "LOT-045",
-    type: "solaire",
-    masseAvant: 580,
-    masseActuelle: 482,
-    humiditéInitiale: 42,
-    humiditéActuelle: 12.4,
-    humiditéCible: 8,
-    jour: 6,
-    dureeEstimee: "10–12 jours",
-    statut: "alerte",
-    alerte: "⚠️ Pluies prévues 12–13/07 — rentrer à l'abri !",
-    meteo: "⛅ Nuageux 11/07",
-  },
-  {
-    id: "Séchoir Artificiel A",
-    lot: "LOT-046",
-    type: "artificiel",
-    masseAvant: 390,
-    humiditéInitiale: 35,
-    humiditéActuelle: 7.2,
-    humiditéCible: 8,
-    jour: 3,
-    total: 3,
-    dureeEstimee: "48–72h",
-    statut: "presque_sec",
-    alerte: null,
-    tempSechoir: "55°C",
-  },
-  {
-    id: "Séchoir Artificiel B",
-    lot: "LOT-047",
-    type: "artificiel",
-    masseAvant: 320,
-    humiditéInitiale: 35,
-    humiditéActuelle: 9.8,
-    humiditéCible: 8,
-    jour: 2,
-    total: 3,
-    dureeEstimee: "48–72h",
-    statut: "en_cours",
-    alerte: null,
-    tempSechoir: "55°C",
-  },
-];
-
-// Courbe d'humidité LOT-045
-const courbeHumidite = [
-  { j: "J0", v: 42 },
-  { j: "J1", v: 36 },
-  { j: "J2", v: 28 },
-  { j: "J3", v: 21 },
-  { j: "J4", v: 16 },
-  { j: "J5", v: 14 },
-  { j: "J6", v: 12.4 },
-];
-
-// ─── CONDITIONNEMENT DATA ────────────────────────────────────────────────────
-const lotsCondPrets = [
-  {
-    lot: "LOT-046",
-    grade: "Grade A",
-    masseSechee: 368,
-    emballage: "Sacs jute 65 kg",
-    nbSacs: 6,
-    etiquettes: true,
-    statut: "En attente pesée finale",
-  },
-];
-
-const condTermines = [
-  { lot: "LOT-043", masseSechee: 384, grade: "Grade AA", nbSacs: "6 sacs (64 kg)", destination: "EXP-2025-041 Barry Callebaut", date: "05/07" },
-  { lot: "LOT-042", masseSechee: 312, grade: "Grade A", nbSacs: "5 sacs", destination: "EXP-2025-039 Olam", date: "03/07" },
-  { lot: "LOT-041", masseSechee: 428, grade: "Grade A", nbSacs: "7 sacs", destination: "Stock Entrepôt A", date: "01/07" },
-  { lot: "LOT-040", masseSechee: 496, grade: "Grade AA", nbSacs: "8 sacs", destination: "EXP-2025-039", date: "29/06" },
-  { lot: "LOT-039", masseSechee: 362, grade: "Grade B", nbSacs: "6 sacs", destination: "Marché local", date: "27/06" },
-];
-
-// ─── QUALITE DATA ────────────────────────────────────────────────────────────
-const analyseQualite = [
-  { lot: "LOT-043", tauxFerment: "94%", humiditeFin: "7,2%", impuretes: "0,8%", calibre: "AA", grade: "Grade AA", score: 98, ok: true },
-  { lot: "LOT-042", tauxFerment: "91%", humiditeFin: "7,8%", impuretes: "1,2%", calibre: "A", grade: "Grade A", score: 93, ok: true },
-  { lot: "LOT-040", tauxFerment: "96%", humiditeFin: "6,9%", impuretes: "0,7%", calibre: "AA", grade: "Grade AA", score: 99, ok: true },
-];
-
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-function GradeBadge({ grade }: { grade: string }) {
-  const isAA = grade.includes("AA");
-  const isB = grade.includes("Grade B");
-  const bg = isAA ? "bg-purple-100 text-purple-700" : isB ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700";
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${bg}`}>
-      {grade}
-    </span>
-  );
-}
-
-function TempBadge({ temp, ok }: { temp: number; ok: boolean }) {
-  return (
-    <span className={`inline-flex items-center gap-1 text-xs font-medium ${ok ? "text-green-700" : "text-amber-600"}`}>
-      <Thermometer size={12} />
-      {temp}°C {ok ? "✅" : "🟡"}
-    </span>
-  );
-}
-
-function HumidBadge({ h, cible }: { h: number; cible: number }) {
-  const ok = h <= cible;
-  const warn = h <= cible + 5;
-  const color = ok ? "text-green-700" : warn ? "text-amber-600" : "text-red-600";
-  return (
-    <span className={`inline-flex items-center gap-1 text-xs font-medium ${color}`}>
-      <Droplets size={12} />
-      {h}% {ok ? "✅" : "🟡"}
-    </span>
-  );
-}
-
-// SVG courbe humidité
-function CourbeHumidite() {
-  const W = 400, H = 120, padX = 36, padY = 12;
-  const innerW = W - padX * 2;
-  const innerH = H - padY * 2;
-  const maxV = 50;
-  const pts = courbeHumidite.map((d, i) => {
-    const x = padX + (i / (courbeHumidite.length - 1)) * innerW;
-    const y = padY + innerH - (d.v / maxV) * innerH;
-    return { x, y, ...d };
-  });
-  const pathD = pts.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
-  const areaD = `${pathD} L ${pts[pts.length - 1].x} ${padY + innerH} L ${pts[0].x} ${padY + innerH} Z`;
-  // Ligne cible 8% → y
-  const targetY = padY + innerH - (8 / maxV) * innerH;
+// ── SVG Pipeline ──────────────────────────────────────────────────────────────
+function PipelineSVG() {
+  const steps = [
+    { label: "Récolte", x: 60 },
+    { label: "Fermentation", x: 180 },
+    { label: "Séchage", x: 300 },
+    { label: "Classement", x: 420 },
+    { label: "Conditionnement", x: 540 },
+    { label: "Export", x: 660 },
+  ];
+  const progress = [100, 83, 90, 100, 100, 0];
+  const colors = ["#4CAF50", "#2E7D32", "#F59E0B", "#4CAF50", "#4CAF50", "#E5E7EB"];
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: 420 }}>
-      {/* Grille */}
-      {[0, 10, 20, 30, 40, 50].map((v) => {
-        const y = padY + innerH - (v / maxV) * innerH;
-        return (
-          <g key={v}>
-            <line x1={padX} y1={y} x2={W - padX} y2={y} stroke="#E5E7EB" strokeWidth={0.5} />
-            <text x={padX - 4} y={y + 4} textAnchor="end" fontSize={8} fill="#9CA3AF">{v}%</text>
-          </g>
-        );
-      })}
-      {/* Labels X */}
-      {pts.map((p) => (
-        <text key={p.j} x={p.x} y={H - 2} textAnchor="middle" fontSize={8} fill="#9CA3AF">{p.j}</text>
+    <svg viewBox="0 0 760 160" xmlns="http://www.w3.org/2000/svg" className="w-full">
+      {/* connector line */}
+      <line x1="60" y1="52" x2="700" y2="52" stroke="#D1D5DB" strokeWidth="2" strokeDasharray="6 3" />
+      {steps.map((s, i) => (
+        <g key={s.label}>
+          {/* circle */}
+          <circle cx={s.x} cy={52} r={22} fill={colors[i]} opacity={i === 5 ? 0.25 : 1} />
+          <text x={s.x} y={57} textAnchor="middle" fill="white" fontSize="11" fontWeight="700">
+            {i + 1}
+          </text>
+          {/* label */}
+          <text x={s.x} y={88} textAnchor="middle" fill="#374151" fontSize="9" fontWeight="600">
+            {s.label.split(" ").map((w, wi) => (
+              <tspan key={wi} x={s.x} dy={wi === 0 ? 0 : 12}>{w}</tspan>
+            ))}
+          </text>
+          {/* progress bar */}
+          <rect x={s.x - 22} y={118} width={44} height={6} rx={3} fill="#E5E7EB" />
+          <rect x={s.x - 22} y={118} width={Math.round(44 * progress[i] / 100)} height={6} rx={3} fill={colors[i]} opacity={i === 5 ? 0.3 : 1} />
+          <text x={s.x} y={140} textAnchor="middle" fill="#6B7280" fontSize="8">{progress[i]}%</text>
+        </g>
       ))}
-      {/* Aire */}
-      <path d={areaD} fill="#2E7D32" opacity={0.08} />
-      {/* Courbe */}
-      <path d={pathD} fill="none" stroke="#2E7D32" strokeWidth={2} strokeLinejoin="round" />
-      {/* Points */}
-      {pts.map((p) => (
-        <circle key={p.j} cx={p.x} cy={p.y} r={3} fill="#2E7D32" />
+      {/* lot indicators */}
+      <circle cx={180} cy={22} r={7} fill="#3B82F6" />
+      <text x={197} y={26} fill="#3B82F6" fontSize="9" fontWeight="600">LOT-048 J5</text>
+      <circle cx={300} cy={22} r={7} fill="#F59E0B" />
+      <text x={317} y={26} fill="#F59E0B" fontSize="9" fontWeight="600">LOT-047 J8</text>
+    </svg>
+  );
+}
+
+// ── SVG Température fermentation ──────────────────────────────────────────────
+function FermentationTempSVG() {
+  const data = [28, 34, 46, 52, 48, 44];
+  const W = 420, H = 200, PL = 45, PR = 20, PT = 20, PB = 35;
+  const iW = W - PL - PR, iH = H - PT - PB;
+  const minT = 20, maxT = 60;
+  const toX = (i: number) => PL + (i / (data.length - 1)) * iW;
+  const toY = (v: number) => PT + iH - ((v - minT) / (maxT - minT)) * iH;
+  const path = data.map((v, i) => `${i === 0 ? "M" : "L"}${toX(i)},${toY(v)}`).join(" ");
+  const optY1 = toY(52), optY2 = toY(44);
+  const danY = toY(38);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} xmlns="http://www.w3.org/2000/svg" className="w-full max-w-lg">
+      {/* zones */}
+      <rect x={PL} y={optY1} width={iW} height={optY2 - optY1} fill="#D1FAE5" opacity="0.6" />
+      <rect x={PL} y={danY} width={iW} height={iH - (danY - PT)} fill="#FEE2E2" opacity="0.4" />
+      {/* axes */}
+      <line x1={PL} y1={PT} x2={PL} y2={PT + iH} stroke="#9CA3AF" strokeWidth="1" />
+      <line x1={PL} y1={PT + iH} x2={PL + iW} y2={PT + iH} stroke="#9CA3AF" strokeWidth="1" />
+      {/* y labels */}
+      {[20, 30, 40, 50, 60].map(v => (
+        <g key={v}>
+          <text x={PL - 5} y={toY(v) + 4} textAnchor="end" fontSize="9" fill="#6B7280">{v}°</text>
+          <line x1={PL} y1={toY(v)} x2={PL + iW} y2={toY(v)} stroke="#F3F4F6" strokeWidth="1" />
+        </g>
       ))}
-      {/* Ligne cible rouge pointillée */}
-      <line x1={padX} y1={targetY} x2={W - padX} y2={targetY} stroke="#EF4444" strokeWidth={1.5} strokeDasharray="4 3" />
-      <text x={W - padX + 2} y={targetY + 4} fontSize={8} fill="#EF4444">8%</text>
-      {/* Valeur dernière */}
-      {pts.map((p) => (
-        <text key={`v-${p.j}`} x={p.x} y={p.y - 5} textAnchor="middle" fontSize={7.5} fill="#2E7D32" fontWeight="600">
-          {p.v}%
-        </text>
+      {/* x labels */}
+      {data.map((_, i) => (
+        <text key={i} x={toX(i)} y={H - 8} textAnchor="middle" fontSize="9" fill="#6B7280">J{i}</text>
+      ))}
+      {/* zone labels */}
+      <text x={PL + iW - 5} y={optY1 + 12} textAnchor="end" fontSize="8" fill="#059669">Zone optimale 44-52°C</text>
+      <text x={PL + iW - 5} y={danY - 4} textAnchor="end" fontSize="8" fill="#EF4444">Insuffisant &lt;38°C</text>
+      {/* curve */}
+      <path d={path} fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinejoin="round" />
+      {data.map((v, i) => (
+        <g key={i}>
+          <circle cx={toX(i)} cy={toY(v)} r={4} fill="#2E7D32" />
+          <text x={toX(i)} y={toY(v) - 8} textAnchor="middle" fontSize="9" fill="#1B5E20" fontWeight="600">{v}°</text>
+        </g>
       ))}
     </svg>
   );
 }
 
-// ─── COMPONENT ───────────────────────────────────────────────────────────────
-export default function TransformationPage() {
-  const [tab, setTab] = useState<"fermentation" | "sechage" | "conditionnement" | "qualite">(
-    "fermentation"
-  );
-
-  const tabs = [
-    { key: "fermentation", label: "Fermentation" },
-    { key: "sechage", label: "Séchage" },
-    { key: "conditionnement", label: "Conditionnement" },
-    { key: "qualite", label: "Qualité & Traçabilité" },
-  ] as const;
+// ── SVG Courbe séchage ────────────────────────────────────────────────────────
+function SechageSVG() {
+  const data = [58, 48, 38, 29, 22, 16, 12, 9.4, 7.8];
+  const W = 420, H = 200, PL = 45, PR = 20, PT = 20, PB = 35;
+  const iW = W - PL - PR, iH = H - PT - PB;
+  const minV = 0, maxV = 65;
+  const toX = (i: number) => PL + (i / (data.length - 1)) * iW;
+  const toY = (v: number) => PT + iH - ((v - minV) / (maxV - minV)) * iH;
+  const path = data.map((v, i) => `${i === 0 ? "M" : "L"}${toX(i)},${toY(v)}`).join(" ");
+  const area = `${path} L${toX(data.length - 1)},${toY(0)} L${toX(0)},${toY(0)} Z`;
+  const objY = toY(7.5);
 
   return (
-    <div>
-      <Topbar
-        title="Transformation & Post-Récolte"
-        breadcrumb={["Commerce", "Transformation"]}
-      />
+    <svg viewBox={`0 0 ${W} ${H}`} xmlns="http://www.w3.org/2000/svg" className="w-full max-w-lg">
+      <defs>
+        <linearGradient id="sgGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2E7D32" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#2E7D32" stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+      <line x1={PL} y1={PT} x2={PL} y2={PT + iH} stroke="#9CA3AF" strokeWidth="1" />
+      <line x1={PL} y1={PT + iH} x2={PL + iW} y2={PT + iH} stroke="#9CA3AF" strokeWidth="1" />
+      {[0, 20, 40, 60].map(v => (
+        <g key={v}>
+          <text x={PL - 5} y={toY(v) + 4} textAnchor="end" fontSize="9" fill="#6B7280">{v}%</text>
+          <line x1={PL} y1={toY(v)} x2={PL + iW} y2={toY(v)} stroke="#F3F4F6" strokeWidth="1" />
+        </g>
+      ))}
+      {data.map((_, i) => (
+        <text key={i} x={toX(i)} y={H - 8} textAnchor="middle" fontSize="9" fill="#6B7280">J{i}</text>
+      ))}
+      {/* objectif line */}
+      <line x1={PL} y1={objY} x2={PL + iW} y2={objY} stroke="#EF4444" strokeWidth="1.5" strokeDasharray="5 3" />
+      <text x={PL + iW - 5} y={objY - 4} textAnchor="end" fontSize="8" fill="#EF4444">Objectif 7,5%</text>
+      <path d={area} fill="url(#sgGrad)" />
+      <path d={path} fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinejoin="round" />
+      {data.map((v, i) => (
+        <g key={i}>
+          <circle cx={toX(i)} cy={toY(v)} r={3.5} fill="#2E7D32" />
+          <text x={toX(i)} y={toY(v) - 7} textAnchor="middle" fontSize="8" fill="#1B5E20">{v}%</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
 
-      <div className="p-6 space-y-6">
-        {/* ── KPIs ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          {kpis.map((kpi) => {
-            const Icon = kpi.icon;
-            return (
-              <div
-                key={kpi.label}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-tight">
-                    {kpi.label}
-                  </span>
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: kpi.iconBg }}
-                  >
-                    <Icon size={16} style={{ color: kpi.iconColor }} />
-                  </div>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-gray-900 dark:text-white">{kpi.value}</span>
-                  {kpi.unit && (
-                    <span className="text-sm text-gray-500 dark:text-gray-400">{kpi.unit}</span>
-                  )}
-                </div>
-                <p className="text-[11px] text-gray-400 mt-1">{kpi.sub}</p>
-              </div>
-            );
-          })}
+// ── Page ──────────────────────────────────────────────────────────────────────
+export default function TransformationPage() {
+  const [tab, setTab] = useState<Tab>("Vue d'ensemble");
+
+  return (
+    <div className="flex-1 flex flex-col min-h-screen bg-[#F8FBF8]">
+      <Topbar />
+      <div className="p-6 flex-1">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+          <span>Commerce</span>
+          <ChevronRight className="w-4 h-4" />
+          <span className="text-[#2E7D32] font-medium">Transformation & Post-récolte</span>
+        </div>
+        <h1 className="text-xl font-bold text-gray-800 mb-5">Transformation & Post-récolte Cacao</h1>
+
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 border-b border-gray-200">
+          {TABS.map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                tab === t
+                  ? "border-b-2 border-[#2E7D32] text-[#2E7D32]"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
         </div>
 
-        {/* ── Onglets ── */}
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <div className="flex gap-1">
-            {tabs.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors ${
-                  tab === t.key
-                    ? "bg-white dark:bg-gray-800 border border-b-white dark:border-gray-700 dark:border-b-gray-800 text-[#2E7D32] border-gray-200"
-                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ═══════════════════════════════════════════
-            ONGLET FERMENTATION
-        ═══════════════════════════════════════════ */}
-        {tab === "fermentation" && (
+        {/* ── Vue d'ensemble ── */}
+        {tab === "Vue d'ensemble" && (
           <div className="space-y-6">
-            {/* Explication */}
-            <div className="flex items-start gap-3 bg-[#E8F5E9] dark:bg-green-900/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
-              <FlaskConical size={18} className="text-[#2E7D32] mt-0.5 shrink-0" />
-              <p className="text-sm text-[#1B5E20] dark:text-green-300">
-                Le cacao subit <strong>5–7 jours</strong> de fermentation anaérobie puis aérobie dans des bacs en bois.
-                Température idéale : <strong>45–50°C</strong>. Retournement toutes les <strong>48h</strong>.
-              </p>
-            </div>
-
-            {/* Grille bacs */}
-            <div>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                Bacs de fermentation actifs
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {bacs.map((bac) => {
-                  const pct = Math.round((bac.jour / bac.total) * 100);
-                  return (
-                    <div
-                      key={bac.id}
-                      className={`bg-white dark:bg-gray-800 rounded-2xl border p-5 shadow-sm space-y-3 ${
-                        bac.done
-                          ? "border-green-300 dark:border-green-700"
-                          : !bac.tempOk
-                          ? "border-amber-300 dark:border-amber-700"
-                          : "border-gray-100 dark:border-gray-700"
-                      }`}
-                    >
-                      {/* En-tête */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-bold text-gray-900 dark:text-white text-sm">
-                            Bac {bac.id}
-                          </p>
-                          <p className="text-xs font-mono text-[#2E7D32] mt-0.5">{bac.lot}</p>
-                        </div>
-                        {bac.done ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                            <CheckCircle size={11} /> Terminé ✅
-                          </span>
-                        ) : !bac.tempOk ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                            <AlertTriangle size={11} /> Surveiller
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                            <Clock size={11} /> J{bac.jour}/{bac.total}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Infos */}
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Variété</span>
-                          <span className="font-medium text-gray-800 dark:text-gray-200">{bac.variete}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Origine</span>
-                          <span className="font-medium text-gray-800 dark:text-gray-200">{bac.origine}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Masse initiale</span>
-                          <span className="font-medium text-gray-800 dark:text-gray-200">{bac.masseInitiale} kg</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Début</span>
-                          <span className="font-medium text-gray-800 dark:text-gray-200">{bac.debut}</span>
-                        </div>
-                        {!bac.done && bac.temp !== null && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Température</span>
-                            <TempBadge temp={bac.temp!} ok={bac.tempOk} />
-                          </div>
-                        )}
-                        {!bac.done && bac.ph !== null && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">pH</span>
-                            <span className={`font-medium ${bac.phOk ? "text-green-700" : "text-amber-600"}`}>
-                              {bac.ph} {bac.phOk ? "✅" : "🟡"}
-                            </span>
-                          </div>
-                        )}
-                        {!bac.done && (
-                          <>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Dernier retournement</span>
-                              <span className="font-medium text-gray-800 dark:text-gray-200">{bac.dernierRetournement}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Prochain ⏰</span>
-                              <span className="font-medium text-amber-700 dark:text-amber-400">{bac.prochainRetournement}</span>
-                            </div>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Aspect visuel */}
-                      <p className="text-[11px] text-gray-500 italic border-t border-gray-100 dark:border-gray-700 pt-2">
-                        {bac.aspect}
-                      </p>
-
-                      {/* Barre progression */}
-                      {!bac.done ? (
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-[11px] text-gray-500">
-                            <span>Progression</span>
-                            <span className="font-medium text-gray-700 dark:text-gray-300">
-                              {pct}% — Fin prévue {bac.finPrevue}
-                            </span>
-                          </div>
-                          <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all"
-                              style={{
-                                width: `${pct}%`,
-                                backgroundColor: pct >= 80 ? "#4CAF50" : pct >= 50 ? "#2E7D32" : "#81C784",
-                              }}
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <button className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors">
-                          <ArrowRight size={13} /> Transférer au séchage
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Journal retournements */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
-                <RotateCcw size={15} style={{ color: "#2E7D32" }} />
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Journal des retournements
-                </h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-[#F8FBF8] dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
-                      {["Bac", "Lot", "Date/heure", "Opérateur", "Temp avant", "Temp après", "Observation"].map((h) => (
-                        <th key={h} className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                    {journalRetournements.map((r, i) => (
-                      <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                        <td className="px-4 py-2 font-bold text-gray-900 dark:text-white">{r.bac}</td>
-                        <td className="px-4 py-2 font-mono text-[#2E7D32]">{r.lot}</td>
-                        <td className="px-4 py-2 text-gray-600 dark:text-gray-400 whitespace-nowrap">{r.dateHeure}</td>
-                        <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{r.operateur}</td>
-                        <td className="px-4 py-2 text-gray-600 dark:text-gray-400">{r.tempAvant}</td>
-                        <td className="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">{r.tempApres}</td>
-                        <td className="px-4 py-2 text-gray-500 dark:text-gray-400">{r.obs}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════
-            ONGLET SECHAGE
-        ═══════════════════════════════════════════ */}
-        {tab === "sechage" && (
-          <div className="space-y-6">
-            {/* Explication */}
-            <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 border border-amber-200 dark:border-amber-800">
-              <Sun size={18} className="text-amber-600 mt-0.5 shrink-0" />
-              <p className="text-sm text-amber-900 dark:text-amber-300">
-                Après fermentation, le cacao est séché à <strong>7–8% d'humidité</strong> (objectif &lt; 8%).
-                Séchage solaire <strong>8–12 jours</strong> ou séchoir artificiel <strong>48–72h</strong>.
-              </p>
-            </div>
-
-            {/* Cards séchoirs */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {sechoirs.map((s) => {
-                const isSolaire = s.type === "solaire";
-                const isAlerte = s.statut === "alerte";
-                const isDone = s.humiditéActuelle <= s.humiditéCible;
-                return (
-                  <div
-                    key={s.id}
-                    className={`bg-white dark:bg-gray-800 rounded-2xl border p-5 shadow-sm space-y-3 ${
-                      isAlerte
-                        ? "border-red-300 dark:border-red-700"
-                        : isDone
-                        ? "border-green-300 dark:border-green-700"
-                        : "border-gray-100 dark:border-gray-700"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          {isSolaire ? (
-                            <Sun size={16} className="text-amber-500" />
-                          ) : (
-                            <Wind size={16} className="text-blue-500" />
-                          )}
-                          <p className="font-bold text-gray-900 dark:text-white text-sm">{s.id}</p>
-                        </div>
-                        <p className="text-xs font-mono text-[#2E7D32] mt-0.5">{s.lot}</p>
-                      </div>
-                      {isDone ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                          <CheckCircle size={11} /> Sec ✅
-                        </span>
-                      ) : isAlerte ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                          <AlertTriangle size={11} /> Alerte
-                        </span>
-                      ) : s.statut === "presque_sec" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                          <Clock size={11} /> Presque sec
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                          <Clock size={11} /> Jour {s.jour}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="space-y-1 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Masse avant séchage</span>
-                        <span className="font-medium text-gray-800 dark:text-gray-200">{s.masseAvant} kg</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Humidité initiale</span>
-                        <span className="font-medium text-gray-800 dark:text-gray-200">{s.humiditéInitiale}%</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-500">Humidité mesurée</span>
-                        <HumidBadge h={s.humiditéActuelle} cible={s.humiditéCible} />
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Objectif</span>
-                        <span className="font-medium text-red-600">&lt; {s.humiditéCible}%</span>
-                      </div>
-                      {s.tempSechoir && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Temp. séchoir</span>
-                          <span className="font-medium text-gray-800 dark:text-gray-200">{s.tempSechoir}</span>
-                        </div>
-                      )}
-                      {s.meteo && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Météo</span>
-                          <span className="font-medium text-gray-800 dark:text-gray-200">{s.meteo}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Durée estimée</span>
-                        <span className="font-medium text-gray-800 dark:text-gray-200">{s.dureeEstimee}</span>
-                      </div>
-                    </div>
-
-                    {/* Barre progression humidité */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[11px] text-gray-500">
-                        <span>Progression séchage</span>
-                        <span className="font-medium">{s.humiditéInitiale}% → {s.humiditéActuelle}% (cible {s.humiditéCible}%)</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${Math.min(100, ((s.humiditéInitiale - s.humiditéActuelle) / (s.humiditéInitiale - s.humiditéCible)) * 100)}%`,
-                            backgroundColor: isDone ? "#4CAF50" : isAlerte ? "#EF4444" : "#F59E0B",
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Alerte */}
-                    {s.alerte && (
-                      <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/20 rounded-lg p-3 text-xs text-red-700 dark:text-red-400">
-                        <AlertTriangle size={13} className="shrink-0 mt-0.5" />
-                        {s.alerte}
-                      </div>
-                    )}
+            {/* KPIs */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {[
+                { label: "Lots en cours", value: "2", sub: "LOT-048 ferm. J5 · LOT-047 séch. J8", icon: <Clock className="w-5 h-5 text-blue-500" /> },
+                { label: "Lots traités YTD", value: "47", sub: "depuis le 01/01/2025", icon: <CheckCircle className="w-5 h-5 text-green-600" /> },
+                { label: "Volume transformé YTD", value: "86,2 t", sub: "cacao sec", icon: <Thermometer className="w-5 h-5 text-[#2E7D32]" /> },
+                { label: "Score qualité moyen", value: "96,2/100", sub: "évaluation cut test", icon: <Award className="w-5 h-5 text-amber-500" /> },
+                { label: "Taux Grade AA", value: "62%", sub: "des lots classifiés", icon: <Award className="w-5 h-5 text-[#2E7D32]" /> },
+              ].map(k => (
+                <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-5">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-xs text-gray-500">{k.label}</span>
+                    {k.icon}
                   </div>
-                );
-              })}
-            </div>
-
-            {/* Courbe humidité LOT-045 */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Droplets size={15} style={{ color: "#2E7D32" }} />
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Courbe de descente d'humidité — LOT-045 (Séchoir Solaire B)
-                </h2>
-              </div>
-              <CourbeHumidite />
-              <p className="text-[11px] text-gray-400 mt-2">
-                La ligne rouge pointillée représente l'objectif &lt; 8% d'humidité.
-                LOT-045 est à <strong>12,4%</strong> au J6 — encore 2–3 jours nécessaires.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════
-            ONGLET CONDITIONNEMENT
-        ═══════════════════════════════════════════ */}
-        {tab === "conditionnement" && (
-          <div className="space-y-6">
-            {/* Lots prêts */}
-            <div>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                Lots prêts pour conditionnement (humidité &lt; 8%)
-              </h2>
-              {lotsCondPrets.map((lot) => (
-                <div
-                  key={lot.lot}
-                  className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-200 dark:border-amber-700 p-5"
-                >
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-900 dark:text-white text-sm font-mono">{lot.lot}</span>
-                        <GradeBadge grade={lot.grade} />
-                      </div>
-                      <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                        <div>
-                          <p className="text-gray-500">Masse séchée</p>
-                          <p className="font-semibold text-gray-800 dark:text-gray-200 mt-0.5">{lot.masseSechee} kg</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Emballage</p>
-                          <p className="font-semibold text-gray-800 dark:text-gray-200 mt-0.5">{lot.emballage}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Nombre de sacs</p>
-                          <p className="font-semibold text-gray-800 dark:text-gray-200 mt-0.5">{lot.nbSacs} sacs</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Étiquettes</p>
-                          <p className="font-semibold text-green-700 mt-0.5">
-                            {lot.etiquettes ? "✅ Imprimées" : "⚠️ En attente"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300">
-                        <AlertTriangle size={12} /> {lot.statut}
-                      </span>
-                    </div>
-                  </div>
+                  <div className="text-2xl font-bold text-gray-800">{k.value}</div>
+                  <div className="text-xs text-gray-400 mt-1">{k.sub}</div>
                 </div>
               ))}
             </div>
 
-            {/* Tableau conditionnement terminé */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Lots conditionnés récemment
-                </h2>
-              </div>
+            {/* Pipeline SVG */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Pipeline de transformation actuel</h2>
+              <PipelineSVG />
+            </div>
+
+            {/* Lots actifs */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Lots actifs</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="bg-[#F8FBF8] dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
-                      {["Lot", "Masse séchée", "Grade attribué", "Nb sacs", "Destination", "Date"].map((h) => (
-                        <th key={h} className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                          {h}
-                        </th>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Lot", "Étape", "Avancement", "Début", "ETA sortie", "Responsable", "Score actuel", "Alerte"].map(h => (
+                        <th key={h} className="text-left px-3 py-2 font-medium text-gray-600">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                    {condTermines.map((lot) => (
-                      <tr key={lot.lot} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                        <td className="px-4 py-2.5 font-mono font-medium text-gray-900 dark:text-white whitespace-nowrap">
-                          {lot.lot}
+                  <tbody>
+                    <tr className="border-t border-gray-50">
+                      <td className="px-3 py-2 font-medium text-[#2E7D32]">LOT-2025-048</td>
+                      <td className="px-3 py-2">Fermentation J5/6</td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-1.5">
+                            <div className="bg-[#2E7D32] h-1.5 rounded-full" style={{ width: "83%" }} />
+                          </div>
+                          <span>83%</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">06/07</td>
+                      <td className="px-3 py-2">13/07 <span className="text-gray-400">(demain)</span></td>
+                      <td className="px-3 py-2">Ibrahim S.</td>
+                      <td className="px-3 py-2">89% brunes</td>
+                      <td className="px-3 py-2"><span className="text-amber-500 flex items-center gap-1"><AlertTriangle className="w-3 h-3" />J6 demain</span></td>
+                    </tr>
+                    <tr className="border-t border-gray-50">
+                      <td className="px-3 py-2 font-medium text-[#2E7D32]">LOT-2025-047</td>
+                      <td className="px-3 py-2">Séchage J8/9</td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-1.5">
+                            <div className="bg-amber-400 h-1.5 rounded-full" style={{ width: "90%" }} />
+                          </div>
+                          <span>90%</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">02/07</td>
+                      <td className="px-3 py-2">12/07 <span className="text-green-600">(aujourd'hui)</span></td>
+                      <td className="px-3 py-2">Ibrahim S.</td>
+                      <td className="px-3 py-2">7,8% humidité</td>
+                      <td className="px-3 py-2"><span className="text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3" />OK</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* 10 derniers lots */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">10 derniers lots traités</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Lot", "Volume entrée", "Volume sortie", "Rendement", "Grade", "Score", "Date sortie"].map(h => (
+                        <th key={h} className="text-left px-3 py-2 font-medium text-gray-600">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { lot: "LOT-2025-046", ve: "3 020 kg", vs: "964 kg", r: "31,9%", g: "AA", s: "97/100", d: "01/07" },
+                      { lot: "LOT-2025-045", ve: "2 850 kg", vs: "912 kg", r: "32,0%", g: "AA", s: "96/100", d: "30/06", note: "exporté" },
+                      { lot: "LOT-2025-044", ve: "2 640 kg", vs: "845 kg", r: "32,0%", g: "AA", s: "95/100", d: "22/06" },
+                      { lot: "LOT-2025-043", ve: "2 980 kg", vs: "952 kg", r: "31,9%", g: "A", s: "93/100", d: "15/06" },
+                      { lot: "LOT-2025-042", ve: "2 720 kg", vs: "870 kg", r: "32,0%", g: "A", s: "89/100", d: "08/06" },
+                      { lot: "LOT-2025-041", ve: "3 100 kg", vs: "990 kg", r: "31,9%", g: "AA", s: "96/100", d: "01/06" },
+                      { lot: "LOT-2025-040", ve: "2 900 kg", vs: "928 kg", r: "32,0%", g: "AA", s: "97/100", d: "24/05" },
+                      { lot: "LOT-2025-039", ve: "2 600 kg", vs: "832 kg", r: "32,0%", g: "AA", s: "95/100", d: "17/05" },
+                      { lot: "LOT-2025-038", ve: "3 050 kg", vs: "976 kg", r: "32,0%", g: "AA", s: "98/100", d: "10/05" },
+                      { lot: "LOT-2025-037", ve: "2 800 kg", vs: "896 kg", r: "32,0%", g: "A", s: "92/100", d: "03/05" },
+                    ].map((row) => (
+                      <tr key={row.lot} className="border-t border-gray-50 hover:bg-gray-50">
+                        <td className="px-3 py-2 font-medium text-[#2E7D32]">{row.lot}</td>
+                        <td className="px-3 py-2 text-gray-500">{row.ve}</td>
+                        <td className="px-3 py-2">{row.vs}</td>
+                        <td className="px-3 py-2">{row.r}</td>
+                        <td className="px-3 py-2">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${row.g === "AA" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>{row.g}</span>
                         </td>
-                        <td className="px-4 py-2.5 text-gray-700 dark:text-gray-300">{lot.masseSechee} kg</td>
-                        <td className="px-4 py-2.5 whitespace-nowrap">
-                          <GradeBadge grade={lot.grade} />
-                        </td>
-                        <td className="px-4 py-2.5 text-gray-700 dark:text-gray-300 whitespace-nowrap">{lot.nbSacs}</td>
-                        <td className="px-4 py-2.5 text-gray-600 dark:text-gray-400 whitespace-nowrap">{lot.destination}</td>
-                        <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400 whitespace-nowrap">{lot.date}</td>
+                        <td className="px-3 py-2 font-medium">{row.s}</td>
+                        <td className="px-3 py-2 text-gray-500">{row.d}{row.note && <span className="ml-1 text-xs text-gray-400">({row.note})</span>}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -867,48 +302,75 @@ export default function TransformationPage() {
           </div>
         )}
 
-        {/* ═══════════════════════════════════════════
-            ONGLET QUALITE & TRACABILITE
-        ═══════════════════════════════════════════ */}
-        {tab === "qualite" && (
+        {/* ── Fermentation ── */}
+        {tab === "Fermentation" && (
           <div className="space-y-6">
-            {/* Tableau analyse qualité */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
-                <Award size={15} style={{ color: "#2E7D32" }} />
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Résultats analyse qualité — lots terminés
-                </h2>
+            {/* Procédure */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-700 mb-4">Procédure fermentation AGRIFRIK <span className="text-xs text-gray-400 font-normal ml-1">(standard RA + CNRA CI)</span></h2>
+              <div className="flex items-start gap-0 overflow-x-auto pb-2">
+                {[
+                  { day: "J0", label: "Mise en bacs", color: "#2E7D32" },
+                  { day: "J2", label: "Retournement", color: "#388E3C" },
+                  { day: "J4", label: "Retournement", color: "#43A047" },
+                  { day: "J5", label: "Cut test intermédiaire", color: "#F59E0B" },
+                  { day: "J6", label: "Cut test final", color: "#EF4444" },
+                  { day: "J6+", label: "Transfert séchage", color: "#6B7280" },
+                ].map((s, i, arr) => (
+                  <div key={s.day} className="flex items-center">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: s.color }}>{s.day}</div>
+                      <div className="text-xs text-gray-600 mt-1 text-center max-w-16 leading-tight">{s.label}</div>
+                    </div>
+                    {i < arr.length - 1 && <div className="w-8 h-0.5 bg-gray-300 mx-1 mt-[-16px]" />}
+                  </div>
+                ))}
               </div>
+            </div>
+
+            {/* Suivi lot actif */}
+            <div className="rounded-2xl border border-green-100 bg-green-50 p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-[#1B5E20]">Suivi en temps réel — LOT-2025-048</h2>
+                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">En cours · J5</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs mb-5">
+                <div><span className="text-gray-500">Démarré :</span> <span className="font-medium">06/07/2025 à 08h00</span></div>
+                <div><span className="text-gray-500">Bac A1 :</span> <span className="font-medium">1 500 kg</span></div>
+                <div><span className="text-gray-500">Bac A3 :</span> <span className="font-medium">1 140 kg</span></div>
+                <div><span className="text-gray-500">Total :</span> <span className="font-medium">2 640 kg</span></div>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-xs text-amber-700 flex items-center gap-2 mb-4">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>Aujourd'hui J5 (11/07) — <strong>Demain J6 (12/07) → Cut test final prévu à 07h00</strong></span>
+              </div>
+
+              {/* Tableau suivi J0→J5 */}
               <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+                <table className="w-full text-xs bg-white rounded-xl overflow-hidden">
                   <thead>
-                    <tr className="bg-[#F8FBF8] dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
-                      {["Lot", "Taux ferment.", "Humidité finale", "Impuretés", "Calibre", "Grade", "Score"].map((h) => (
-                        <th key={h} className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                          {h}
-                        </th>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Jour", "Date", "T° mesurée", "Retournement", "pH (estimé)", "Observation"].map(h => (
+                        <th key={h} className="text-left px-3 py-2 font-medium text-gray-600">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                    {analyseQualite.map((lot) => (
-                      <tr key={lot.lot} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                        <td className="px-4 py-3 font-mono font-medium text-gray-900 dark:text-white whitespace-nowrap">
-                          {lot.lot}
-                        </td>
-                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{lot.tauxFerment}</td>
-                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{lot.humiditeFin}</td>
-                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{lot.impuretes}</td>
-                        <td className="px-4 py-3 font-semibold text-gray-800 dark:text-gray-200">{lot.calibre}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <GradeBadge grade={lot.grade} />
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`inline-flex items-center gap-1 font-bold text-sm ${lot.ok ? "text-green-700" : "text-amber-600"}`}>
-                            {lot.score}/100 {lot.ok ? "✅" : ""}
-                          </span>
-                        </td>
+                  <tbody>
+                    {[
+                      { j: "J0", d: "06/07", t: "28°C", r: "Mise en bacs 08h00", ph: "5,2", obs: "Fèves fraîches bien égouttées" },
+                      { j: "J1", d: "07/07", t: "34°C", r: "—", ph: "4,8", obs: "Montée température correcte" },
+                      { j: "J2", d: "08/07", t: "46°C", r: "✅ 06h30", ph: "4,4", obs: "Retournement + répartition uniforme" },
+                      { j: "J3", d: "09/07", t: "52°C ✅", r: "—", ph: "4,1", obs: "Température optimale atteinte" },
+                      { j: "J4", d: "10/07", t: "48°C", r: "✅ 06h15", ph: "4,0", obs: "Légère baisse normale J4" },
+                      { j: "J5", d: "11/07", t: "44°C", r: "—", ph: "3,9", obs: "Cut test J5 : 89% brunes — dans normes", highlight: true },
+                    ].map(row => (
+                      <tr key={row.j} className={`border-t border-gray-50 ${row.highlight ? "bg-green-50" : ""}`}>
+                        <td className="px-3 py-2 font-bold text-[#2E7D32]">{row.j}</td>
+                        <td className="px-3 py-2 text-gray-500">{row.d}</td>
+                        <td className="px-3 py-2 font-medium">{row.t}</td>
+                        <td className="px-3 py-2">{row.r}</td>
+                        <td className="px-3 py-2">{row.ph}</td>
+                        <td className="px-3 py-2 text-gray-600">{row.obs}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -916,96 +378,143 @@ export default function TransformationPage() {
               </div>
             </div>
 
-            {/* Test de coupe */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <FlaskConical size={15} style={{ color: "#2E7D32" }} />
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Test de coupe (Cut Test)
-                </h2>
+            {/* Courbe température */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Courbe de température fermentation — LOT-2025-048</h2>
+              <FermentationTempSVG />
+            </div>
+          </div>
+        )}
+
+        {/* ── Séchage ── */}
+        {tab === "Séchage" && (
+          <div className="space-y-6">
+            {/* Procédure */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-700 mb-2">Procédure séchage</h2>
+              <p className="text-xs text-gray-600">
+                <strong>Objectif :</strong> 7,0–7,5% humidité finale. Séchage solaire 3–4 jours + séchage artificiel si nécessaire (température max 45°C).
+              </p>
+            </div>
+
+            {/* Suivi LOT-047 */}
+            <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-amber-900">Suivi LOT-2025-047 — Séchage J8</h2>
+                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium flex items-center gap-1"><CheckCircle className="w-3 h-3" />Objectif atteint</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs mb-4">
+                <div><span className="text-gray-500">Volume entrant :</span><br /><span className="font-bold text-gray-800">3 020 kg</span><br /><span className="text-gray-400">fèves fermentées</span></div>
+                <div><span className="text-gray-500">Humidité initiale (J0) :</span><br /><span className="font-bold text-gray-800">58%</span></div>
+                <div><span className="text-gray-500">Humidité J8 (08h00) :</span><br /><span className="font-bold text-green-700 text-base">7,8% ✅</span></div>
+                <div><span className="text-gray-500">Décision :</span><br /><span className="font-bold text-gray-800">Arrêt séchage ce matin</span><br /><span className="text-gray-400">Classement cet après-midi</span></div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs mb-4">
+                <div><span className="text-gray-500">Méthode :</span><br /><span className="font-medium">5j solaire (24-28/06) + 3j artificiel 42°C (29/06–01/07)</span></div>
+                <div><span className="text-gray-500">Surface claies :</span><br /><span className="font-medium">8 claies × 3 m² = 24 m²</span></div>
+                <div><span className="text-gray-500">Épaisseur couche :</span><br /><span className="font-medium">4 cm</span></div>
               </div>
 
-              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700 p-4 space-y-3">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                      LOT-052 — Bac A1 (Fermentation J3)
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5">20 fèves analysées</p>
-                  </div>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                    🟡 Fermentation en cours
-                  </span>
-                </div>
-
-                {/* Résultats visuels */}
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { label: "Bien fermentées", count: 16, pct: 80, color: "#2E7D32", bg: "#E8F5E9" },
-                    { label: "Partiellement fermentées", count: 3, pct: 15, color: "#F59E0B", bg: "#FFFDE7" },
-                    { label: "Ardoisées", count: 1, pct: 5, color: "#EF4444", bg: "#FEF2F2" },
-                  ].map((r) => (
-                    <div key={r.label} className="rounded-lg p-3 text-center" style={{ backgroundColor: r.bg }}>
-                      <p className="text-2xl font-bold" style={{ color: r.color }}>{r.count}</p>
-                      <p className="text-[11px] text-gray-600 mt-1">{r.label}</p>
-                      <p className="text-xs font-semibold mt-1" style={{ color: r.color }}>{r.pct}%</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Barre résultat */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>Taux de fermentation actuel</span>
-                    <span className="font-semibold text-amber-700">80% — viser 85%+ à J5</span>
-                  </div>
-                  <div className="h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex">
-                    <div className="h-full" style={{ width: "80%", backgroundColor: "#2E7D32" }} />
-                    <div className="h-full" style={{ width: "15%", backgroundColor: "#F59E0B" }} />
-                    <div className="h-full" style={{ width: "5%", backgroundColor: "#EF4444" }} />
-                  </div>
-                </div>
-
-                <p className="text-[11px] text-amber-700 dark:text-amber-400 flex items-center gap-1">
-                  <AlertTriangle size={12} />
-                  Résultat attendu à J5 : 85%+ bien fermentées pour validation Grade A
-                </p>
+              {/* Tableau humidité */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs bg-white rounded-xl overflow-hidden">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["J0", "J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8 ✅"].map(h => (
+                        <th key={h} className="text-center px-3 py-2 font-medium text-gray-600">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      {["58%", "48%", "38%", "29%", "22%", "16%", "12%", "9,4%", "7,8%"].map((v, i) => (
+                        <td key={i} className={`text-center px-3 py-2 font-medium ${i === 8 ? "text-green-700 font-bold" : "text-gray-700"}`}>{v}</td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            {/* Traçabilité rapide */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle size={15} style={{ color: "#2E7D32" }} />
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Traçabilité — Chaîne de custody
-                </h2>
+            {/* Courbe séchage */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Courbe de séchage — LOT-2025-047</h2>
+              <SechageSVG />
+            </div>
+          </div>
+        )}
+
+        {/* ── Qualité finale ── */}
+        {tab === "Qualité finale" && (
+          <div className="space-y-6">
+            {/* Guide Cut Test */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Guide Cut Test <span className="text-xs text-gray-400 font-normal">(référentiel ICCO / RA)</span></h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Catégorie fève", "Description visuelle", "Objectif Grade AA", "Objectif Grade A"].map(h => (
+                        <th key={h} className="text-left px-3 py-2 font-medium text-gray-600">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { cat: "Fèves brunes", desc: "Section brune / violet clair — bonne fermentation", aa: "≥ 95%", a: "≥ 90%", ok: true },
+                      { cat: "Fèves violettes", desc: "Section violette — fermentation incomplète", aa: "≤ 4%", a: "≤ 8%", ok: false },
+                      { cat: "Fèves ardoisées", desc: "Section gris ardoise — sous-fermentées", aa: "≤ 1%", a: "≤ 2%", ok: false },
+                      { cat: "Fèves moisies", desc: "Présence de moisissure", aa: "0%", a: "0%", ok: false },
+                    ].map(row => (
+                      <tr key={row.cat} className="border-t border-gray-50">
+                        <td className="px-3 py-2 font-medium text-gray-800">{row.cat}</td>
+                        <td className="px-3 py-2 text-gray-600">{row.desc}</td>
+                        <td className={`px-3 py-2 font-medium ${row.ok ? "text-green-700" : "text-red-600"}`}>{row.aa}</td>
+                        <td className={`px-3 py-2 font-medium ${row.ok ? "text-green-700" : "text-orange-600"}`}>{row.a}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div className="space-y-2">
-                {[
-                  { etape: "Récolte", lot: "LOT-043", detail: "Exploitation PAR-A1 — 05/07/2025", ok: true },
-                  { etape: "Fermentation", lot: "LOT-043", detail: "Bac A1 — 6 jours — Indice 94%", ok: true },
-                  { etape: "Séchage", lot: "LOT-043", detail: "Séchoir Artificiel A — 3 jours — 7,2%", ok: true },
-                  { etape: "Conditionnement", lot: "LOT-043", detail: "6 sacs jute 64 kg — Grade AA certifié", ok: true },
-                  { etape: "Export", lot: "LOT-043", detail: "EXP-2025-041 Barry Callebaut — 05/07", ok: true },
-                ].map((step, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="flex flex-col items-center">
-                      <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                        style={{ backgroundColor: step.ok ? "#2E7D32" : "#9CA3AF" }}
-                      >
-                        {i + 1}
-                      </div>
-                      {i < 4 && <div className="w-0.5 h-4 bg-gray-200 dark:bg-gray-700" />}
-                    </div>
-                    <div className="flex-1 py-1">
-                      <p className="text-xs font-semibold text-gray-900 dark:text-white">{step.etape}</p>
-                      <p className="text-[11px] text-gray-500">{step.detail}</p>
-                    </div>
-                    {step.ok && <CheckCircle size={14} className="text-green-600 shrink-0" />}
-                  </div>
-                ))}
+            </div>
+
+            {/* Résultats cut test */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Résultats cut test — 5 derniers lots classés</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Lot", "Brunes", "Violettes", "Ardoisées", "Moisies", "Score", "Grade", "Décision"].map(h => (
+                        <th key={h} className="text-left px-3 py-2 font-medium text-gray-600">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { lot: "LOT-2025-046", b: "97%", v: "2%", a: "1%", m: "0%", s: 97, g: "AA", d: "Conditionné 01/07", ok: true },
+                      { lot: "LOT-2025-045", b: "96%", v: "3%", a: "1%", m: "0%", s: 96, g: "AA", d: "Exporté 10/07", ok: true },
+                      { lot: "LOT-2025-044", b: "95%", v: "4%", a: "1%", m: "0%", s: 95, g: "AA", d: "Conditionné 22/06", ok: true },
+                      { lot: "LOT-2025-043", b: "93%", v: "5%", a: "2%", m: "0%", s: 93, g: "A", d: "Conditionné 15/06", ok: true },
+                      { lot: "LOT-2025-042", b: "89%", v: "8%", a: "3%", m: "0%", s: 89, g: "A (limite)", d: "Séchage prolongé +2j", ok: false },
+                    ].map(row => (
+                      <tr key={row.lot} className="border-t border-gray-50 hover:bg-gray-50">
+                        <td className="px-3 py-2 font-medium text-[#2E7D32]">{row.lot}</td>
+                        <td className="px-3 py-2 font-medium text-green-700">{row.b}</td>
+                        <td className="px-3 py-2 text-orange-600">{row.v}</td>
+                        <td className="px-3 py-2 text-red-600">{row.a}</td>
+                        <td className="px-3 py-2 text-gray-400">{row.m}</td>
+                        <td className="px-3 py-2">
+                          <span className={`font-bold ${row.s >= 95 ? "text-green-700" : row.s >= 90 ? "text-blue-600" : "text-amber-600"}`}>{row.s}/100</span>
+                        </td>
+                        <td className="px-3 py-2">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${row.g === "AA" ? "bg-green-100 text-green-700" : row.ok ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>{row.g}</span>
+                        </td>
+                        <td className="px-3 py-2 text-gray-600">{row.d}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
