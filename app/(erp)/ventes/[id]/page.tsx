@@ -1,5 +1,4 @@
 import Topbar from "../../../components/Topbar";
-import VenteActions from "./VenteActions";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -8,172 +7,156 @@ interface Props {
 export default async function VenteDetailPage({ params }: Props) {
   const { id } = await params;
 
+  /* ── données statiques VNT-2025-008 ── */
+  const lots = [
+    { lot: "LOT-2025-046", date: "01/07/2025", vol: 964, grade: "AA", hum: "7,2%", cut: "97%" },
+    { lot: "LOT-2025-044", date: "22/06/2025", vol: 845, grade: "AA", hum: "7,4%", cut: "95%" },
+    { lot: "LOT-2025-043", date: "18/06/2025", vol: 892, grade: "AA", hum: "7,1%", cut: "96%" },
+    { lot: "LOT-2025-041", date: "10/06/2025", vol: 699, grade: "AA", hum: "7,3%", cut: "97%" },
+  ];
+
+  const docs = [
+    { doc: "Bon de livraison", num: "BL-2025-008 (interne)", date: "22/06/2025", statut: "✅ Émis" },
+    { doc: "Connaissement maritime", num: "MAEU-CI-0908", date: "23/06/2025", statut: "✅ Émis" },
+    { doc: "Certificat Rainforest Alliance", num: "RA-CI-2025-00908", date: "01/03/2025", statut: "✅ Valide" },
+    { doc: "Certificat phytosanitaire", num: "PHYTO-MINADER-2025-0567", date: "23/06/2025", statut: "✅ Émis" },
+    { doc: "Déclaration export DGD", num: "DGD-2025-NW-0234", date: "22/06/2025", statut: "✅ Validée douanes" },
+    { doc: "Facture commerciale", num: "FAC-2025-008", date: "22/06/2025", statut: "✅ Réglée" },
+  ];
+
+  const reglements = [
+    { etape: "Remise documents LC", date: "23/06/2025", montant: "—", mode: "Lettre de crédit SGBCI", ref: "LC-SGBCI-2025-BC-008" },
+    { etape: "Présentation documents banque", date: "24/06/2025", montant: "—", mode: "—", ref: "—" },
+    { etape: "Règlement banque à banque", date: "08/07/2025", montant: "3 695 800 XOF", mode: "Virement SWIFT", ref: "VIR-SGBCI-2025-07-0908" },
+    { etape: "Frais bancaires LC", date: "08/07/2025", montant: "-18 000 XOF", mode: "Débit SGBCI", ref: "—" },
+  ];
+
+  /* ── area chart — CA mensuel cumulé ── */
+  const mois = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul"];
+  const realise = [4.4, 4.4, 4.5, 4.4, 4.5, 8.9, 3.7];
+  const objectifMensuel = 4.35;
+  const W = 640, H = 200, PL = 40, PR = 20, PT = 16, PB = 30;
+  const innerW = W - PL - PR;
+  const innerH = H - PT - PB;
+  const maxVal = 10;
+  const xStep = innerW / (mois.length - 1);
+  const yScale = (v: number) => PT + innerH - (v / maxVal) * innerH;
+  const pts = realise.map((v, i) => ({ x: PL + i * xStep, y: yScale(v) }));
+  const areaPath = `M ${pts[0].x} ${yScale(0)} L ${pts.map(p => `${p.x} ${p.y}`).join(" L ")} L ${pts[pts.length - 1].x} ${yScale(0)} Z`;
+  const linePath = `M ${pts.map(p => `${p.x} ${p.y}`).join(" L ")}`;
+  const objY = yScale(objectifMensuel);
+  const objLinePath = `M ${PL} ${objY} L ${PL + innerW} ${objY}`;
+
   return (
     <div className="flex flex-col min-h-screen bg-[#F8FBF8]">
-      <Topbar breadcrumb={["Commerce", "Ventes", `Commande ${id}`]} />
+      <Topbar breadcrumb={["Commerce", "Ventes", `Vente ${id}`]} />
 
       <main className="flex-1 p-6 space-y-6 max-w-7xl mx-auto w-full">
 
-        {/* En-tête bandeau vert */}
+        {/* ── EN-TÊTE VERT ── */}
         <div className="rounded-2xl bg-[#1B5E20] text-white p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-2xl font-bold">VTE-2025-048</span>
+                <span className="text-2xl font-bold">VNT-2025-008</span>
                 <span className="inline-flex items-center gap-1.5 bg-[#4CAF50] text-white text-xs font-semibold px-3 py-1 rounded-full">
-                  <span className="w-2 h-2 rounded-full bg-white inline-block" />
-                  Confirmée
+                  ✅ Livrée &amp; réglée
                 </span>
               </div>
-              <p className="text-[#A5D6A7] text-sm font-medium">Contrat d&apos;achat FOB San-Pédro</p>
-              <p className="text-white font-semibold text-lg">Barry Callebaut SA — Zurich, Suisse</p>
+              <p className="text-[#A5D6A7] text-sm font-semibold">Cacao Grade AA — Barry Callebaut CI</p>
+              <p className="text-[#C8E6C9] text-xs">
+                Contrat : <span className="text-white font-medium">CTR-2025-001</span> (Barry Callebaut — lot contractuel #7/12)
+              </p>
             </div>
             <div className="text-sm text-[#C8E6C9] space-y-1 text-right">
-              <p><span className="text-[#A5D6A7]">Date contrat :</span> 02/06/2025</p>
-              <p><span className="text-[#A5D6A7]">Livraison prévue :</span> 05/08/2025 (ETA Rotterdam)</p>
+              <p><span className="text-[#A5D6A7]">Date :</span> <span className="text-white font-medium">22/06/2025</span></p>
+              <p><span className="text-[#A5D6A7]">Livraison :</span> <span className="text-white font-medium">23/06/2025</span></p>
+              <p><span className="text-[#A5D6A7]">Incoterm :</span> <span className="text-white font-medium">DAP San-Pédro</span></p>
             </div>
           </div>
         </div>
 
-        {/* 5 KPI */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {/* ── 4 KPI ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Quantité", value: "24 900 kg", sub: "Cacao Grade AA" },
-            { label: "Prix unitaire", value: "1 100 XOF/kg", sub: "par kilogramme" },
-            { label: "Montant total", value: "27 390 000 XOF", sub: "41 775 EUR" },
-            { label: "Facture", value: "FAC-2025-048", sub: "✅ Émise" },
-            { label: "Paiement", value: "LC ✅ Confirmé", sub: "BICICI / BNP Paribas" },
-          ].map((kpi) => (
-            <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5">
-              <p className="text-xs text-gray-500 mb-1">{kpi.label}</p>
-              <p className="text-sm font-bold text-[#1B5E20] leading-tight">{kpi.value}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{kpi.sub}</p>
+            { label: "Quantité", value: "3 400 kg", sub: "Grade AA — 97% fèves brunes" },
+            { label: "Prix unitaire", value: "1 087 XOF/kg", sub: "Contractuel CTR-2025-001" },
+            { label: "Montant HT", value: "3 695 800 XOF", sub: "" },
+            { label: "Règlement", value: "✅ Reçu le 08/07/2025", sub: "J+15" },
+          ].map((k) => (
+            <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-5">
+              <p className="text-xs text-gray-500 mb-1">{k.label}</p>
+              <p className="text-sm font-bold text-[#1B5E20] leading-tight">{k.value}</p>
+              {k.sub && <p className="text-xs text-gray-400 mt-0.5">{k.sub}</p>}
             </div>
           ))}
         </div>
 
-        {/* Détail de la commande */}
+        {/* ── DÉTAIL DE LA VENTE ── */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Détail de la commande</h2>
+          <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Détail de la vente — Composition de la livraison</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-[#F8FBF8]">
-                  {["Article", "Lot", "Grade", "Qté (kg)", "PU (XOF)", "Montant (XOF)"].map((h) => (
-                    <th key={h} className="text-left px-3 py-2 font-semibold text-gray-600">{h}</th>
+                  {["Lot", "Date transformation", "Volume (kg)", "Grade", "Humidité %", "Cut test %"].map((h) => (
+                    <th key={h} className="text-left px-3 py-2 font-semibold text-gray-600 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-t border-gray-100">
-                  <td className="px-3 py-3 text-gray-700">Cacao naturel fermenté séché</td>
-                  <td className="px-3 py-3 text-gray-600">LOT-2025-045</td>
-                  <td className="px-3 py-3">
-                    <span className="bg-[#E8F5E9] text-[#2E7D32] text-xs font-semibold px-2 py-0.5 rounded-full">AA</span>
-                  </td>
-                  <td className="px-3 py-3 text-gray-700">24 900</td>
-                  <td className="px-3 py-3 text-gray-700">1 100</td>
-                  <td className="px-3 py-3 font-semibold text-[#1B5E20]">27 390 000</td>
-                </tr>
-                <tr className="border-t border-gray-200 bg-[#F8FBF8]">
-                  <td colSpan={3} className="px-3 py-2 font-bold text-gray-700 text-right">TOTAL</td>
-                  <td className="px-3 py-2 font-bold text-gray-800">24 900 kg</td>
-                  <td className="px-3 py-2" />
-                  <td className="px-3 py-2 font-bold text-[#1B5E20]">27 390 000 XOF</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-600">
-            <div className="space-y-1.5">
-              <p><span className="font-semibold text-gray-700">Incoterm :</span> FOB San-Pédro, CI</p>
-              <p><span className="font-semibold text-gray-700">Devise facturation :</span> XOF + EUR (655,96)</p>
-              <p><span className="font-semibold text-gray-700">Conditions paiement :</span> LC irrévocable à vue — BNP Paribas Paris</p>
-            </div>
-            <div className="space-y-1.5">
-              <p><span className="font-semibold text-gray-700">Certificat d&apos;origine :</span> Côte d&apos;Ivoire (RA + FCPR)</p>
-              <p><span className="font-semibold text-gray-700">Tolérance poids :</span> ±0,5% sur poids net</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Chronologie */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-[#1B5E20] mb-6">Chronologie de la transaction</h2>
-          <div className="relative pl-8">
-            <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-gray-200" />
-            {[
-              { date: "02/06/2025", label: "Contrat signé (Barry Callebaut + AGRIFRIK)", status: "done" },
-              { date: "05/06/2025", label: "Lettre de crédit ouverte (BNP Paribas Paris → BICICI Abidjan)", status: "done" },
-              { date: "18/06/2025", label: "Récolte LOT-2025-045 démarrée (PAR-A1)", status: "done" },
-              { date: "30/06/2025", label: "Classement Grade AA validé (96/100)", status: "done" },
-              { date: "01/07/2025", label: "Conditionnement (415 sacs jute 60 kg)", status: "done" },
-              { date: "07/07/2025", label: "Certificat phytosanitaire (MINADER)", status: "done" },
-              { date: "08/07/2025", label: "DAE export (DGD Abidjan)", status: "done" },
-              { date: "10/07/2025", label: "Chargement container CAIU 842156-4 (MSC Allegria)", status: "done" },
-              { date: "En transit", label: "ETA Rotterdam 05/08/2025", status: "transit" },
-              { date: "05/08/2025", label: "Livraison prévue Rotterdam", status: "pending" },
-              { date: "08/08/2025", label: "Paiement LC attendu (BICICI → AGRIFRIK)", status: "pending" },
-            ].map((item, i) => (
-              <div key={i} className="relative mb-5 last:mb-0">
-                <div className={`absolute -left-5 w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                  item.status === "done"
-                    ? "bg-[#4CAF50] border-[#2E7D32]"
-                    : item.status === "transit"
-                    ? "bg-[#1565C0] border-[#1565C0]"
-                    : "bg-white border-gray-300"
-                }`}>
-                  {item.status === "done" && (
-                    <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 12 12">
-                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                  {item.status === "transit" && <span className="w-1.5 h-1.5 rounded-full bg-white inline-block" />}
-                </div>
-                <div className="ml-3">
-                  <span className={`text-xs font-semibold ${
-                    item.status === "done" ? "text-[#2E7D32]" : item.status === "transit" ? "text-[#1565C0]" : "text-gray-400"
-                  }`}>{item.date}</span>
-                  <p className={`text-xs mt-0.5 ${item.status === "pending" ? "text-gray-400" : "text-gray-700"}`}>{item.label}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Documents liés */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Documents liés</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="bg-[#F8FBF8]">
-                  {["Document", "Type", "Date", "Statut"].map((h) => (
-                    <th key={h} className="text-left px-3 py-2 font-semibold text-gray-600">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { doc: "Contrat VTE-2025-048", type: "Commercial", date: "02/06" },
-                  { doc: "Facture FAC-2025-048 (27 390 000 XOF)", type: "Finance", date: "01/07" },
-                  { doc: "Packing list", type: "Export", date: "01/07" },
-                  { doc: "Bill of Lading MSC", type: "Transport", date: "10/07" },
-                  { doc: "DAE export", type: "Douanes", date: "08/07" },
-                  { doc: "Certificat phytosanitaire", type: "Réglementation", date: "07/07" },
-                  { doc: "Certificat RA + FCPR", type: "Certification", date: "01/07" },
-                  { doc: "Rapport qualité CQ-LOT-045", type: "Qualité", date: "30/06" },
-                ].map((row, i) => (
-                  <tr key={i} className="border-t border-gray-50 hover:bg-[#F8FBF8] transition-colors">
-                    <td className="px-3 py-2.5 text-gray-700 font-medium">{row.doc}</td>
-                    <td className="px-3 py-2.5 text-gray-500">{row.type}</td>
-                    <td className="px-3 py-2.5 text-gray-500">{row.date}</td>
+                {lots.map((r) => (
+                  <tr key={r.lot} className="border-t border-gray-50 hover:bg-[#F8FBF8] transition-colors">
+                    <td className="px-3 py-2.5 font-medium text-gray-800">{r.lot}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{r.date}</td>
+                    <td className="px-3 py-2.5 text-gray-700">{r.vol} kg</td>
                     <td className="px-3 py-2.5">
-                      <span className="inline-flex items-center gap-1 bg-[#E8F5E9] text-[#2E7D32] text-xs font-medium px-2 py-0.5 rounded-full">
-                        ✅ Disponible
-                      </span>
+                      <span className="bg-[#E8F5E9] text-[#2E7D32] text-xs font-semibold px-2 py-0.5 rounded-full">{r.grade}</span>
                     </td>
+                    <td className="px-3 py-2.5 text-gray-700">{r.hum} ✅</td>
+                    <td className="px-3 py-2.5 text-gray-700">{r.cut} ✅</td>
+                  </tr>
+                ))}
+                <tr className="border-t-2 border-[#2E7D32] bg-[#F1F8F1]">
+                  <td className="px-3 py-2.5 font-bold text-gray-800">TOTAL</td>
+                  <td className="px-3 py-2.5" />
+                  <td className="px-3 py-2.5 font-bold text-[#1B5E20]">3 400 kg</td>
+                  <td className="px-3 py-2.5 font-bold text-[#1B5E20]">Grade AA</td>
+                  <td className="px-3 py-2.5 font-bold text-gray-700">moy 7,25%</td>
+                  <td className="px-3 py-2.5 font-bold text-gray-700">moy 96,2%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── CONDITIONS COMMERCIALES ── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Conditions commerciales</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  <th className="text-left px-3 py-2 font-semibold text-gray-600 w-1/3">Paramètre</th>
+                  <th className="text-left px-3 py-2 font-semibold text-gray-600">Détail</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ["Contrat de base", "CTR-2025-001 — 48t/an Grade AA — Barry Callebaut CI"],
+                  ["N° livraison contractuelle", "7/12 (7ème livraison sur 12 prévues 2025)"],
+                  ["Prix de base contractuel", "1 000 XOF/kg"],
+                  ["Prime qualité Grade AA (+3% fèves)", "+62 XOF/kg"],
+                  ["Prime Rainforest Alliance", "+25 XOF/kg"],
+                  ["Prix total", "1 087 XOF/kg ✅"],
+                  ["Tolérance humidité", "≤8% — OK (7,25% mesuré)"],
+                  ["Tolérance moisissures", "≤3% — OK (0,8% mesuré)"],
+                  ["Tare emballage", "52 kg (sacs jute) — déduits du poids brut 3 452 kg"],
+                  ["Poids net payé", "3 400 kg ✅"],
+                ].map(([param, detail], i) => (
+                  <tr key={i} className="border-t border-gray-50">
+                    <td className={`px-3 py-2.5 font-medium ${param === "Prix total" || param === "Poids net payé" ? "text-[#1B5E20] font-bold" : "text-gray-700"}`}>{param}</td>
+                    <td className={`px-3 py-2.5 ${param === "Prix total" || param === "Poids net payé" ? "text-[#1B5E20] font-bold" : "text-gray-600"}`}>{detail}</td>
                   </tr>
                 ))}
               </tbody>
@@ -181,29 +164,25 @@ export default async function VenteDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Correspondances client */}
+        {/* ── LOGISTIQUE & DOCUMENTS ── */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Correspondances client</h2>
+          <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Logistique &amp; Documents</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-[#F8FBF8]">
-                  {["Date", "De", "Objet", "Statut"].map((h) => (
+                  {["Document", "N°", "Date", "Statut"].map((h) => (
                     <th key={h} className="text-left px-3 py-2 font-semibold text-gray-600">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { date: "12/06", from: "Barry Callebaut Procurement", objet: "Confirmation LC — BNP Paris", statut: "Lu ✅" },
-                  { date: "08/07", from: "BC Logistics", objet: "Confirmation numéro container", statut: "Lu ✅" },
-                  { date: "10/07", from: "AGRIFRIK → BC", objet: "BL transmis + tracking MSC", statut: "Envoyé ✅" },
-                ].map((row, i) => (
+                {docs.map((r, i) => (
                   <tr key={i} className="border-t border-gray-50 hover:bg-[#F8FBF8] transition-colors">
-                    <td className="px-3 py-2.5 text-gray-500">{row.date}</td>
-                    <td className="px-3 py-2.5 text-gray-700 font-medium">{row.from}</td>
-                    <td className="px-3 py-2.5 text-gray-600">{row.objet}</td>
-                    <td className="px-3 py-2.5 text-gray-500">{row.statut}</td>
+                    <td className="px-3 py-2.5 font-medium text-gray-800">{r.doc}</td>
+                    <td className="px-3 py-2.5 text-gray-600 font-mono">{r.num}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{r.date}</td>
+                    <td className="px-3 py-2.5 text-gray-700">{r.statut}</td>
                   </tr>
                 ))}
               </tbody>
@@ -211,7 +190,123 @@ export default async function VenteDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Boutons d'action */}
+        {/* ── RÈGLEMENT ── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Règlement</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  {["Étape", "Date", "Montant", "Mode", "Référence"].map((h) => (
+                    <th key={h} className="text-left px-3 py-2 font-semibold text-gray-600 whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {reglements.map((r, i) => (
+                  <tr key={i} className="border-t border-gray-50 hover:bg-[#F8FBF8] transition-colors">
+                    <td className="px-3 py-2.5 font-medium text-gray-800">{r.etape}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{r.date}</td>
+                    <td className={`px-3 py-2.5 ${r.montant.startsWith("-") ? "text-red-600 font-medium" : "text-gray-700"}`}>{r.montant}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{r.mode}</td>
+                    <td className="px-3 py-2.5 text-gray-500 font-mono">{r.ref}</td>
+                  </tr>
+                ))}
+                <tr className="border-t-2 border-[#2E7D32] bg-[#F1F8F1]">
+                  <td className="px-3 py-2.5 font-bold text-[#1B5E20]">Net encaissé</td>
+                  <td className="px-3 py-2.5" />
+                  <td className="px-3 py-2.5 font-bold text-[#1B5E20]">3 677 800 XOF</td>
+                  <td className="px-3 py-2.5" />
+                  <td className="px-3 py-2.5" />
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── HISTORIQUE BARRY CALLEBAUT 2025 — area chart SVG ── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <div className="flex items-start justify-between flex-wrap gap-2 mb-4">
+            <div>
+              <h2 className="text-sm font-semibold text-[#1B5E20]">Historique des ventes — Barry Callebaut 2025</h2>
+              <p className="text-xs text-gray-500 mt-0.5">CA mensuel cumulé vs objectif contractuel</p>
+            </div>
+            <div className="flex items-center gap-4 text-xs text-gray-500">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block w-6 h-0.5 bg-[#4CAF50]" />
+                Réalisé
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block w-6 border-t-2 border-dashed border-[#E65100]" />
+                Objectif 4,35M/mois
+              </span>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 320, maxWidth: 700 }}>
+              <defs>
+                <linearGradient id="greenArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#4CAF50" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#4CAF50" stopOpacity="0.03" />
+                </linearGradient>
+              </defs>
+
+              {/* grille horizontale */}
+              {[0, 2.5, 5, 7.5, 10].map((v) => {
+                const y = yScale(v);
+                return (
+                  <g key={v}>
+                    <line x1={PL} y1={y} x2={PL + innerW} y2={y} stroke="#E5E7EB" strokeWidth="1" />
+                    <text x={PL - 4} y={y + 3.5} textAnchor="end" fontSize="8" fill="#9CA3AF">{v}M</text>
+                  </g>
+                );
+              })}
+
+              {/* objectif pointillé orange */}
+              <path d={objLinePath} fill="none" stroke="#E65100" strokeWidth="1.5" strokeDasharray="5,4" />
+
+              {/* aire réalisé */}
+              <path d={areaPath} fill="url(#greenArea)" />
+
+              {/* courbe réalisé */}
+              <path d={linePath} fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinejoin="round" />
+
+              {/* points */}
+              {pts.map((p, i) => (
+                <g key={i}>
+                  <circle cx={p.x} cy={p.y} r="4" fill="#2E7D32" />
+                  <circle cx={p.x} cy={p.y} r="2" fill="white" />
+                  <text x={p.x} y={p.y - 8} textAnchor="middle" fontSize="8" fill="#2E7D32" fontWeight="600">
+                    {realise[i]}M
+                  </text>
+                </g>
+              ))}
+
+              {/* étiquettes mois */}
+              {mois.map((m, i) => (
+                <text key={m} x={PL + i * xStep} y={H - 6} textAnchor="middle" fontSize="9" fill="#6B7280">{m}</text>
+              ))}
+            </svg>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-600">
+            <div className="rounded-xl bg-[#E8F5E9] px-4 py-2">
+              <span className="text-gray-500">Cumul 2025 :</span>{" "}
+              <span className="font-bold text-[#1B5E20]">34,8M XOF</span>
+            </div>
+            <div className="rounded-xl bg-[#FFF3E0] px-4 py-2">
+              <span className="text-gray-500">Objectif annuel :</span>{" "}
+              <span className="font-bold text-[#E65100]">52,2M XOF</span>
+            </div>
+            <div className="rounded-xl bg-[#F8FBF8] px-4 py-2">
+              <span className="text-gray-500">Progression :</span>{" "}
+              <span className="font-bold text-[#1B5E20]">66,7% — bon rythme</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── BOUTONS ── */}
         <div className="flex flex-wrap gap-3 pb-6">
           <a
             href="/ventes"
@@ -222,16 +317,18 @@ export default async function VenteDetailPage({ params }: Props) {
             </svg>
             Retour aux ventes
           </a>
-          <a
-            href="/factures/FAC-2025-048"
-            className="inline-flex items-center gap-2 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors"
-          >
+          <button className="inline-flex items-center gap-2 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 17H7a2 2 0 01-2-2V9a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2zm-5-9V4" />
             </svg>
-            Voir la facture
-          </a>
-          <VenteActions />
+            Imprimer la facture
+          </button>
+          <button className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-gray-50 transition-colors">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Télécharger les documents
+          </button>
         </div>
 
       </main>

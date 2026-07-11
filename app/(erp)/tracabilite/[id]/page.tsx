@@ -1,325 +1,348 @@
 import Topbar from "../../../components/Topbar";
 
-export default async function TracabiliteDetailPage({
+export default async function TracabiliteLotPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
 
-  const breadcrumb = ["Commerce", "Traçabilité", `Lot ${id}`];
-
-  const documents = [
-    {
-      nom: "Rapport qualité CQ-LOT-045",
-      type: "Contrôle qualité",
-      date: "30/06",
-      emetteur: "Adjoua M.",
-      validite: "—",
-      statut: "✅ Validé",
-    },
-    {
-      nom: "Certificat RA LOT-045",
-      type: "Certification",
-      date: "01/07",
-      emetteur: "AGRIFRIK",
-      validite: "28/02/2026",
-      statut: "✅ Validé",
-    },
-    {
-      nom: "Certificat phytosanitaire",
-      type: "MINADER CI",
-      date: "07/07",
-      emetteur: "DPV Abidjan",
-      validite: "30 jours",
-      statut: "✅ Validé",
-    },
-    {
-      nom: "Bill of Lading MSC",
-      type: "Transport maritime",
-      date: "10/07",
-      emetteur: "MSC Lines",
-      validite: "—",
-      statut: "✅ Émis",
-    },
-    {
-      nom: "Déclaration Aval Export (DAE)",
-      type: "Douanes CI",
-      date: "08/07",
-      emetteur: "DGD Abidjan",
-      validite: "—",
-      statut: "✅ Validé",
-    },
-    {
-      nom: "Packing List",
-      type: "Commercial",
-      date: "01/07",
-      emetteur: "AGRIFRIK",
-      validite: "—",
-      statut: "✅ Signé",
-    },
-  ];
-
-  const steps = [
-    {
-      num: "①",
-      titre: "PARCELLE D'ORIGINE",
-      statut: "done",
-      date: "18/06/2025",
-      details: [
-        "Parcelle PAR-A1 | Coord. : 5°47'12\"N 6°36'24\"W",
-        "Producteur : Ibrahim Sawadogo (COOP-0042) | RA certifié ✅",
-        "Variété : Forastero hybride | Âge : 17 ans",
-        "Dernier traitement : Ridomil Gold 24/06 (DRE 14j — libre à J+14)",
-      ],
-    },
-    {
-      num: "②",
-      titre: "RÉCOLTE",
-      statut: "done",
-      date: "18-19/06/2025",
-      details: [
-        "4 opérateurs | 8 420 kg cabosses | Fèves fraîches : 2 640 kg",
-        "Taux d'extraction : 31,4% | Contrôle initial : 0 moisissure",
-      ],
-    },
-    {
-      num: "③",
-      titre: "FERMENTATION",
-      statut: "done",
-      date: "18-24/06/2025",
-      details: [
-        "Durée : 6 jours | Bacs A1 (1 500 kg) + A3 (1 140 kg)",
-        "T°J3 : 52°C ✅ | T°J5 : 48°C ✅",
-        "Cut test : 94% brunes ✅ | Retournements : J2, J4 ✅",
-      ],
-    },
-    {
-      num: "④",
-      titre: "SÉCHAGE",
-      statut: "done",
-      date: "24-30/06/2025",
-      details: [
-        "6 jours : 3j solaire + 3j artificiel (45°C max)",
-        "Humidité : 58% → 7,4% ✅",
-      ],
-    },
-    {
-      num: "⑤",
-      titre: "CLASSEMENT QUALITÉ",
-      statut: "done",
-      date: "30/06/2025",
-      details: [
-        "Contrôleur : Adjoua Messou",
-        "Cut test : 96/100 brunes → Grade AA ✅",
-        "Résidus chimiques : 0 détecté ✅",
-        "Certificat : CQ-LOT-2025-045.pdf",
-      ],
-    },
-    {
-      num: "⑥",
-      titre: "CONDITIONNEMENT",
-      statut: "done",
-      date: "01/07/2025",
-      details: [
-        "41 sacs jute 60 kg | Palettes : 2",
-        "Entrepôt A — Zone 1 | Stockage 1 semaine",
-      ],
-    },
-    {
-      num: "⑦",
-      titre: "EXPORT",
-      statut: "transit",
-      date: "10/07/2025",
-      details: [
-        "Client : Cargill International SA Rotterdam",
-        "Container : CAIU 842156-4 | Navire : MSC Allegria",
-        "Départ San-Pédro : 10/07 | ETA Rotterdam : 05/08/2025",
-        "FOB San-Pédro | Prix : 1 100 XOF/kg = 27 390 000 XOF",
-      ],
-    },
-  ];
-
-  // QR Code simulé en SVG
-  const qrPixels: [number, number][] = [
-    [0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],
-    [0,1],[6,1],
-    [0,2],[2,2],[3,2],[4,2],[6,2],
-    [0,3],[2,3],[3,3],[4,3],[6,3],
-    [0,4],[2,4],[3,4],[4,4],[6,4],
-    [0,5],[6,5],
-    [0,6],[1,6],[2,6],[3,6],[4,6],[5,6],[6,6],
-    [2,8],[4,8],[6,8],
-    [1,9],[3,9],[5,9],[6,9],
-    [0,10],[2,10],[4,10],
-    [1,11],[2,11],[4,11],[5,11],[6,11],
-    [0,12],[3,12],[5,12],
-    [0,13],[2,13],[4,13],[6,13],
-    [0,14],[1,14],[2,14],[3,14],[4,14],[5,14],[6,14],
-    [8,0],[9,0],[10,0],[11,0],[12,0],[13,0],[14,0],
-    [8,1],[14,1],
-    [8,2],[10,2],[11,2],[12,2],[14,2],
-    [8,3],[10,3],[11,3],[12,3],[14,3],
-    [8,4],[10,4],[11,4],[12,4],[14,4],
-    [8,5],[14,5],
-    [8,6],[9,6],[10,6],[11,6],[12,6],[13,6],[14,6],
-    [8,8],[10,8],[12,8],
-    [9,9],[11,9],[13,9],
-    [8,10],[12,10],[14,10],
-    [9,11],[11,11],[13,11],[14,11],
-    [8,12],[10,12],[12,12],
-    [8,13],[10,13],[12,13],
-    [8,14],[9,14],[10,14],[11,14],[12,14],[13,14],[14,14],
-  ];
-
   return (
-    <div className="flex-1 bg-[#F8FBF8] min-h-screen">
-      <Topbar breadcrumb={breadcrumb} />
+    <div>
+      <Topbar
+        title={`Fiche Traçabilité — ${id}`}
+        breadcrumb={["Commerce", "Traçabilité", `Lot ${id}`]}
+      />
 
       <div className="p-6 space-y-6">
-        {/* En-tête */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-1 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-bold text-gray-800">LOT-2025-045</h1>
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-3 py-1 text-xs font-medium text-blue-700">
-                  🔵 En transit — MSC Allegria → Rotterdam
-                </span>
-              </div>
-              <p className="text-sm text-gray-500">Cacao Grade AA | San-Pédro, Côte d'Ivoire</p>
-              <div className="flex flex-wrap gap-2 mt-3">
-                <button className="bg-white border border-gray-200 rounded-xl text-xs font-medium px-4 py-2 text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-1.5">
-                  🖨 Imprimer traçabilité
-                </button>
-                <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors flex items-center gap-1.5">
-                  📄 Exporter PDF
-                </button>
-                <button className="border border-[#2E7D32] text-[#2E7D32] rounded-xl text-xs font-medium px-4 py-2 hover:bg-green-50 transition-colors flex items-center gap-1.5">
-                  🔗 Partager lien client Cargill
-                </button>
-              </div>
+
+        {/* ── Bandeau en-tête vert ─────────────────────────────────────────── */}
+        <div
+          className="rounded-2xl p-5 text-white"
+          style={{ background: "linear-gradient(135deg,#1B5E20 0%,#2E7D32 100%)" }}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-green-200 uppercase tracking-widest">Numéro de lot</p>
+              <h1 className="text-2xl font-bold">LOT-2025-046 — Cacao sec Grade AA</h1>
+              <p className="text-sm text-green-100">
+                Exploitation : <span className="font-semibold text-white">EXP-001</span> — Koffi Amani — Soubré, Nawa
+              </p>
+              <p className="text-sm text-green-100">
+                Parcelles d&apos;origine : <span className="font-semibold text-white">PAR-A1 + PAR-A2</span>
+              </p>
             </div>
-            {/* QR Code SVG simulé */}
-            <div className="shrink-0 flex flex-col items-center gap-1">
-              <svg width={80} height={80} viewBox="0 0 15 15" className="border border-gray-200 rounded p-0.5 bg-white">
-                {qrPixels.map(([x, y]) => (
-                  <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill="#111827" />
-                ))}
-              </svg>
-              <span className="text-[10px] text-gray-400">QR traçabilité</span>
+            <div className="flex flex-col gap-2 items-end">
+              <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur px-3 py-1.5 rounded-full text-sm font-semibold">
+                ✅ Chaîne complète vérifiée
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur px-3 py-1.5 rounded-full text-sm font-semibold">
+                Certification : Rainforest Alliance ✅
+              </span>
             </div>
           </div>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        {/* ── 5 KPI ───────────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[
-            { label: "Poids net", val: "24 900 kg", color: "text-gray-800" },
-            { label: "Grade", val: "AA", color: "text-[#2E7D32]" },
-            { label: "Score qualité", val: "96 / 100", color: "text-blue-700" },
-            { label: "Origine", val: "PAR-A1 (6,2 ha)", color: "text-amber-700" },
-            { label: "Destination", val: "Cargill Rotterdam", color: "text-gray-800" },
+            { label: "Poids net", value: "964 kg", color: "#2E7D32", bg: "#E8F5E9" },
+            { label: "De la cabosse à l'export", value: "18 jours", color: "#1565C0", bg: "#E3F2FD" },
+            { label: "Score traçabilité", value: "100/100 ✅", color: "#00695C", bg: "#E0F2F1" },
+            { label: "Acheteur final", value: "Barry Callebaut CI", color: "#6A1B9A", bg: "#F3E5F5" },
+            { label: "Destination finale", value: "Usine BC CI + Rotterdam", color: "#E65100", bg: "#FFF3E0" },
           ].map((k) => (
             <div
               key={k.label}
-              className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-col gap-1"
+              className="rounded-2xl border border-gray-100 bg-white p-5 dark:bg-gray-900 dark:border-gray-800 flex flex-col gap-1"
             >
-              <p className="text-xs text-gray-400">{k.label}</p>
-              <p className={`text-base font-bold ${k.color} leading-tight`}>{k.val}</p>
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center mb-1"
+                style={{ backgroundColor: k.bg }}
+              >
+                <span style={{ color: k.color, fontSize: 14 }}>●</span>
+              </div>
+              <p className="text-base font-bold text-gray-900 dark:text-white leading-tight">{k.value}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{k.label}</p>
             </div>
           ))}
         </div>
 
-        {/* Timeline traçabilité */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-6">
-            Timeline traçabilité complète
+        {/* ── Chaîne de traçabilité complète — pipeline SVG ───────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
+          <h2 className="font-bold text-gray-900 dark:text-white text-sm mb-1">
+            Chaîne de traçabilité complète
           </h2>
-          <div className="relative">
-            {/* Ligne verticale */}
-            <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-100" />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+            Flux du lot LOT-2025-046 — De la parcelle à l&apos;export
+          </p>
+          <div className="overflow-x-auto">
+            <svg
+              viewBox="0 0 980 155"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-full"
+              style={{ minWidth: 700 }}
+            >
+              <defs>
+                <marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+                  <path d="M0,0 L0,7 L7,3.5 z" fill="#4CAF50" />
+                </marker>
+              </defs>
 
-            <div className="space-y-6">
-              {steps.map((s, i) => (
-                <div key={i} className="flex gap-4 relative">
-                  {/* Icône étape */}
-                  <div
-                    className={`relative z-10 shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold shadow-sm border-2 ${
-                      s.statut === "done"
-                        ? "bg-[#2E7D32] border-[#2E7D32] text-white"
-                        : "bg-blue-500 border-blue-500 text-white"
-                    }`}
-                  >
-                    {s.num}
-                  </div>
-                  {/* Contenu */}
-                  <div
-                    className={`flex-1 rounded-xl border p-4 ${
-                      s.statut === "transit"
-                        ? "border-blue-200 bg-blue-50"
-                        : "border-gray-100 bg-[#F8FBF8]"
-                    }`}
-                  >
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span className="text-sm font-semibold text-gray-800">{s.titre}</span>
-                      <span
-                        className={`text-xs font-medium rounded-full px-2 py-0.5 ${
-                          s.statut === "done"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-blue-100 text-blue-700"
-                        }`}
-                      >
-                        {s.statut === "done" ? "✅ Complété" : "🔵 En transit"}
-                      </span>
-                      <span className="text-xs text-gray-400 ml-auto">{s.date}</span>
-                    </div>
-                    <ul className="space-y-1">
-                      {s.details.map((d, j) => (
-                        <li key={j} className="text-xs text-gray-600 leading-relaxed">
-                          {d}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+              {/* Connector lines */}
+              {[120, 250, 380, 510, 640, 770].map((x) => (
+                <line key={x} x1={x + 2} y1={62} x2={x + 56} y2={62} stroke="#4CAF50" strokeWidth="2" markerEnd="url(#arr)" />
               ))}
-            </div>
+
+              {/* Steps */}
+              {[
+                { cx: 70,  emoji: "🌿", label1: "Parcelle",       label2: "PAR-A1+A2 (Nawa)",         n: "1" },
+                { cx: 200, emoji: "🌰", label1: "Récolte",         label2: "28/06 — 4 220 kg cabosses", n: "2" },
+                { cx: 330, emoji: "🫙", label1: "Fermentation",    label2: "28/06–04/07 — Bac F3",      n: "3" },
+                { cx: 460, emoji: "☀️", label1: "Séchage",         label2: "04–11/07 — 7 jours",        n: "4" },
+                { cx: 590, emoji: "✅", label1: "Contrôle CQ",     label2: "Cut test BV 97%",            n: "5" },
+                { cx: 720, emoji: "🏭", label1: "Conditionn.",     label2: "14,83 sacs × 65 kg",        n: "6" },
+                { cx: 850, emoji: "🚢", label1: "Export",          label2: "BL MAEU-CI-0908",            n: "7" },
+              ].map((s) => (
+                <g key={s.n}>
+                  <circle cx={s.cx} cy={62} r={40} fill="#2E7D32" />
+                  <circle cx={s.cx} cy={62} r={36} fill="#1B5E20" />
+                  <text x={s.cx} y={55} textAnchor="middle" dominantBaseline="middle" fontSize="20">{s.emoji}</text>
+                  <text x={s.cx} y={74} textAnchor="middle" fontSize="9" fill="#A5D6A7" fontWeight="700">{s.n}</text>
+                  <text x={s.cx} y={112} textAnchor="middle" fontSize="10" fill="#1B5E20" fontWeight="700">{s.label1}</text>
+                  <text x={s.cx} y={127} textAnchor="middle" fontSize="8.5" fill="#6B7280">{s.label2}</text>
+                </g>
+              ))}
+            </svg>
           </div>
         </div>
 
-        {/* Documents du lot */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">
-            Documents du lot
-          </h2>
+        {/* ── Données parcelles d'origine ─────────────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="font-bold text-gray-900 dark:text-white text-sm">Données parcelles d&apos;origine</h2>
+          </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#F8FBF8]">
-                  {["Document", "Type", "Date", "Émetteur", "Validité", "Statut"].map((h) => (
-                    <th
-                      key={h}
-                      className="px-3 py-2 text-left text-gray-500 font-medium whitespace-nowrap"
-                    >
-                      {h}
-                    </th>
+                <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-left text-xs text-gray-500 dark:text-gray-400">
+                  {["Parcelle", "Surface", "N° GPS", "Âge plants", "Zone RA", "Dernier audit"].map((h) => (
+                    <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {documents.map((d, i) => (
-                  <tr key={i} className="border-t border-gray-50 hover:bg-gray-50">
-                    <td className="px-3 py-2.5 font-medium text-gray-800 whitespace-nowrap">
-                      {d.nom}
+                {[
+                  { parc: "PAR-A1", surface: "2,3 ha", gps: "5.7819°N 6.5921°W", age: "18 ans", zone: "✅ Zone certifiée", audit: "Fév 2025 ✅" },
+                  { parc: "PAR-A2", surface: "2,1 ha", gps: "5.7824°N 6.5918°W", age: "16 ans", zone: "✅ Zone certifiée", audit: "Fév 2025 ✅" },
+                ].map((r) => (
+                  <tr key={r.parc} className="border-t border-gray-50 dark:border-gray-800">
+                    <td className="px-4 py-3 font-mono text-xs font-bold text-[#2E7D32]">{r.parc}</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300">{r.surface}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-400">{r.gps}</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300">{r.age}</td>
+                    <td className="px-4 py-3 text-xs text-green-700 dark:text-green-400 font-medium">{r.zone}</td>
+                    <td className="px-4 py-3 text-xs text-green-700 dark:text-green-400 font-medium">{r.audit}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Traitements phytosanitaires */}
+          <div className="px-5 py-4 border-t border-gray-100 dark:border-gray-700">
+            <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">
+              Historique des traitements phytosanitaires (90 jours avant récolte)
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-left text-xs text-gray-500 dark:text-gray-400">
+                  {["Date", "Produit", "Dose", "DAR respecté", "Opérateur"].map((h) => (
+                    <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { date: "22/04", produit: "Super Cupravit OB 50 WP", dose: "150g/25L", dar: "67 jours ✅ (DAR 14j)", op: "Ibrahim Sawadogo" },
+                  { date: "18/05", produit: "Ridomil Gold 48 WP",       dose: "80g/25L",  dar: "41 jours ✅ (DAR 14j)", op: "Ibrahim Sawadogo" },
+                  { date: "02/06", produit: "Super Cupravit OB 50 WP", dose: "150g/25L", dar: "26 jours ✅ (DAR 14j)", op: "Ibrahim Sawadogo" },
+                ].map((r, i) => (
+                  <tr key={i} className="border-t border-gray-50 dark:border-gray-800">
+                    <td className="px-4 py-3 text-xs font-mono text-gray-700 dark:text-gray-300">{r.date}</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300">{r.produit}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{r.dose}</td>
+                    <td className="px-4 py-3 text-xs text-green-700 dark:text-green-400 font-medium">{r.dar}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{r.op}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-5 py-3 bg-green-50 dark:bg-green-900/20 border-t border-green-100 dark:border-green-800">
+            <p className="text-xs text-green-700 dark:text-green-300">
+              <strong>Note :</strong> Aucun traitement dans les 14 jours précédant la récolte du 28/06. Délai avant récolte (DAR) respecté pour tous les intrants.
+            </p>
+          </div>
+        </div>
+
+        {/* ── Fermentation — données IoT ───────────────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="font-bold text-gray-900 dark:text-white text-sm">Fermentation — données IoT (bac F3)</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-left text-xs text-gray-500 dark:text-gray-400">
+                  {["Jour", "Date", "T° matin", "T° soir", "Retournage", "Observation"].map((h) => (
+                    <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { j: "J1", date: "28/06", mat: "32°C", soir: "38°C", ret: "Non",         obs: "Début fermentation" },
+                  { j: "J2", date: "29/06", mat: "44°C", soir: "48°C", ret: "✅ Oui (J2)", obs: "Montée en T° normale" },
+                  { j: "J3", date: "30/06", mat: "52°C", soir: "52°C", ret: "—",           obs: "Pic fermentation ✅" },
+                  { j: "J4", date: "01/07", mat: "51°C", soir: "50°C", ret: "✅ Oui (J4)", obs: "Descente contrôlée" },
+                  { j: "J5", date: "02/07", mat: "47°C", soir: "46°C", ret: "—",           obs: "Phase finale" },
+                  { j: "J6", date: "03/07", mat: "42°C", soir: "38°C", ret: "—",           obs: "Fermentation complète" },
+                ].map((r) => (
+                  <tr key={r.j} className="border-t border-gray-50 dark:border-gray-800">
+                    <td className="px-4 py-3 text-xs font-bold text-[#2E7D32]">{r.j}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{r.date}</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300">{r.mat}</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300">{r.soir}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{r.ret}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{r.obs}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* SVG — courbe T° fermentation */}
+          <div className="px-5 pb-5 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">
+              Courbe T° fermentation LOT-2025-046
+            </p>
+            <svg viewBox="0 0 660 200" xmlns="http://www.w3.org/2000/svg" className="w-full" style={{ maxHeight: 200 }}>
+              {/* Grid lines */}
+              {[0, 20, 40, 60].map((t) => {
+                const y = 20 + ((60 - t) / 60) * 150;
+                return (
+                  <g key={t}>
+                    <line x1={42} y1={y} x2={640} y2={y} stroke="#F3F4F6" strokeWidth="1" />
+                    <text x={36} y={y + 4} textAnchor="end" fontSize="9" fill="#9CA3AF">{t}°</text>
+                  </g>
+                );
+              })}
+              {/* Optimal zone shading 45–52°C */}
+              <rect
+                x={42}
+                y={20 + ((60 - 52) / 60) * 150}
+                width={598}
+                height={((52 - 45) / 60) * 150}
+                fill="#FFF3E0"
+                opacity="0.8"
+              />
+              {/* Dashed boundary lines */}
+              <line x1={42} y1={20 + ((60 - 52) / 60) * 150} x2={640} y2={20 + ((60 - 52) / 60) * 150}
+                stroke="#E65100" strokeWidth="1.5" strokeDasharray="5,4" />
+              <line x1={42} y1={20 + ((60 - 45) / 60) * 150} x2={640} y2={20 + ((60 - 45) / 60) * 150}
+                stroke="#E65100" strokeWidth="1.5" strokeDasharray="5,4" />
+              <text x={644} y={20 + ((60 - 48.5) / 60) * 150 + 3} fontSize="8" fill="#E65100">opt.</text>
+
+              {/* Temperature polyline: 32,38,44,48,52,52,51,50,47,46,42,38 */}
+              {(() => {
+                const temps = [32, 38, 44, 48, 52, 52, 51, 50, 47, 46, 42, 38];
+                const xStep = 598 / (temps.length - 1);
+                const pts = temps.map((t, i) => ({
+                  x: 42 + i * xStep,
+                  y: 20 + ((60 - t) / 60) * 150,
+                  t,
+                  i,
+                }));
+                const polyline = pts.map((p) => `${p.x},${p.y}`).join(" ");
+                const retournages = new Set([2, 6]); // J2 matin and J4 matin
+                return (
+                  <>
+                    <polyline points={polyline} fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinejoin="round" />
+                    {pts.map((p) => (
+                      <circle
+                        key={p.i}
+                        cx={p.x} cy={p.y} r={4}
+                        fill={retournages.has(p.i) ? "#DC2626" : "#2E7D32"}
+                        stroke="white" strokeWidth="1.5"
+                      />
+                    ))}
+                    {/* Labels at first, peak, and last */}
+                    {[0, 4, 7, 11].map((idx) => (
+                      <text key={idx} x={pts[idx].x} y={pts[idx].y - 8} textAnchor="middle" fontSize="8.5" fill="#374151" fontWeight="700">
+                        {pts[idx].t}°
+                      </text>
+                    ))}
+                  </>
+                );
+              })()}
+
+              {/* X axis labels */}
+              {["J1m","J1s","J2m","J2s","J3m","J3s","J4m","J4s","J5m","J5s","J6m","J6s"].map((lbl, i) => {
+                const x = 42 + i * (598 / 11);
+                return (
+                  <text key={lbl} x={x} y={182} textAnchor="middle" fontSize="8" fill="#9CA3AF">{lbl}</text>
+                );
+              })}
+
+              {/* Legend */}
+              <line x1={42} y1={196} x2={62} y2={196} stroke="#2E7D32" strokeWidth="2.5" />
+              <text x={67} y={199} fontSize="8.5" fill="#6B7280">T° fermentation</text>
+              <circle cx={175} cy={196} r={4} fill="#DC2626" />
+              <text x={182} y={199} fontSize="8.5" fill="#6B7280">Retournage (J2, J4)</text>
+              <line x1={300} y1={196} x2={320} y2={196} stroke="#E65100" strokeWidth="1.5" strokeDasharray="4,3" />
+              <text x={325} y={199} fontSize="8.5" fill="#6B7280">Zone optimale 45–52°C</text>
+            </svg>
+          </div>
+        </div>
+
+        {/* ── Séchage ─────────────────────────────────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="font-bold text-gray-900 dark:text-white text-sm">Séchage solaire — données journalières</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-left text-xs text-gray-500 dark:text-gray-400">
+                  {["Jour séchage", "Date", "Humidité %", "T° ambiante", "Durée soleil"].map((h) => (
+                    <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { j: "J1", date: "04/07", hum: "42%",      temp: "31°C", soleil: "8h ☀️" },
+                  { j: "J2", date: "05/07", hum: "34%",      temp: "32°C", soleil: "9h ☀️" },
+                  { j: "J3", date: "06/07", hum: "28%",      temp: "30°C", soleil: "7h (nuageux) ☁️" },
+                  { j: "J4", date: "07/07", hum: "22%",      temp: "33°C", soleil: "10h ☀️" },
+                  { j: "J5", date: "08/07", hum: "16%",      temp: "32°C", soleil: "9h ☀️" },
+                  { j: "J6", date: "09/07", hum: "11%",      temp: "31°C", soleil: "8h ☀️" },
+                  { j: "J7", date: "10/07", hum: "7,2% ✅",  temp: "33°C", soleil: "10h ☀️" },
+                ].map((r, i) => (
+                  <tr
+                    key={r.j}
+                    className={`border-t border-gray-50 dark:border-gray-800 ${i === 6 ? "bg-green-50 dark:bg-green-900/10" : ""}`}
+                  >
+                    <td className="px-4 py-3 text-xs font-bold text-[#2E7D32]">{r.j}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{r.date}</td>
+                    <td className={`px-4 py-3 text-xs font-medium ${i === 6 ? "text-green-700 dark:text-green-400" : "text-gray-700 dark:text-gray-300"}`}>
+                      {r.hum}
                     </td>
-                    <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{d.type}</td>
-                    <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{d.date}</td>
-                    <td className="px-3 py-2.5 text-gray-700 whitespace-nowrap">{d.emetteur}</td>
-                    <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{d.validite}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
-                      <span className="text-green-600 font-medium">{d.statut}</span>
-                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300">{r.temp}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{r.soleil}</td>
                   </tr>
                 ))}
               </tbody>
@@ -327,23 +350,58 @@ export default async function TracabiliteDetailPage({
           </div>
         </div>
 
-        {/* Blockchain hash */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-gray-700">Ancrage blockchain</span>
-              <span className="rounded-full bg-green-50 border border-green-200 px-2 py-0.5 text-xs font-medium text-green-700">
-                ✅ Immuable
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-400">Hyperledger Fabric — Bloc #84521</p>
-              <p className="text-xs font-mono text-gray-600 truncate mt-0.5">
-                0x4f2a8c7d9e1b3f6a2c5d8e0b4f7a1c3e6d9b2f5a8c1e4d7b0a3f6c9e2b5d8a1
-              </p>
-            </div>
+        {/* ── Certifications & Documents ───────────────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="font-bold text-gray-900 dark:text-white text-sm">Certifications &amp; Documents du lot</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-left text-xs text-gray-500 dark:text-gray-400">
+                  {["Document", "N°", "Émetteur", "Date", "Statut"].map((h) => (
+                    <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { doc: "Certificat RA (exploitation)",      num: "RA-CI-2025-EFA001",   emit: "Bureau Veritas",        date: "28/02/2025", statut: "✅ Valide" },
+                  { doc: "Rapport cut test BV",               num: "CQ-BV-2025-0846",      emit: "Bureau Veritas Soubré", date: "01/07/2025", statut: "✅ 97% AA" },
+                  { doc: "Certificat phytosanitaire MINADER", num: "PHYTO-2025-0567",      emit: "MINADER CI",            date: "23/06/2025", statut: "✅" },
+                  { doc: "Déclaration douanière DGD",         num: "DGD-2025-NW-0234",     emit: "DGD Abidjan",           date: "22/06/2025", statut: "✅" },
+                  { doc: "Connaissement Maersk",              num: "MAEU-CI-0908",         emit: "Maersk CI",             date: "23/06/2025", statut: "✅" },
+                  { doc: "Certificat d'origine CEPICI",       num: "CO-2025-0456",         emit: "CEPICI CI",             date: "22/06/2025", statut: "✅" },
+                ].map((r, i) => (
+                  <tr key={i} className="border-t border-gray-50 dark:border-gray-800">
+                    <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300 font-medium">{r.doc}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-400">{r.num}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{r.emit}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{r.date}</td>
+                    <td className="px-4 py-3 text-xs font-semibold text-green-700 dark:text-green-400">{r.statut}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
+
+        {/* ── Actions ─────────────────────────────────────────────────────── */}
+        <div className="flex flex-wrap gap-3">
+          <a
+            href="/tracabilite"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          >
+            ← Retour à la traçabilité
+          </a>
+          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2E7D32] text-white text-sm font-medium hover:bg-[#1B5E20] transition-colors">
+            Exporter fiche traçabilité PDF
+          </button>
+          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#2E7D32] text-[#2E7D32] dark:text-green-400 dark:border-green-600 text-sm font-medium hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
+            QR Code lot
+          </button>
+        </div>
+
       </div>
     </div>
   );

@@ -9,56 +9,159 @@ export default async function MaterielDetailPage({
   const { id } = await params;
 
   const kpis = [
-    { label: "Valeur d'achat", value: "28 400 000", sub: "XOF" },
-    { label: "VNC actuelle", value: "17 040 000", sub: "XOF" },
-    { label: "Heures totales", value: "3 284h", sub: "" },
-    { label: "Dernier entretien", value: "15/06/2025", sub: "" },
-    { label: "Prochain entretien", value: "3 500h", sub: "→ 216h restantes" },
+    { label: "Heures moteur", value: "2 847 h", sub: "" },
+    { label: "Prochaine révision", value: "3 000 h", sub: "→ ~153 h (~19 jours)" },
+    { label: "Valeur nette comptable", value: "11 200 000", sub: "XOF" },
+    { label: "Coût total possession (2025)", value: "3 420 000", sub: "XOF" },
+    { label: "Disponibilité", value: "94,2%", sub: "✅ Bonne" },
   ];
 
-  const utilisationMensuelle = [
-    { mois: "Jan", heures: "42h", carburant: "168 L", taches: "Taille + labour PAR-D1" },
-    { mois: "Fév", heures: "38h", carburant: "152 L", taches: "Transport intrants" },
-    { mois: "Mar", heures: "56h", carburant: "224 L", taches: "Labour PAR-D1 semis" },
-    { mois: "Avr", heures: "48h", carburant: "192 L", taches: "Transport récolte anacarde" },
-    { mois: "Mai", heures: "64h", carburant: "256 L", taches: "Fertilisation + labour" },
-    { mois: "Jun", heures: "62h", carburant: "248 L", taches: "Révision + transport" },
+  const ficheTechnique = [
+    ["Marque / Modèle", "John Deere 5055E"],
+    ["Puissance", "55 CV (41 kW)"],
+    ["Moteur", "John Deere PowerTech 3 cylindres 2,9L Diesel"],
+    ["Transmission", "Synchronisée 12AV/4AR"],
+    ["Relevage", "Cat. II — 2 200 kg"],
+    ["PTO", "540/1000 tr/min"],
+    ["Année fabrication", "2020 (acheté neuf 2021)"],
+    ["Date mise en service", "15/03/2021"],
+    ["Prix d'achat", "22 500 000 XOF (neuf, dealer JD Abidjan)"],
+    ["Financement", "Crédit BIAO CI — 60 mois — soldé jan 2025"],
   ];
 
-  const historiqueMaintenance = [
-    { date: "15/06/2025", type: "Révision 3 200h", compteur: "3 220h", intervenant: "Concess. JD", pieces: "124 000", mo: "65 000", total: "189 000" },
-    { date: "10/01/2025", type: "Entretien courant", compteur: "3 000h", intervenant: "Bamba O.", pieces: "62 000", mo: "0", total: "62 000" },
-    { date: "20/08/2024", type: "Révision 2 800h", compteur: "2 806h", intervenant: "Concess. JD", pieces: "186 000", mo: "85 000", total: "271 000" },
-    { date: "15/02/2024", type: "Entretien courant", compteur: "2 600h", intervenant: "Bamba O.", pieces: "48 000", mo: "0", total: "48 000" },
-    { date: "05/09/2023", type: "Révision 2 400h", compteur: "2 412h", intervenant: "Concess. JD", pieces: "210 000", mo: "95 000", total: "305 000" },
-    { date: "12/01/2023", type: "Entretien courant", compteur: "2 200h", intervenant: "Bamba O.", pieces: "48 000", mo: "0", total: "48 000" },
+  // Bar chart data — heures mensuelles 2025
+  const heuresMois = [
+    { mois: "Jan", h: 124 },
+    { mois: "Fév", h: 86 },
+    { mois: "Mar", h: 142 },
+    { mois: "Avr", h: 168 },
+    { mois: "Mai", h: 138 },
+    { mois: "Jun", h: 122 },
+    { mois: "Jul", h: 47 },
+  ];
+  const maxH = 180;
+  const barW = 60;
+  const chartW = 640;
+  const chartH = 200;
+  const chartPadL = 40;
+  const chartPadB = 30;
+  const chartInnerW = chartW - chartPadL - 20;
+  const chartInnerH = chartH - chartPadB - 10;
+  const barSpacing = chartInnerW / heuresMois.length;
+
+  const usages = [
+    { usage: "Labour et préparation sols", heures: "312 h", pct: "38%" },
+    { usage: "Transport récolte (chargeur)", heures: "218 h", pct: "26%" },
+    { usage: "Pulvérisation (pulvé attelé)", heures: "164 h", pct: "20%" },
+    { usage: "Transport intrants et matériels", heures: "133 h", pct: "16%" },
   ];
 
-  const documents = [
-    { nom: "Manuel d'utilisation JD 6120M", type: "PDF", date: "2021", taille: "8,4 MB" },
-    { nom: "Carnet d'entretien (numérique)", type: "PDF", date: "2025", taille: "1,2 MB" },
-    { nom: "Facture d'achat", type: "PDF", date: "Jan 2021", taille: "0,4 MB" },
-    { nom: "Contrat assurance SAHAM", type: "PDF", date: "2025", taille: "0,6 MB" },
-    { nom: "Bon de commande pièces ACH-091", type: "PDF", date: "Jul 2025", taille: "0,2 MB" },
+  const maintenancePreventive = [
+    {
+      type: "Vidange huile + filtre",
+      intervalle: "250 h",
+      derniereDate: "14/06/2025",
+      dernieresH: "2 700 h",
+      prochaineDate: "~28/07/2025",
+      prochainSeuil: "2 950 h",
+      statut: "✅ OK",
+      statutColor: "text-green-700",
+    },
+    {
+      type: "Filtre à air",
+      intervalle: "500 h",
+      derniereDate: "18/04/2025",
+      dernieresH: "2 500 h",
+      prochaineDate: "~10/08/2025",
+      prochainSeuil: "3 000 h",
+      statut: "🟡 Bientôt",
+      statutColor: "text-yellow-700",
+    },
+    {
+      type: "Filtre carburant",
+      intervalle: "500 h",
+      derniereDate: "18/04/2025",
+      dernieresH: "2 500 h",
+      prochaineDate: "~10/08/2025",
+      prochainSeuil: "3 000 h",
+      statut: "🟡 Bientôt",
+      statutColor: "text-yellow-700",
+    },
+    {
+      type: "Révision générale (courroies, injecteurs, embrayage)",
+      intervalle: "1 000 h",
+      derniereDate: "15/01/2025",
+      dernieresH: "2 000 h",
+      prochaineDate: "~10/08/2025",
+      prochainSeuil: "3 000 h",
+      statut: "🟡 Programmée J+19",
+      statutColor: "text-yellow-700",
+      bold: true,
+    },
+    {
+      type: "Pneus avant",
+      intervalle: "Contrôle annuel",
+      derniereDate: "01/01/2025",
+      dernieresH: "—",
+      prochaineDate: "01/01/2026",
+      prochainSeuil: "—",
+      statut: "✅ OK (75% usure)",
+      statutColor: "text-green-700",
+    },
+  ];
+
+  const historiqueInterventions = [
+    { date: "14/06/2025", type: "Préventive", desc: "Vidange 15W40 + filtre à huile JD", cout: "48 000 XOF", prestataire: "JD Dealer Soubré" },
+    { date: "18/04/2025", type: "Préventive", desc: "Révision 2 500h : filtres air+gasoil, courroie alternateur", cout: "184 000 XOF", prestataire: "JD Dealer Soubré" },
+    { date: "22/02/2025", type: "Corrective", desc: "Remplacement capteur T° moteur (panne) — 0,5j immobilisation", cout: "62 000 XOF", prestataire: "JD Dealer Soubré" },
+    { date: "15/01/2025", type: "Préventive", desc: "Grande révision 2 000h — injecteurs vérifiés, embrayage OK", cout: "420 000 XOF", prestataire: "JD Dealer Soubré" },
+  ];
+
+  // TCO stacked bar data (Jan–Jun 2025)
+  const tcoMois = [
+    { mois: "Jan", carb: 160, maint: 48, ass: 26, div: 8 },
+    { mois: "Fév", carb: 112, maint: 0, ass: 26, div: 5 },
+    { mois: "Mar", carb: 184, maint: 184, ass: 26, div: 6 },
+    { mois: "Avr", carb: 218, maint: 0, ass: 26, div: 8 },
+    { mois: "Mai", carb: 179, maint: 62, ass: 26, div: 6 },
+    { mois: "Jun", carb: 158, maint: 0, ass: 26, div: 5 },
+  ];
+  const tcoMax = 450;
+
+  const tcoPostes = [
+    { poste: "Carburant (gazole — 18L/h moy.)", ytd: "1 248 000 XOF", annuel: "2 142 000 XOF" },
+    { poste: "Maintenance préventive", ytd: "714 000 XOF", annuel: "920 000 XOF" },
+    { poste: "Réparation corrective", ytd: "62 000 XOF", annuel: "62 000 XOF" },
+    { poste: "Assurance NSIA (tous risques)", ytd: "186 000 XOF", annuel: "318 000 XOF" },
   ];
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar breadcrumb={["Logistique", "Matériels", `Fiche ${id}`]} />
+      <Topbar breadcrumb={["Logistique", "Matériels", `Matériel ${id}`]} />
 
       <main className="flex-1 p-6 space-y-6 max-w-7xl mx-auto w-full">
 
-        {/* EN-TÊTE */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-6">
+        {/* EN-TÊTE BANDEAU VERT */}
+        <div className="rounded-2xl bg-[#1B5E20] p-6 text-white">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">MAT-001</span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 text-orange-700 px-3 py-1 text-xs font-medium">⚠️ En maintenance</span>
+            <div className="space-y-1">
+              <h1 className="text-xl font-bold">Tracteur agricole John Deere 5055E — 55 CV</h1>
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-green-100">
+                <span>Code AGRIFRIK : <span className="font-mono font-semibold text-white">MAT-2021-004</span></span>
+                <span>N° série : <span className="font-mono font-semibold text-white">1PY5055EALB123456</span></span>
               </div>
-              <h1 className="text-xl font-bold text-gray-800">Tracteur agricole John Deere 6120M</h1>
-              <p className="text-sm text-gray-500 mt-1">Catégorie : Tracteur</p>
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-green-100">
+                <span>Immatriculé : <span className="text-white">CI-2021-NW-0047</span></span>
+                <span>Catégorie : <span className="text-white">Véhicules agricoles</span></span>
+              </div>
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-green-100">
+                <span>Affecté à : <span className="text-white">Exploitation EXP-001 — Soubré</span></span>
+                <span>Responsable : <span className="text-white">Ibrahim Sawadogo</span></span>
+              </div>
             </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-400 text-yellow-900 px-4 py-1.5 text-sm font-semibold whitespace-nowrap">
+              🟡 Maintenance programmée (dans 12 jours)
+            </span>
           </div>
         </div>
 
@@ -73,76 +176,121 @@ export default async function MaterielDetailPage({
           ))}
         </div>
 
-        {/* INFORMATIONS TECHNIQUES */}
+        {/* FICHE TECHNIQUE */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Informations techniques</h2>
+          <h2 className="text-base font-semibold text-gray-800 mb-4">Fiche technique</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3 text-sm">
-            {[
-              ["Marque / Modèle", "John Deere 6120M"],
-              ["N° de série", "JD6120-2021-CI"],
-              ["Puissance", "120 ch (89 kW)"],
-              ["Boîte de vitesses", "AutoPowr IVT (CVT)"],
-              ["Levage 3 points", "5 400 kg"],
-              ["Prise de force", "540/1000 tr/min"],
-              ["Date d'achat", "Janvier 2021"],
-              ["Fournisseur", "Concessionnaire John Deere CI (Abidjan)"],
-              ["Garantie", "Expirée (3 ans — Jan 2024)"],
-              ["Assurance", "SAHAM — Police SAHAM-JD6120-2021"],
-            ].map(([label, value]) => (
+            {ficheTechnique.map(([label, value]) => (
               <div key={label} className="flex justify-between border-b border-gray-50 pb-2">
                 <span className="text-gray-500">{label}</span>
-                <span className="font-medium text-gray-800 text-right">{value}</span>
+                <span className="font-medium text-gray-800 text-right max-w-[60%]">{value}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* COMPTEUR & UTILISATION */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-6">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Compteur &amp; Utilisation</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-            {[
-              { label: "Heures totales", value: "3 284h" },
-              { label: "Ce mois (juin)", value: "62h" },
-              { label: "Cette année (2025)", value: "384h" },
-              { label: "Moy. hebdo", value: "18h" },
-              { label: "Carburant 2025", value: "1 440 L" },
-            ].map((s) => (
-              <div key={s.label} className="bg-[#F8FBF8] rounded-xl p-3">
-                <p className="text-xs text-gray-500 mb-1">{s.label}</p>
-                <p className="text-base font-bold text-[#1B5E20]">{s.value}</p>
-              </div>
-            ))}
+        {/* COMPTEUR ET UTILISATION */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 space-y-5">
+          <h2 className="text-base font-semibold text-gray-800">Compteur et utilisation</h2>
+
+          {/* SVG bar chart */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Heures d&apos;utilisation mensuelles 2025</h3>
+            <div className="overflow-x-auto">
+              <svg viewBox={`0 0 ${chartW} ${chartH}`} width={chartW} height={chartH} className="block max-w-full">
+                {/* Grid lines */}
+                {[0, 50, 100, 150].map((v) => {
+                  const y = chartH - chartPadB - (v / maxH) * chartInnerH;
+                  return (
+                    <g key={v}>
+                      <line x1={chartPadL} y1={y} x2={chartW - 20} y2={y} stroke="#e5e7eb" strokeWidth="1" />
+                      <text x={chartPadL - 4} y={y + 4} textAnchor="end" fontSize="9" fill="#9ca3af">{v}</text>
+                    </g>
+                  );
+                })}
+                {/* Threshold line at 3000h total — représente ici 160h/mois symboliquement */}
+                <line
+                  x1={chartPadL}
+                  y1={chartH - chartPadB - (155 / maxH) * chartInnerH}
+                  x2={chartW - 20}
+                  y2={chartH - chartPadB - (155 / maxH) * chartInnerH}
+                  stroke="#E65100"
+                  strokeWidth="1.5"
+                  strokeDasharray="6,3"
+                />
+                <text
+                  x={chartW - 22}
+                  y={chartH - chartPadB - (155 / maxH) * chartInnerH - 4}
+                  textAnchor="end"
+                  fontSize="9"
+                  fill="#E65100"
+                >
+                  Seuil rév. 3 000h
+                </text>
+                {/* Bars */}
+                {heuresMois.map((d, i) => {
+                  const bH = (d.h / maxH) * chartInnerH;
+                  const x = chartPadL + i * barSpacing + barSpacing / 2 - barW / 3;
+                  const y = chartH - chartPadB - bH;
+                  const isLast = i === heuresMois.length - 1;
+                  return (
+                    <g key={d.mois}>
+                      <rect
+                        x={x}
+                        y={y}
+                        width={barW * 0.67}
+                        height={bH}
+                        fill={isLast ? "#A5D6A7" : "#2E7D32"}
+                        rx="3"
+                      />
+                      <text x={x + (barW * 0.67) / 2} y={y - 4} textAnchor="middle" fontSize="9" fill="#374151">
+                        {d.h}h
+                      </text>
+                      <text
+                        x={x + (barW * 0.67) / 2}
+                        y={chartH - chartPadB + 14}
+                        textAnchor="middle"
+                        fontSize="10"
+                        fill="#6b7280"
+                      >
+                        {d.mois}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Juillet 2025 en cours (47h au 11/07). Ligne pointillée : seuil de la révision 3 000h.</p>
           </div>
 
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Utilisation mensuelle 2025</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-[#F8FBF8] text-gray-500 text-xs">
-                  <th className="text-left px-3 py-2 rounded-l-lg">Mois</th>
-                  <th className="text-left px-3 py-2">Heures</th>
-                  <th className="text-left px-3 py-2">Carburant (L)</th>
-                  <th className="text-left px-3 py-2 rounded-r-lg">Tâches principales</th>
-                </tr>
-              </thead>
-              <tbody>
-                {utilisationMensuelle.map((u, i) => (
-                  <tr key={u.mois} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
-                    <td className="px-3 py-2 font-medium text-gray-800">{u.mois}</td>
-                    <td className="px-3 py-2 text-gray-700">{u.heures}</td>
-                    <td className="px-3 py-2 text-gray-700">{u.carburant}</td>
-                    <td className="px-3 py-2 text-gray-600">{u.taches}</td>
+          {/* Répartition usages */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Répartition des usages 2025</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-[#F8FBF8] text-gray-500 text-xs">
+                    <th className="text-left px-3 py-2 rounded-l-lg">Usage</th>
+                    <th className="text-right px-3 py-2">Heures 2025</th>
+                    <th className="text-right px-3 py-2 rounded-r-lg">%</th>
                   </tr>
-                ))}
-                <tr className="bg-[#F8FBF8] font-semibold text-[#1B5E20]">
-                  <td className="px-3 py-2">YTD</td>
-                  <td className="px-3 py-2">310h</td>
-                  <td className="px-3 py-2">1 240 L</td>
-                  <td className="px-3 py-2 text-gray-400">—</td>
-                </tr>
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {usages.map((u, i) => (
+                    <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                      <td className="px-3 py-2 text-gray-700">{u.usage}</td>
+                      <td className="px-3 py-2 text-right text-gray-700">{u.heures}</td>
+                      <td className="px-3 py-2 text-right text-gray-600">{u.pct}</td>
+                    </tr>
+                  ))}
+                  <tr className="bg-[#F8FBF8] font-semibold text-[#1B5E20]">
+                    <td className="px-3 py-2">TOTAL 2025</td>
+                    <td className="px-3 py-2 text-right">827 h</td>
+                    <td className="px-3 py-2 text-right">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -150,116 +298,175 @@ export default async function MaterielDetailPage({
         <div className="rounded-2xl border border-gray-100 bg-white p-6 space-y-6">
           <h2 className="text-base font-semibold text-gray-800">Maintenance</h2>
 
-          {/* Maintenance en cours */}
-          <div className="rounded-xl border border-orange-200 bg-orange-50 p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">🔧</span>
-              <h3 className="font-semibold text-orange-800">Fuite circuit hydraulique — signalée 09/07/2025</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2 text-sm">
-              {[
-                ["Description", "Fuite huile hydraulique côté relevage arrière droit. Pression système tombée à 180 bar (nominal 200 bar). Tracteur immobilisé."],
-                ["Pièce commandée", "Joint hydraulique JD ref. R503311 + Flexible HP ref. AT366488"],
-                ["Fournisseur", "DHL Express → Concessionnaire JD Abidjan"],
-                ["Bon de commande", "ACH-2025-091 | Montant pièces : 284 000 XOF"],
-                ["ETA pièces", "15/07/2025 | Durée réparation estimée : 1 journée"],
-                ["Main d'œuvre", "Bamba Oumar (mécanicien interne)"],
-              ].map(([label, value]) => (
-                <div key={label} className="flex flex-col gap-0.5">
-                  <span className="text-orange-600 text-xs font-medium">{label}</span>
-                  <span className="text-orange-900">{value}</span>
-                </div>
-              ))}
+          {/* Calendrier préventif */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Calendrier de maintenance préventive</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-[#F8FBF8] text-gray-500 text-xs">
+                    <th className="text-left px-3 py-2 rounded-l-lg">Type révision</th>
+                    <th className="text-left px-3 py-2">Intervalle</th>
+                    <th className="text-left px-3 py-2">Dernière date</th>
+                    <th className="text-left px-3 py-2">Dern. heures</th>
+                    <th className="text-left px-3 py-2">Prochaine date</th>
+                    <th className="text-left px-3 py-2">Prochain seuil</th>
+                    <th className="text-left px-3 py-2 rounded-r-lg">Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {maintenancePreventive.map((m, i) => (
+                    <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                      <td className={`px-3 py-2 text-gray-800 ${m.bold ? "font-semibold" : ""}`}>{m.type}</td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{m.intervalle}</td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{m.derniereDate}</td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{m.dernieresH}</td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{m.prochaineDate}</td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{m.prochainSeuil}</td>
+                      <td className={`px-3 py-2 whitespace-nowrap text-xs font-medium ${m.statutColor}`}>{m.statut}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          {/* Historique des entretiens */}
+          {/* Historique interventions */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Historique des 6 derniers entretiens</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Historique des interventions 2025</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-[#F8FBF8] text-gray-500 text-xs">
                     <th className="text-left px-3 py-2 rounded-l-lg">Date</th>
                     <th className="text-left px-3 py-2">Type</th>
-                    <th className="text-left px-3 py-2">Compteur</th>
-                    <th className="text-left px-3 py-2">Intervenant</th>
-                    <th className="text-right px-3 py-2">Pièces (XOF)</th>
-                    <th className="text-right px-3 py-2">M.O. (XOF)</th>
-                    <th className="text-right px-3 py-2 rounded-r-lg">Total (XOF)</th>
+                    <th className="text-left px-3 py-2">Description</th>
+                    <th className="text-right px-3 py-2">Coût</th>
+                    <th className="text-left px-3 py-2 rounded-r-lg">Prestataire</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {historiqueMaintenance.map((h, i) => (
+                  {historiqueInterventions.map((h, i) => (
                     <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
                       <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{h.date}</td>
-                      <td className="px-3 py-2 text-gray-700">{h.type}</td>
-                      <td className="px-3 py-2 text-gray-500">{h.compteur}</td>
-                      <td className="px-3 py-2 text-gray-700">{h.intervenant}</td>
-                      <td className="px-3 py-2 text-right text-gray-700">{h.pieces}</td>
-                      <td className="px-3 py-2 text-right text-gray-700">{h.mo}</td>
-                      <td className="px-3 py-2 text-right font-medium text-gray-800">{h.total} ✅</td>
+                      <td className="px-3 py-2">
+                        <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded ${h.type === "Corrective" ? "bg-orange-50 text-orange-700" : "bg-green-50 text-green-700"}`}>
+                          {h.type}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-gray-700">{h.desc}</td>
+                      <td className="px-3 py-2 text-right font-medium text-gray-800 whitespace-nowrap">{h.cout}</td>
+                      <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{h.prestataire}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div className="mt-4 flex flex-wrap gap-6 text-sm border-t border-gray-100 pt-4">
-              <div>
-                <span className="text-gray-500">Coût total maintenance (vie) :</span>
-                <span className="ml-2 font-bold text-[#1B5E20]">923 000 XOF</span>
-              </div>
-              <div>
-                <span className="text-gray-500">Coût moyen / 100h :</span>
-                <span className="ml-2 font-bold text-[#1B5E20]">28 100 XOF</span>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* DOCUMENTS */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-6">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Documents</h2>
+        {/* COÛT DE POSSESSION */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 space-y-5">
+          <h2 className="text-base font-semibold text-gray-800">Coût de possession 2025 (TCO)</h2>
+
+          {/* SVG stacked bar */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Coût mensuel TCO 2025 — Jan à Jun</h3>
+            <div className="overflow-x-auto">
+              <svg viewBox="0 0 640 200" width="640" height="200" className="block max-w-full">
+                {/* Legend */}
+                <rect x="40" y="5" width="10" height="10" fill="#2E7D32" rx="2" />
+                <text x="54" y="14" fontSize="9" fill="#374151">Carburant</text>
+                <rect x="120" y="5" width="10" height="10" fill="#E65100" rx="2" />
+                <text x="134" y="14" fontSize="9" fill="#374151">Maintenance</text>
+                <rect x="220" y="5" width="10" height="10" fill="#0288D1" rx="2" />
+                <text x="234" y="14" fontSize="9" fill="#374151">Assurance</text>
+                <rect x="310" y="5" width="10" height="10" fill="#9ca3af" rx="2" />
+                <text x="324" y="14" fontSize="9" fill="#374151">Divers</text>
+
+                {/* Grid */}
+                {[0, 100, 200, 300, 400].map((v) => {
+                  const y = 185 - (v / tcoMax) * 155;
+                  return (
+                    <g key={v}>
+                      <line x1="40" y1={y} x2="620" y2={y} stroke="#e5e7eb" strokeWidth="1" />
+                      <text x="36" y={y + 4} textAnchor="end" fontSize="9" fill="#9ca3af">{v}</text>
+                    </g>
+                  );
+                })}
+
+                {tcoMois.map((d, i) => {
+                  const bw = 52;
+                  const spacing = 96;
+                  const x = 52 + i * spacing;
+                  const toY = (v: number) => (v / tcoMax) * 155;
+                  const y0 = 185;
+                  const hCarb = toY(d.carb);
+                  const hMaint = toY(d.maint);
+                  const hAss = toY(d.ass);
+                  const hDiv = toY(d.div);
+                  return (
+                    <g key={d.mois}>
+                      <rect x={x} y={y0 - hCarb} width={bw} height={hCarb} fill="#2E7D32" />
+                      <rect x={x} y={y0 - hCarb - hMaint} width={bw} height={hMaint} fill="#E65100" />
+                      <rect x={x} y={y0 - hCarb - hMaint - hAss} width={bw} height={hAss} fill="#0288D1" />
+                      <rect x={x} y={y0 - hCarb - hMaint - hAss - hDiv} width={bw} height={hDiv} fill="#9ca3af" />
+                      <text x={x + bw / 2} y={195} textAnchor="middle" fontSize="10" fill="#6b7280">{d.mois}</text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Valeurs en milliers XOF / mois.</p>
+          </div>
+
+          {/* Tableau TCO */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#F8FBF8] text-gray-500 text-xs">
-                  <th className="text-left px-3 py-2 rounded-l-lg">Document</th>
-                  <th className="text-left px-3 py-2">Type</th>
-                  <th className="text-left px-3 py-2">Date</th>
-                  <th className="text-left px-3 py-2">Taille</th>
-                  <th className="text-center px-3 py-2 rounded-r-lg">Action</th>
+                  <th className="text-left px-3 py-2 rounded-l-lg">Poste</th>
+                  <th className="text-right px-3 py-2">2025 YTD (Jan–Jul)</th>
+                  <th className="text-right px-3 py-2 rounded-r-lg">Estimé annuel</th>
                 </tr>
               </thead>
               <tbody>
-                {documents.map((d, i) => (
+                {tcoPostes.map((t, i) => (
                   <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
-                    <td className="px-3 py-2 font-medium text-gray-800">{d.nom}</td>
-                    <td className="px-3 py-2">
-                      <span className="inline-block bg-red-50 text-red-600 text-xs font-medium px-2 py-0.5 rounded">{d.type}</span>
-                    </td>
-                    <td className="px-3 py-2 text-gray-500">{d.date}</td>
-                    <td className="px-3 py-2 text-gray-500">{d.taille}</td>
-                    <td className="px-3 py-2 text-center">
-                      <button className="inline-flex items-center gap-1 text-xs text-[#2E7D32] font-medium hover:underline">
-                        📥 Télécharger
-                      </button>
-                    </td>
+                    <td className="px-3 py-2 text-gray-700">{t.poste}</td>
+                    <td className="px-3 py-2 text-right text-gray-700">{t.ytd}</td>
+                    <td className="px-3 py-2 text-right text-gray-700">{t.annuel}</td>
                   </tr>
                 ))}
+                <tr className="bg-[#F8FBF8] font-semibold text-[#1B5E20]">
+                  <td className="px-3 py-2">TOTAL TCO 2025</td>
+                  <td className="px-3 py-2 text-right">2 210 000 XOF</td>
+                  <td className="px-3 py-2 text-right">3 442 000 XOF</td>
+                </tr>
               </tbody>
             </table>
           </div>
+
+          <div className="text-sm text-gray-600 bg-[#F8FBF8] rounded-xl px-4 py-3">
+            Coût par heure moteur 2025 : 2 210 000 XOF / 827h =&nbsp;
+            <span className="font-bold text-[#1B5E20]">2 672 XOF/h</span>
+          </div>
         </div>
 
-        {/* RETOUR */}
-        <div className="pb-4">
+        {/* ACTIONS */}
+        <div className="flex flex-wrap gap-3 pb-6">
           <Link
             href="/materiels"
-            className="inline-flex items-center gap-2 text-sm text-[#2E7D32] font-medium hover:underline"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
           >
-            ← Retour au parc matériels
+            ← Retour aux matériels
           </Link>
+          <button className="inline-flex items-center gap-2 rounded-xl bg-[#2E7D32] px-4 py-2 text-xs font-medium text-white hover:bg-[#1B5E20] transition">
+            Planifier maintenance
+          </button>
+          <button className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 transition">
+            Exporter historique
+          </button>
         </div>
 
       </main>

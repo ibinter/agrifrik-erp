@@ -1,5 +1,5 @@
 import Topbar from "../../../components/Topbar";
-import { CheckCircle, Clock, FileText, Printer, Download, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download, Mail, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
 export default async function FactureDetailPage({
@@ -10,253 +10,328 @@ export default async function FactureDetailPage({
   const { id } = await params;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8FBF8]">
-      <Topbar breadcrumb={["Commerce", "Factures", `Facture ${id}`]} />
+    <div className="flex-1 flex flex-col min-h-screen bg-gray-50">
+      <Topbar
+        breadcrumb={[
+          { label: "Commerce", href: "/ventes" },
+          { label: "Factures", href: "/factures" },
+          { label: `Facture ${id}` },
+        ]}
+      />
 
-      <main className="flex-1 p-6 space-y-6 max-w-5xl mx-auto w-full">
-        {/* Bandeau vert en-tête */}
-        <div className="rounded-2xl bg-[#1B5E20] text-white p-5 flex flex-wrap gap-4 items-center justify-between">
-          <div className="flex flex-wrap gap-6 items-center">
-            <div>
-              <p className="text-xs text-green-300 uppercase tracking-wide">N° Facture</p>
-              <p className="text-xl font-bold">FAC-2025-048</p>
+      <div className="p-6 space-y-6">
+        {/* En-tête bandeau vert */}
+        <div className="rounded-2xl p-6 text-white" style={{ background: "#1B5E20" }}>
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-bold">FAC-2025-008</h1>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-400/20 text-green-200 border border-green-400/30">
+                  <CheckCircle size={12} />
+                  Réglée le 08/07/2025
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1 text-sm text-green-100">
+                <div>
+                  <span className="text-green-300 font-medium">Émetteur :</span>{" "}
+                  AGRIFRIK SAS — Soubré, Côte d&apos;Ivoire
+                </div>
+                <div>
+                  <span className="text-green-300 font-medium">RCCM :</span>{" "}
+                  CI-SOB-2008-B-1142
+                </div>
+                <div>
+                  <span className="text-green-300 font-medium">Client :</span>{" "}
+                  Barry Callebaut Manufacturing CI SAS
+                </div>
+                <div>
+                  <span className="text-green-300 font-medium">Adresse :</span>{" "}
+                  Zone Industrielle Yopougon
+                </div>
+                <div>
+                  <span className="text-green-300 font-medium">Émission :</span>{" "}
+                  22/06/2025
+                </div>
+                <div>
+                  <span className="text-green-300 font-medium">Échéance :</span>{" "}
+                  07/07/2025 (J+15)
+                </div>
+              </div>
             </div>
-            <span className="inline-flex items-center gap-1.5 bg-green-700 border border-green-400 text-green-100 text-xs font-semibold px-3 py-1.5 rounded-full">
-              <CheckCircle size={13} /> Payée
-            </span>
-            <div>
-              <p className="text-xs text-green-300 uppercase tracking-wide">Client</p>
-              <p className="text-sm font-medium">Cargill International SA Rotterdam</p>
-            </div>
-            <div>
-              <p className="text-xs text-green-300 uppercase tracking-wide">Date</p>
-              <p className="text-sm font-medium">01/07/2025</p>
-            </div>
-            <div>
-              <p className="text-xs text-green-300 uppercase tracking-wide">Échéance</p>
-              <p className="text-sm font-medium">08/08/2025</p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <button className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium px-3 py-1.5 rounded-xl border border-white/20 transition">
-              <Printer size={13} /> Imprimer
-            </button>
-            <button className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium px-3 py-1.5 rounded-xl border border-white/20 transition">
-              <Download size={13} /> Exporter PDF
-            </button>
           </div>
         </div>
 
-        {/* 5 KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {/* 4 KPI */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Montant HT", value: "27 390 000 XOF", sub: null },
-            { label: "TVA 18%", value: "0 XOF", sub: "Exonéré export" },
-            { label: "Montant TTC", value: "27 390 000 XOF", sub: "41 755 EUR" },
-            { label: "LC Confirmée", value: "✅ BICICI", sub: "05/06/2025" },
-            { label: "DSO", value: "38 jours", sub: null },
-          ].map((kpi) => (
-            <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5">
-              <p className="text-xs text-gray-500 mb-1">{kpi.label}</p>
-              <p className="text-sm font-bold text-gray-900">{kpi.value}</p>
-              {kpi.sub && <p className="text-xs text-gray-400 mt-0.5">{kpi.sub}</p>}
+            { label: "Montant HT", value: "3 695 800 XOF", sub: "" },
+            { label: "TVA", value: "0 XOF", sub: "Exonéré export" },
+            { label: "Montant TTC", value: "3 695 800 XOF", sub: "" },
+            { label: "Net encaissé", value: "3 677 800 XOF", sub: "Frais bancaires LC : −18 000 XOF" },
+          ].map((k) => (
+            <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-5">
+              <p className="text-xs text-gray-500 font-medium">{k.label}</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">{k.value}</p>
+              {k.sub && <p className="text-xs text-gray-400 mt-0.5">{k.sub}</p>}
             </div>
           ))}
         </div>
 
-        {/* Aperçu facture format papier */}
-        <div className="rounded-2xl bg-white shadow-lg border border-gray-200 p-8 space-y-6">
-          {/* En-tête document */}
-          <div className="flex flex-wrap justify-between gap-6 pb-6 border-b border-gray-200">
-            <div>
-              <p className="text-lg font-bold text-[#1B5E20]">AGRIFRIK SAS</p>
-              <p className="text-xs text-gray-500">Zone Soubré Nord, Côte d&apos;Ivoire</p>
-              <p className="text-xs text-gray-500">RCCM CI-SOB-2008-B-1142</p>
-              <p className="text-xs text-gray-500">Compte BICICI CI87 0000 0000 0000 0000 0000 000</p>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-gray-900">FACTURE</p>
-              <p className="text-sm font-semibold text-[#2E7D32]">N° FAC-2025-048</p>
-              <p className="text-xs text-gray-500">Date : 01/07/2025</p>
-              <p className="text-xs text-gray-500">Réf. Commande : VTE-2025-048</p>
+        {/* Aperçu facture simulation PDF */}
+        <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="text-sm font-semibold text-gray-900">Aperçu facture (simulation PDF)</h2>
+          </div>
+          <div className="p-6 md:p-10">
+            <div
+              className="max-w-3xl mx-auto rounded-xl border border-gray-200 p-8 space-y-6"
+              style={{ background: "#FDFCF8" }}
+            >
+              {/* En-tête document */}
+              <div className="flex flex-col md:flex-row md:justify-between gap-6">
+                <div className="space-y-1">
+                  <p className="text-xl font-bold" style={{ color: "#1B5E20" }}>AGRIFRIK SAS</p>
+                  <p className="text-xs text-gray-600">Soubré, Côte d&apos;Ivoire</p>
+                  <p className="text-xs text-gray-600">RCCM : CI-SOB-2008-B-1142</p>
+                  <p className="text-xs text-gray-600">NIF : 1234567A</p>
+                  <p className="text-xs text-gray-600">BIC : SGCICIAB</p>
+                </div>
+                <div className="text-right space-y-1">
+                  <p className="text-lg font-bold text-gray-800">FACTURE N° FAC-2025-008</p>
+                  <p className="text-xs text-gray-600">Date d&apos;émission : 22/06/2025</p>
+                  <p className="text-xs text-gray-600">Date d&apos;échéance : 07/07/2025</p>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+                    <CheckCircle size={10} />
+                    RÉGLÉE
+                  </span>
+                </div>
+              </div>
+
+              <hr className="border-gray-200" />
+
+              {/* Facturé à */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Facturé à</p>
+                <p className="text-sm font-semibold text-gray-900">Barry Callebaut Manufacturing CI SAS</p>
+                <p className="text-xs text-gray-600">Zone Industrielle Yopougon — Abidjan, CI</p>
+              </div>
+
+              {/* Tableau lignes */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-gray-200" style={{ background: "#F8FBF8" }}>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700">Désignation</th>
+                      <th className="text-right py-2 px-3 font-semibold text-gray-700">Qté</th>
+                      <th className="text-right py-2 px-3 font-semibold text-gray-700">PU (XOF)</th>
+                      <th className="text-right py-2 px-3 font-semibold text-gray-700">Montant (XOF)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    <tr>
+                      <td className="py-3 px-3 text-gray-800">
+                        <p className="font-medium">Cacao sec fermenté séché Grade AA</p>
+                        <p className="text-gray-500 text-[10px]">LOT-2025-041/043/044/046</p>
+                      </td>
+                      <td className="py-3 px-3 text-right text-gray-700">3 400 kg</td>
+                      <td className="py-3 px-3 text-right text-gray-700">1 087</td>
+                      <td className="py-3 px-3 text-right font-semibold text-gray-900">3 695 800</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 text-gray-500 italic text-[10px]">
+                        Prime qualité Rainforest Alliance (incluse dans PU)
+                      </td>
+                      <td className="py-2 px-3 text-right text-gray-400">—</td>
+                      <td className="py-2 px-3 text-right text-gray-400">Incluse</td>
+                      <td className="py-2 px-3 text-right text-gray-400">—</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 text-gray-500 italic text-[10px]">
+                        Transport DAP San-Pédro
+                      </td>
+                      <td className="py-2 px-3 text-right text-gray-400">Forfait</td>
+                      <td className="py-2 px-3 text-right text-gray-400">—</td>
+                      <td className="py-2 px-3 text-right text-gray-400">Inclus</td>
+                    </tr>
+                    <tr className="bg-gray-50 font-semibold">
+                      <td className="py-2 px-3 text-gray-800" colSpan={3}>SOUS-TOTAL HT</td>
+                      <td className="py-2 px-3 text-right text-gray-900">3 695 800</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 text-gray-600 text-[10px]" colSpan={3}>
+                        TVA (0% — Exonération art. 344 CGI-CI — Exportation)
+                      </td>
+                      <td className="py-2 px-3 text-right text-gray-600">0</td>
+                    </tr>
+                    <tr className="border-t-2 border-gray-300 font-bold">
+                      <td className="py-3 px-3 text-gray-900" colSpan={3}>TOTAL TTC</td>
+                      <td className="py-3 px-3 text-right text-green-800 text-sm">3 695 800 XOF</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Conditions */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] text-gray-600">
+                <div>
+                  <p className="font-semibold text-gray-700 mb-1">Conditions de règlement</p>
+                  <p>LC irrévocable SGBCI — Délai 15 jours</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-700 mb-1">Coordonnées bancaires</p>
+                  <p>SGBCI Soubré</p>
+                  <p>IBAN : CI093000100794000000001</p>
+                  <p>BIC : SGCICIAB</p>
+                </div>
+              </div>
+
+              {/* Pied */}
+              <div className="border-t border-gray-200 pt-4 text-[10px] text-gray-500 text-center">
+                Marchandise conforme aux spécifications contractuelles CTR-2025-001. Certification RA : RA-CI-2025-EFA001. BL : MAEU-CI-0908.
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Facturé à */}
-          <div className="bg-[#F8FBF8] rounded-xl p-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Facturé à</p>
-            <p className="text-sm font-bold text-gray-900">Cargill International SA</p>
-            <p className="text-xs text-gray-600">Weena 505, 3013 AL Rotterdam, Pays-Bas</p>
+        {/* Historique des règlements */}
+        <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="text-sm font-semibold text-gray-900">Historique des règlements</h2>
           </div>
-
-          {/* Tableau lignes */}
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#F8FBF8]">
-                  <th className="text-left p-3 font-semibold text-gray-700">#</th>
-                  <th className="text-left p-3 font-semibold text-gray-700">Désignation</th>
-                  <th className="text-right p-3 font-semibold text-gray-700">Qté (kg)</th>
-                  <th className="text-right p-3 font-semibold text-gray-700">PU (XOF/kg)</th>
-                  <th className="text-right p-3 font-semibold text-gray-700">Total (XOF)</th>
+                <tr style={{ background: "#F8FBF8" }}>
+                  {["Date", "Description", "Débit", "Crédit", "Solde"].map((h) => (
+                    <th key={h} className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody>
-                <tr className="border-t border-gray-100">
-                  <td className="p-3 text-gray-500">1</td>
-                  <td className="p-3 text-gray-900">
-                    <p className="font-semibold">Cacao naturel fermenté séché Grade AA</p>
-                    <p className="text-gray-500 mt-0.5">
-                      N° lot LOT-2025-045 — Certifié RA &amp; FCPR — Humidité 7,4% — FOB San-Pédro
-                    </p>
+              <tbody className="divide-y divide-gray-50">
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-3 text-xs text-gray-500">22/06/2025</td>
+                  <td className="px-6 py-3 text-xs text-gray-800">Émission FAC-2025-008</td>
+                  <td className="px-6 py-3 text-xs text-gray-400">—</td>
+                  <td className="px-6 py-3 text-xs text-gray-400">—</td>
+                  <td className="px-6 py-3 text-xs font-medium text-gray-900">3 695 800 XOF</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-3 text-xs text-gray-500">08/07/2025</td>
+                  <td className="px-6 py-3 text-xs text-gray-800">
+                    Virement reçu — VIR-SGBCI-2025-07-0908
                   </td>
-                  <td className="p-3 text-right font-mono">24 900</td>
-                  <td className="p-3 text-right font-mono">1 100</td>
-                  <td className="p-3 text-right font-mono font-semibold">27 390 000</td>
+                  <td className="px-6 py-3 text-xs text-gray-400">—</td>
+                  <td className="px-6 py-3 text-xs text-green-700 font-medium">3 695 800</td>
+                  <td className="px-6 py-3 text-xs font-medium text-green-700 flex items-center gap-1">
+                    0 XOF <CheckCircle size={12} />
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-3 text-xs text-gray-500">08/07/2025</td>
+                  <td className="px-6 py-3 text-xs text-gray-800">Frais bancaires LC déduits</td>
+                  <td className="px-6 py-3 text-xs text-red-600 font-medium">18 000</td>
+                  <td className="px-6 py-3 text-xs text-gray-400">—</td>
+                  <td className="px-6 py-3 text-xs font-medium text-red-600">−18 000 XOF</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Récapitulatif Barry Callebaut 2025 */}
+        <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="text-sm font-semibold text-gray-900">
+              Factures Barry Callebaut 2025 — Récapitulatif
+            </h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ background: "#F8FBF8" }}>
+                  {["N° Facture", "Date", "Volume", "Montant TTC", "Statut"].map((h) => (
+                    <th key={h} className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[
+                  { num: "FAC-2025-001", date: "15/01", vol: "3 200 kg", ttc: "3 478 400", ok: true, current: false },
+                  { num: "FAC-2025-002", date: "14/02", vol: "3 400 kg", ttc: "3 695 800", ok: true, current: false },
+                  { num: "FAC-2025-003", date: "15/03", vol: "3 200 kg", ttc: "3 478 400", ok: true, current: false },
+                  { num: "FAC-2025-004", date: "18/04", vol: "3 600 kg", ttc: "3 913 200", ok: true, current: false },
+                  { num: "FAC-2025-005", date: "16/05", vol: "3 400 kg", ttc: "3 695 800", ok: true, current: false },
+                  { num: "FAC-2025-006", date: "05/06", vol: "3 400 kg", ttc: "3 695 800", ok: true, current: false },
+                  { num: "FAC-2025-007", date: "22/06", vol: "964 kg", ttc: "1 047 768", ok: true, current: false },
+                  { num: "FAC-2025-008", date: "22/06", vol: "3 400 kg", ttc: "3 695 800", ok: true, current: true },
+                ].map((row) => (
+                  <tr
+                    key={row.num}
+                    className={row.current ? "bg-green-50" : "hover:bg-gray-50"}
+                  >
+                    <td className={`px-6 py-3 text-xs font-medium ${row.current ? "text-green-800" : "text-gray-800"}`}>
+                      {row.num}
+                    </td>
+                    <td className="px-6 py-3 text-xs text-gray-500">{row.date}</td>
+                    <td className="px-6 py-3 text-xs text-gray-700">{row.vol}</td>
+                    <td className="px-6 py-3 text-xs font-medium text-gray-900">{row.ttc} XOF</td>
+                    <td className="px-6 py-3">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-800">
+                        <CheckCircle size={9} /> Réglée
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                <tr className="hover:bg-gray-50">
+                  <td className="px-6 py-3 text-xs font-medium text-blue-700">FAC-2025-009 (partielle)</td>
+                  <td className="px-6 py-3 text-xs text-gray-500">11/07</td>
+                  <td className="px-6 py-3 text-xs text-gray-700">3 400 kg</td>
+                  <td className="px-6 py-3 text-xs font-medium text-gray-900">3 695 800 XOF</td>
+                  <td className="px-6 py-3">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800">
+                      🔵 En cours
+                    </span>
+                  </td>
                 </tr>
               </tbody>
               <tfoot>
-                <tr className="border-t border-gray-200">
-                  <td colSpan={4} className="p-3 text-right text-xs text-gray-600">Total HT</td>
-                  <td className="p-3 text-right font-mono font-semibold">27 390 000</td>
-                </tr>
-                <tr>
-                  <td colSpan={4} className="px-3 pb-1 text-right text-xs text-gray-400">
-                    TVA 18% (exonérée export CI art. 344 CGI)
-                  </td>
-                  <td className="px-3 pb-1 text-right font-mono text-gray-400">0</td>
-                </tr>
-                <tr className="bg-[#1B5E20] text-white">
-                  <td colSpan={4} className="p-3 text-right text-sm font-bold rounded-bl-xl">NET À PAYER</td>
-                  <td className="p-3 text-right font-mono font-bold rounded-br-xl">
-                    27 390 000 XOF
-                    <br />
-                    <span className="text-green-300 text-xs">= 41 752 EUR (655,96)</span>
+                <tr className="border-t-2 border-gray-200 bg-gray-50 font-semibold">
+                  <td className="px-6 py-3 text-xs text-gray-800" colSpan={3}>Total facturé BC 2025</td>
+                  <td className="px-6 py-3 text-xs font-bold text-gray-900">26 700 968 XOF</td>
+                  <td className="px-6 py-3">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-800">
+                      <CheckCircle size={9} /> Total réglé
+                    </span>
                   </td>
                 </tr>
               </tfoot>
             </table>
           </div>
-
-          {/* Conditions paiement */}
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-xs text-blue-800">
-            <p className="font-semibold mb-1">Conditions de paiement</p>
-            <p>
-              LC irrévocable SWIFT L/C N° BNP-2025-1847 | BNP Paribas Rotterdam → BICICI Abidjan | À vue
-              (présentation documents)
-            </p>
-          </div>
-        </div>
-
-        {/* Statut paiement + SYSCOHADA */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Timeline */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <h2 className="text-sm font-bold text-gray-900 mb-4">Statut de paiement</h2>
-            <ol className="relative border-l-2 border-gray-200 space-y-4 ml-2">
-              {[
-                { date: "05/06/2025", label: "LC ouverte (BNP Rotterdam → BICICI Abidjan)", done: true },
-                { date: "10/07/2025", label: "Jeu de documents présenté à BICICI", done: true },
-                { date: "10/07/2025", label: "Documents vérifiés conformes (BICICI Trade Finance)", done: true },
-                { date: "05/08/2025", label: "ETA livraison Rotterdam", done: false },
-                { date: "08/08/2025", label: "Paiement LC prévu", done: false },
-              ].map((step, i) => (
-                <li key={i} className="pl-6 relative">
-                  <span
-                    className={`absolute -left-[9px] top-0.5 w-4 h-4 rounded-full flex items-center justify-center ${
-                      step.done ? "bg-[#2E7D32]" : "bg-gray-200"
-                    }`}
-                  >
-                    {step.done ? (
-                      <CheckCircle size={10} className="text-white" />
-                    ) : (
-                      <Clock size={10} className="text-gray-400" />
-                    )}
-                  </span>
-                  <p className="text-xs text-gray-400">{step.date}</p>
-                  <p className="text-xs font-medium text-gray-800">{step.label}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          {/* SYSCOHADA */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <h2 className="text-sm font-bold text-gray-900 mb-4">Comptabilisation SYSCOHADA</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-[#F8FBF8]">
-                    <th className="text-left p-2 font-semibold text-gray-600">Compte</th>
-                    <th className="text-left p-2 font-semibold text-gray-600">Libellé</th>
-                    <th className="text-right p-2 font-semibold text-gray-600">Débit</th>
-                    <th className="text-right p-2 font-semibold text-gray-600">Crédit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-t border-gray-100">
-                    <td className="p-2 font-mono text-gray-700">4111</td>
-                    <td className="p-2 text-gray-700">
-                      <p className="font-medium">Cargill International</p>
-                      <p className="text-gray-400">FAC-2025-048</p>
-                    </td>
-                    <td className="p-2 text-right font-mono font-semibold text-[#1B5E20]">27 390 000</td>
-                    <td className="p-2 text-right text-gray-300">—</td>
-                  </tr>
-                  <tr className="border-t border-gray-100">
-                    <td className="p-2 font-mono text-gray-700">7011</td>
-                    <td className="p-2 text-gray-700">
-                      <p className="font-medium">Ventes marchandises</p>
-                      <p className="text-gray-400">Cacao LOT-2025-045</p>
-                    </td>
-                    <td className="p-2 text-right text-gray-300">—</td>
-                    <td className="p-2 text-right font-mono font-semibold text-[#1B5E20]">27 390 000</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Documents liés */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-bold text-gray-900 mb-4">Documents liés</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {[
-              "Contrat VTE-048",
-              "BL MSC",
-              "DAE",
-              "Certificat phytosanitaire",
-              "Certificat Rainforest Alliance",
-              "Certificat d'origine CI (BCC)",
-            ].map((doc) => (
-              <div
-                key={doc}
-                className="flex items-center gap-2 bg-[#F8FBF8] rounded-xl px-3 py-2.5 text-xs text-gray-700 font-medium hover:bg-green-50 cursor-pointer border border-transparent hover:border-green-100 transition"
-              >
-                <FileText size={14} className="text-[#2E7D32] shrink-0" />
-                {doc}
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex flex-wrap gap-3">
           <Link
             href="/factures"
-            className="flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 text-xs font-medium px-4 py-2 rounded-xl hover:bg-gray-50 transition"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <ArrowLeft size={13} /> Retour aux factures
+            <ArrowLeft size={14} />
+            Retour aux factures
           </Link>
-          <button className="flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 text-xs font-medium px-4 py-2 rounded-xl hover:bg-gray-50 transition">
-            <Printer size={13} /> Imprimer
+          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white transition-colors" style={{ background: "#2E7D32" }}>
+            <Download size={14} />
+            Télécharger PDF
           </button>
-          <button className="flex items-center gap-1.5 bg-[#2E7D32] text-white text-xs font-medium px-4 py-2 rounded-xl hover:bg-[#1B5E20] transition">
-            <Download size={13} /> Exporter PDF
+          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            <Mail size={14} />
+            Envoyer par email
           </button>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
