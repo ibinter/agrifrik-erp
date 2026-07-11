@@ -1,430 +1,427 @@
 "use client";
 
+import { useState } from "react";
 import Topbar from "../../components/Topbar";
-import { Droplets, Wind, Eye, Gauge, Thermometer, Sun, AlertTriangle } from "lucide-react";
 
-// ─── Données ─────────────────────────────────────────────────────────────────
+const TABS = ["Prévisions", "Historique", "Alertes agricoles"] as const;
+type Tab = typeof TABS[number];
 
-type JourPrevision = {
-  date: string;
-  jour: string;
-  icon: string;
-  tmax: number;
-  tmin: number;
-  pluie: number;
-  vent: number;
-  alerte: "ok" | "warn" | "danger";
-  note?: string;
-};
-
-const previsions15: JourPrevision[] = [
-  { date: "11/07", jour: "Ven", icon: "☀️",  tmax: 34, tmin: 22, pluie:  0, vent:  8, alerte: "ok" },
-  { date: "12/07", jour: "Sam", icon: "🌧️",  tmax: 28, tmin: 20, pluie: 65, vent: 18, alerte: "danger", note: "⚠️ Fort" },
-  { date: "13/07", jour: "Dim", icon: "🌧️",  tmax: 26, tmin: 19, pluie: 82, vent: 22, alerte: "danger", note: "⚠️ Très fort" },
-  { date: "14/07", jour: "Lun", icon: "⛅",   tmax: 30, tmin: 21, pluie: 15, vent: 12, alerte: "warn" },
-  { date: "15/07", jour: "Mar", icon: "☀️",  tmax: 33, tmin: 22, pluie:  0, vent: 10, alerte: "ok" },
-  { date: "16/07", jour: "Mer", icon: "☀️",  tmax: 35, tmin: 23, pluie:  0, vent:  9, alerte: "ok" },
-  { date: "17/07", jour: "Jeu", icon: "⛅",   tmax: 32, tmin: 21, pluie:  8, vent: 11, alerte: "warn" },
-  { date: "18/07", jour: "Ven", icon: "🌧️",  tmax: 29, tmin: 20, pluie: 40, vent: 16, alerte: "danger", note: "⚠️" },
-  { date: "19/07", jour: "Sam", icon: "⛅",   tmax: 31, tmin: 21, pluie: 12, vent: 13, alerte: "warn" },
-  { date: "20/07", jour: "Dim", icon: "☀️",  tmax: 34, tmin: 22, pluie:  0, vent:  8, alerte: "ok", note: "Jour idéal épandage K" },
-  { date: "21/07", jour: "Lun", icon: "☀️",  tmax: 35, tmin: 23, pluie:  0, vent:  9, alerte: "ok" },
-  { date: "22/07", jour: "Mar", icon: "⛅",   tmax: 33, tmin: 22, pluie:  5, vent: 10, alerte: "warn" },
-  { date: "23/07", jour: "Mer", icon: "🌧️",  tmax: 27, tmin: 19, pluie: 55, vent: 20, alerte: "danger", note: "⚠️" },
-  { date: "24/07", jour: "Jeu", icon: "⛅",   tmax: 30, tmin: 21, pluie: 18, vent: 14, alerte: "warn" },
-  { date: "25/07", jour: "Ven", icon: "☀️",  tmax: 34, tmin: 22, pluie:  0, vent:  8, alerte: "ok" },
-];
-
-// 30 jours de pluie (mm) — index 0 = 11/06, pic les j32-j33 = 12-13/07
-const pluies30: number[] = [
-  12, 0, 0, 8, 35, 0, 3, 0, 0, 18,
-   0, 5, 0, 0, 22, 0, 0, 0, 9,  0,
-   0, 0, 0, 4, 0,  0, 0, 0, 0,  7,
-];
-// Indices correspondant aux pics 12-13 juillet (indices 28-29 dans le tableau 30j à compter du 12 juin)
-const picIndices = new Set([28, 29]);
-
-const alertes = [
-  {
-    level: "danger",
-    emoji: "🔴",
-    titre: "12-13/07 : Pluies intenses 65-82 mm",
-    items: [
-      "Interdiction traitements phytosanitaires",
-      "Sécuriser bâches séchoir solaire",
-      "Risque mildiou en forte hausse ↑",
-    ],
-  },
-  {
-    level: "warning",
-    emoji: "🟡",
-    titre: "UV 8-9 du 15 au 22/07 — Fenêtre séchage optimale",
-    items: [
-      "Profiter pour séchage solaire LOT-032",
-    ],
-  },
-  {
-    level: "warning",
-    emoji: "🟡",
-    titre: "Sec prévu le 20/07 — Fenêtre idéale épandage K",
-    items: [
-      "Appliquer engrais K sur PAR-A3",
-    ],
-  },
-  {
-    level: "info",
-    emoji: "🔵",
-    titre: "Précipitations cumulées juillet (estimation) : 280 mm",
-    items: [
-      "Normale saisonnière : 250 mm — Légèrement excédentaire",
-    ],
-  },
-];
-
-const cumulMensuel = [
-  { mois: "Mai 2025",         obs: 182, normale: 165, ecart: "+10,3%", jours: 14 },
-  { mois: "Juin 2025",        obs: 256, normale: 248, ecart: "+3,2%",  jours: 18 },
-  { mois: "Juil 2025 (en cours)", obs: 147, normale: 250, ecart: "Normal (280 prévu)", jours: 8 },
-];
-
-const recommandations = [
-  {
-    urgence: "danger",
-    emoji: "🌿",
-    titre: "Traitement mildiou AVANT le 11/07 au soir",
-    detail: "Fenêtre d'intervention ≤ 24h avant les pluies intenses",
-  },
-  {
-    urgence: "info",
-    emoji: "🌾",
-    titre: "Reporter épandage engrais K au 20/07",
-    detail: "Journée sèche confirmée, conditions optimales sur PAR-A3",
-  },
-  {
-    urgence: "warning",
-    emoji: "☀️",
-    titre: "Séchage solaire LOT-032 : 15–19 juillet",
-    detail: "5 jours d'ensoleillement continu prévus — fenêtre idéale",
-  },
-];
-
-// ─── Composants ──────────────────────────────────────────────────────────────
-
-function AlerteBadge({ alerte }: { alerte: JourPrevision["alerte"] }) {
-  if (alerte === "ok")     return <span className="text-base">✅</span>;
-  if (alerte === "danger") return <span className="text-base">🚨</span>;
-  return <span className="text-base">⚠️</span>;
-}
-
-function RainfallBarChart() {
-  const W = 700; const H = 180;
-  const padL = 40; const padR = 12; const padT = 16; const padB = 28;
-  const chartW = W - padL - padR;
-  const chartH = H - padT - padB;
-  const maxMm = 90; // axe fixe à 90mm
-  const alertSeuil = 80; // ligne rouge
-  const yAlert = padT + chartH - (alertSeuil / maxMm) * chartH;
-
-  const barW = chartW / pluies30.length;
+// ─── SVG Pluviométrie 4 semaines ────────────────────────────────────────────
+function RainForecastChart() {
+  // 28 jours : Sem26 total 48mm, Sem27 62mm, Sem28 38mm, Sem29 12mm (en cours)
+  const rawData = [
+    4, 8, 10, 12, 6, 4, 4,   // Sem 26
+    10, 12, 14, 8, 6, 6, 6,  // Sem 27
+    6, 8, 6, 4, 6, 4, 4,     // Sem 28
+    4, 4, 4, 0, 0, 0, 0,     // Sem 29
+  ];
+  const maxVal = 16;
+  const W = 560;
+  const H = 180;
+  const padL = 40;
+  const padB = 36;
+  const padT = 20;
+  const barW = (W - padL - 8) / 28;
+  const etp = 4.2;
+  const avail = H - padB - padT;
+  const etpY = padT + avail * (1 - etp / maxVal);
+  const weekColors = ["#3b82f6", "#2563eb", "#60a5fa", "#93c5fd"];
+  const weekTotals = [48, 62, 38, 12];
 
   return (
     <div className="overflow-x-auto">
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ minWidth: 500, width: "100%" }}>
-        {/* grille */}
-        {[20, 40, 60, 80].map((v) => {
-          const y = padT + chartH - (v / maxMm) * chartH;
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[560px]" aria-label="Pluviométrie 4 semaines">
+        {[0, 4, 8, 12, 16].map((v) => {
+          const y = padT + avail * (1 - v / maxVal);
           return (
             <g key={v}>
-              <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#F0F0F0" strokeWidth={1} />
-              <text x={padL - 6} y={y + 4} fontSize={9} textAnchor="end" fill="#9E9E9E">{v}</text>
+              <line x1={padL} x2={W - 4} y1={y} y2={y} stroke="#e5e7eb" strokeWidth="0.5" />
+              <text x={padL - 4} y={y + 4} textAnchor="end" fontSize="8" fill="#9ca3af">{v}</text>
             </g>
           );
         })}
-        {/* ligne alerte */}
-        <line x1={padL} y1={yAlert} x2={W - padR} y2={yAlert} stroke="#EF4444" strokeWidth={1.5} strokeDasharray="6,3" />
-        <text x={W - padR - 2} y={yAlert - 4} fontSize={9} textAnchor="end" fill="#EF4444" fontWeight="600">
-          Seuil alerte 80 mm/j
-        </text>
-        {/* barres */}
-        {pluies30.map((mm, i) => {
-          const barH = (mm / maxMm) * chartH;
-          const x = padL + i * barW + barW * 0.15;
-          const bw = barW * 0.7;
-          const y = padT + chartH - barH;
-          const isPic = picIndices.has(i);
-          const fill = isPic ? "#EF4444" : mm === 0 ? "#DBEAFE" : "#3B82F6";
+        {rawData.map((v, i) => {
+          const x = padL + i * barW + 1;
+          const bh = avail * (v / maxVal);
+          const y = padT + avail - bh;
           return (
-            <rect key={i} x={x} y={y} width={bw} height={Math.max(barH, 1)} rx={2} fill={fill} fillOpacity={mm === 0 ? 0.4 : 1} />
+            <rect key={i} x={x} y={y} width={barW - 2} height={bh}
+              fill={weekColors[Math.floor(i / 7)]} rx="1" opacity="0.85" />
           );
         })}
-        {/* baseline */}
-        <line x1={padL} y1={padT + chartH} x2={W - padR} y2={padT + chartH} stroke="#E5E7EB" strokeWidth={1} />
-        {/* labels axe X (tous les 5 jours) */}
-        {pluies30.map((_, i) => {
-          if (i % 5 !== 0) return null;
-          const x = padL + i * barW + barW / 2;
+        <line x1={padL} x2={W - 4} y1={etpY} y2={etpY}
+          stroke="#f97316" strokeWidth="1.5" strokeDasharray="4 3" />
+        <text x={W - 6} y={etpY - 3} textAnchor="end" fontSize="8" fill="#f97316">ETP 4,2mm</text>
+        {["Sem 26", "Sem 27", "Sem 28", "Sem 29"].map((label, i) => {
+          const x = padL + i * 7 * barW + 3.5 * barW;
           return (
-            <text key={i} x={x} y={H - 6} fontSize={9} textAnchor="middle" fill="#9E9E9E">J{i + 1}</text>
+            <g key={label}>
+              <text x={x} y={H - padB + 14} textAnchor="middle" fontSize="8" fill="#6b7280">{label}</text>
+              <text x={x} y={H - padB + 25} textAnchor="middle" fontSize="7" fill="#3b82f6">{weekTotals[i]}mm</text>
+            </g>
           );
         })}
+        <text x={padL - 4} y={padT - 6} fontSize="8" fill="#6b7280">mm</text>
       </svg>
-      <div className="flex flex-wrap gap-4 mt-2 text-xs text-gray-500">
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm inline-block bg-blue-500" />Pluie (mm)</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm inline-block bg-red-400" />Pic (12-13/07)</span>
-        <span className="flex items-center gap-1.5"><span className="w-8 border-t-2 border-dashed border-red-400 inline-block" />Seuil 80 mm/j</span>
-      </div>
     </div>
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── SVG Pluviométrie mensuelle grouped bar ──────────────────────────────────
+function MonthlyRainChart() {
+  const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"];
+  const actual = [18, 24, 86, 142, 184, 204, 0, 0, 0, 0, 0, 0];
+  const normal = [22, 28, 82, 138, 178, 214, 188, 168, 142, 88, 48, 26];
+  const maxVal = 230;
+  const W = 560;
+  const H = 200;
+  const padL = 44;
+  const padB = 36;
+  const padT = 20;
+  const slotW = (W - padL - 4) / 12;
+  const bw = slotW * 0.35;
+  const avail = H - padB - padT;
+  const fy = (v: number) => padT + avail * (1 - v / maxVal);
 
+  return (
+    <div className="overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[560px]">
+        {[0, 50, 100, 150, 200].map((v) => {
+          const y = fy(v);
+          return (
+            <g key={v}>
+              <line x1={padL} x2={W - 4} y1={y} y2={y} stroke="#e5e7eb" strokeWidth="0.5" />
+              <text x={padL - 4} y={y + 4} textAnchor="end" fontSize="8" fill="#9ca3af">{v}</text>
+            </g>
+          );
+        })}
+        {months.map((m, i) => {
+          const cx = padL + i * slotW + slotW / 2;
+          const hA = avail * (actual[i] / maxVal);
+          const hN = avail * (normal[i] / maxVal);
+          return (
+            <g key={m}>
+              {actual[i] > 0 && (
+                <rect x={cx - bw - 1} y={fy(actual[i])} width={bw} height={hA}
+                  fill="#3b82f6" rx="1" opacity="0.85" />
+              )}
+              <rect x={cx + 1} y={fy(normal[i])} width={bw} height={hN}
+                fill="#d1fae5" stroke="#10b981" strokeWidth="0.5" rx="1" />
+              <text x={cx} y={H - padB + 12} textAnchor="middle" fontSize="8" fill="#6b7280">{m}</text>
+            </g>
+          );
+        })}
+        <rect x={padL + 4} y={padT} width={8} height={6} fill="#3b82f6" rx="1" />
+        <text x={padL + 14} y={padT + 6} fontSize="8" fill="#374151">Réel 2025</text>
+        <rect x={padL + 68} y={padT} width={8} height={6} fill="#d1fae5" stroke="#10b981" strokeWidth="0.5" rx="1" />
+        <text x={padL + 78} y={padT + 6} fontSize="8" fill="#374151">Normale 30 ans</text>
+      </svg>
+    </div>
+  );
+}
+
+// ─── SVG Températures Min/Max ────────────────────────────────────────────────
+function TempChart() {
+  const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun"];
+  const maxT = [31.4, 32.1, 32.8, 31.2, 29.8, 28.4];
+  const minT = [22.2, 22.8, 23.4, 21.8, 20.6, 19.8];
+  const W = 400;
+  const H = 160;
+  const padL = 36;
+  const padB = 30;
+  const padT = 20;
+  const n = months.length;
+  const minV = 18;
+  const maxV = 36;
+  const avail = H - padB - padT;
+  const availW = W - padL - 8;
+
+  const fy = (v: number) => padT + avail * (1 - (v - minV) / (maxV - minV));
+  const fx = (i: number) => padL + i * availW / (n - 1);
+
+  const maxPts = maxT.map((v, i) => `${fx(i)},${fy(v)}`).join(" ");
+  const minPts = minT.map((v, i) => `${fx(i)},${fy(v)}`).join(" ");
+  const areaPts = [
+    ...maxT.map((v, i) => `${fx(i)},${fy(v)}`),
+    ...minT.map((v, i) => `${fx(i)},${fy(v)}`).reverse(),
+  ].join(" ");
+
+  return (
+    <div className="overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[400px]">
+        {[18, 22, 26, 30, 34].map((v) => {
+          const y = fy(v);
+          return (
+            <g key={v}>
+              <line x1={padL} x2={W - 4} y1={y} y2={y} stroke="#e5e7eb" strokeWidth="0.5" />
+              <text x={padL - 4} y={y + 4} textAnchor="end" fontSize="8" fill="#9ca3af">{v}°</text>
+            </g>
+          );
+        })}
+        <polygon points={areaPts} fill="#bbf7d0" opacity="0.5" />
+        <polyline points={maxPts} fill="none" stroke="#1B5E20" strokeWidth="2" strokeLinejoin="round" />
+        <polyline points={minPts} fill="none" stroke="#4CAF50" strokeWidth="2" strokeLinejoin="round" />
+        {months.map((m, i) => (
+          <text key={m} x={fx(i)} y={H - padB + 12} textAnchor="middle" fontSize="8" fill="#6b7280">{m}</text>
+        ))}
+        <line x1={padL + 4} x2={padL + 16} y1={padT} y2={padT} stroke="#1B5E20" strokeWidth="2" />
+        <text x={padL + 18} y={padT + 4} fontSize="8" fill="#374151">T° max</text>
+        <line x1={padL + 60} x2={padL + 72} y1={padT} y2={padT} stroke="#4CAF50" strokeWidth="2" />
+        <text x={padL + 74} y={padT + 4} fontSize="8" fill="#374151">T° min</text>
+      </svg>
+    </div>
+  );
+}
+
+// ─── Données ─────────────────────────────────────────────────────────────────
+const forecast7 = [
+  { day: "Sam 12/07", min: 23, max: 31, precip: 12, icon: "🌧️", alert: "⚠️ Reporter traitements", alertColor: "text-amber-600" },
+  { day: "Dim 13/07", min: 24, max: 30, precip: 24, icon: "🌧️", alert: "⚠️ Séchage artificiel", alertColor: "text-amber-600" },
+  { day: "Lun 14/07", min: 24, max: 32, precip: 6,  icon: "⛅", alert: "—", alertColor: "text-gray-400" },
+  { day: "Mar 15/07", min: 23, max: 33, precip: 0,  icon: "☀️", alert: "✅ Idéal séchage", alertColor: "text-green-600" },
+  { day: "Mer 16/07", min: 22, max: 33, precip: 0,  icon: "☀️", alert: "✅ Idéal séchage", alertColor: "text-green-600" },
+  { day: "Jeu 17/07", min: 22, max: 34, precip: 0,  icon: "☀️", alert: "✅ Optimal", alertColor: "text-green-600" },
+  { day: "Ven 18/07", min: 23, max: 32, precip: 4,  icon: "⛅", alert: "—", alertColor: "text-gray-400" },
+];
+
+const historique = [
+  { mois: "Janvier", temp: "26,8°C", pluie: "18 mm", jp: "4 j", etp: "128 mm", bilan: "-110 mm", bc: "text-red-600", badge: "⚠️" },
+  { mois: "Février", temp: "27,2°C", pluie: "24 mm", jp: "5 j", etp: "118 mm", bilan: "-94 mm",  bc: "text-red-600", badge: "⚠️" },
+  { mois: "Mars",    temp: "27,8°C", pluie: "86 mm", jp: "11 j", etp: "132 mm", bilan: "-46 mm",  bc: "text-amber-600", badge: "🟡" },
+  { mois: "Avril",   temp: "26,4°C", pluie: "142 mm",jp: "16 j", etp: "122 mm", bilan: "+20 mm",  bc: "text-green-700", badge: "✅" },
+  { mois: "Mai",     temp: "25,8°C", pluie: "184 mm",jp: "18 j", etp: "118 mm", bilan: "+66 mm",  bc: "text-green-700", badge: "✅" },
+  { mois: "Juin",    temp: "24,6°C", pluie: "204 mm",jp: "21 j", etp: "108 mm", bilan: "+96 mm",  bc: "text-green-700", badge: "✅" },
+];
+
+const agendaIA = [
+  { op: "Traitement mildiou PAR-B1", fenetre: "11/07 avant pluies", meteo: "Ensoleillé <10 km/h", statut: "✅ Effectué", sc: "text-green-700 bg-green-50" },
+  { op: "Épandage KCl PAR-A3",       fenetre: "15-20/07",           meteo: "Sans pluie 48h",       statut: "📅 Planifié",  sc: "text-blue-700 bg-blue-50" },
+  { op: "Séchage solaire LOT-048",   fenetre: "15-17/07",           meteo: "≥6h ensoleillement",   statut: "✅ Météo favorable", sc: "text-green-700 bg-green-50" },
+  { op: "Sarclage PAR-D2",           fenetre: "14/07",              meteo: "Après pluies (sol humide)", statut: "📅 Optimal lundi", sc: "text-blue-700 bg-blue-50" },
+];
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function MeteoPage() {
+  const [activeTab, setActiveTab] = useState<Tab>("Prévisions");
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Topbar title="Météo Agricole" breadcrumb={["IA & Données", "Météo"]} />
+      <Topbar breadcrumbs={["IA", "Météo Agricole"]} />
 
-      <div className="p-6 space-y-6">
-
-        {/* ── En-tête localisation ── */}
-        <div className="flex flex-wrap items-center gap-3 px-1">
-          <span className="text-2xl">📍</span>
+      <div className="p-6 max-w-6xl mx-auto space-y-5">
+        {/* En-tête station */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="font-semibold text-gray-900">Soubré, Côte d&apos;Ivoire — Zone cacaoyère Sud-Ouest</p>
-            <p className="text-xs text-gray-500">Lat 5°47&apos;N · Long 6°36&apos;W · Alt 142 m</p>
+            <h1 className="text-xl font-bold text-gray-800">Station Météo Agronomique</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Soubré, Région de la Nawa, CI — 5°47'N 6°36'W — Station Davis VP2 (MAT-007)
+            </p>
           </div>
+          <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5">
+            Dernière MàJ : 11/07/2025 à 09h42
+          </span>
         </div>
 
-        {/* ── Aujourd'hui ── */}
-        <div
-          className="rounded-2xl p-6 text-white"
-          style={{ background: "linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #388E3C 100%)" }}
-        >
-          <p className="text-green-300 text-xs mb-4 font-medium">Vendredi 11/07/2025</p>
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            {/* Gauche */}
-            <div>
-              <div className="flex items-center gap-4">
-                <span className="text-5xl">☀️</span>
-                <div>
-                  <p className="text-green-200 text-sm">Ensoleillé</p>
-                  <div className="flex items-end gap-2">
-                    <span className="text-5xl font-bold">34°C</span>
-                    <span className="text-green-300 text-lg mb-1">max</span>
+        {/* Onglets */}
+        <div className="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1 w-fit">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+                activeTab === tab
+                  ? "bg-[#2E7D32] text-white shadow"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Prévisions ───────────────────────────────────────────────────── */}
+        {activeTab === "Prévisions" && (
+          <div className="space-y-5">
+            {/* Conditions actuelles */}
+            <div className="rounded-2xl border border-green-100 bg-[#F0FAF0] p-5">
+              <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Conditions actuelles</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {[
+                  { label: "Température", value: "28,4°C", sub: "Ressenti 31°C" },
+                  { label: "Humidité",    value: "82%",    sub: "Atmosphère" },
+                  { label: "Vent",        value: "8 km/h", sub: "N-NE" },
+                  { label: "Pression",    value: "1 012 hPa", sub: "Stable" },
+                  { label: "Pluie auj.", value: "0 mm",   sub: "Cumulé jour" },
+                  { label: "ETP",         value: "4,2 mm/j", sub: "Évapotranspiration" },
+                ].map((item) => (
+                  <div key={item.label} className="bg-white rounded-xl p-3 border border-green-100">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wide">{item.label}</p>
+                    <p className="text-lg font-bold text-[#1B5E20] mt-0.5">{item.value}</p>
+                    <p className="text-[10px] text-gray-400">{item.sub}</p>
                   </div>
-                  <p className="text-green-300 text-sm">22°C min</p>
-                </div>
-              </div>
-              <div className="mt-4 space-y-1 text-sm text-green-200">
-                <p>EvapoTranspiration : <strong className="text-white">4,8 mm/j</strong></p>
-                <p>Besoin irrigation : <strong className="text-white">2,4 mm/j</strong> (si pas de pluie)</p>
+                ))}
               </div>
             </div>
-            {/* Droite */}
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { icon: <Droplets size={15} />,   label: "Humidité",    value: "68%" },
-                { icon: <Wind size={15} />,        label: "Vent",        value: "8 km/h NE" },
-                { icon: <Gauge size={15} />,       label: "Pression",    value: "1 013 hPa" },
-                { icon: <Sun size={15} />,         label: "Indice UV",   value: "8 — Élevé" },
-                { icon: <Eye size={15} />,         label: "Visibilité",  value: "15 km" },
-                { icon: <Thermometer size={15} />, label: "Ressenti",    value: "37°C" },
-              ].map((m, i) => (
-                <div
-                  key={i}
-                  className="flex flex-col items-center justify-center px-3 py-3 rounded-xl gap-1"
-                  style={{ backgroundColor: "rgba(255,255,255,0.13)" }}
-                >
-                  <span className="text-green-200">{m.icon}</span>
-                  <span className="text-[9px] text-green-300 uppercase tracking-wide text-center">{m.label}</span>
-                  <span className="text-xs font-semibold text-white text-center leading-tight">{m.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* ── Prévisions 15 jours ── */}
-        <div className="rounded-2xl border border-gray-100 bg-white">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">Prévisions 15 jours</h2>
-          </div>
-          <div className="overflow-x-auto px-2 py-4">
-            <div className="flex gap-2" style={{ minWidth: "max-content" }}>
-              {previsions15.map((j, i) => {
-                const bgCard =
-                  j.alerte === "danger" ? "#FFF1F2" :
-                  j.alerte === "warn"   ? "#FFFBEB" :
-                                          "#F0FDF4";
-                const borderCard =
-                  j.alerte === "danger" ? "#FECDD3" :
-                  j.alerte === "warn"   ? "#FCD34D" :
-                                          "#BBF7D0";
-                return (
-                  <div
-                    key={i}
-                    className="flex flex-col items-center gap-1.5 px-3 py-3 rounded-2xl border text-center w-20 shrink-0"
-                    style={{ backgroundColor: bgCard, borderColor: borderCard }}
-                  >
-                    <p className="text-[10px] text-gray-500 font-medium">{j.jour}</p>
-                    <p className="text-[10px] text-gray-400">{j.date}</p>
-                    <span className="text-2xl my-0.5">{j.icon}</span>
-                    <p className="text-xs font-bold text-orange-600">{j.tmax}°</p>
-                    <p className="text-xs text-blue-600">{j.tmin}°</p>
-                    {j.pluie > 0
-                      ? <p className="text-[10px] text-blue-700 font-medium">{j.pluie}mm</p>
-                      : <p className="text-[10px] text-gray-300">0mm</p>
-                    }
-                    <p className="text-[10px] text-gray-400">{j.vent}km/h</p>
-                    <AlerteBadge alerte={j.alerte} />
-                    {j.note && (
-                      <p className="text-[9px] leading-tight text-center font-medium mt-0.5"
-                        style={{ color: j.alerte === "ok" ? "#2E7D32" : "#B45309" }}>
-                        {j.note}
-                      </p>
-                    )}
+            {/* 7 jours */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Prévisions 7 jours</h2>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {forecast7.map((d) => (
+                  <div key={d.day}
+                    className="min-w-[110px] flex-shrink-0 rounded-xl border border-gray-100 bg-gray-50 p-3 flex flex-col items-center gap-1 text-center">
+                    <p className="text-[10px] font-semibold text-gray-700">{d.day}</p>
+                    <span className="text-2xl leading-none">{d.icon}</span>
+                    <div className="flex gap-1 items-baseline">
+                      <span className="text-xs font-bold text-gray-800">{d.max}°</span>
+                      <span className="text-[10px] text-gray-400">{d.min}°</span>
+                    </div>
+                    <p className="text-[10px] text-blue-600 font-medium">{d.precip} mm</p>
+                    <p className={`text-[9px] font-medium leading-tight ${d.alertColor}`}>{d.alert}</p>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Cumul pluies 30 jours ── */}
-        <div className="rounded-2xl border border-gray-100 bg-white">
-          <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold text-gray-900">Cumul des pluies — 30 jours</h2>
-            <div className="flex gap-4 text-xs">
-              <span>Total 30j : <strong className="text-blue-700">282 mm</strong></span>
-              <span>Pics 12-13/07 : <strong className="text-red-600">65–82 mm</strong></span>
-            </div>
-          </div>
-          <div className="px-5 py-4">
-            <RainfallBarChart />
-          </div>
-        </div>
-
-        {/* ── Alertes agro-météo ── */}
-        <div className="space-y-3">
-          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-            <AlertTriangle size={16} style={{ color: "#E65100" }} />
-            Alertes agro-météo
-          </h2>
-          {alertes.map((a, i) => {
-            const s = {
-              danger:  { bg: "#FFF1F2", border: "#FECDD3", color: "#991B1B" },
-              warning: { bg: "#FFFBEB", border: "#FCD34D", color: "#92400E" },
-              info:    { bg: "#EFF6FF", border: "#BFDBFE", color: "#1D4ED8" },
-            }[a.level] ?? { bg: "#F5F5F5", border: "#E0E0E0", color: "#616161" };
-            return (
-              <div key={i} className="rounded-2xl border p-4 flex gap-3" style={{ background: s.bg, borderColor: s.border }}>
-                <span className="text-xl shrink-0">{a.emoji}</span>
-                <div>
-                  <p className="text-sm font-semibold mb-1" style={{ color: s.color }}>{a.titre}</p>
-                  <ul className="space-y-0.5">
-                    {a.items.map((it, j) => (
-                      <li key={j} className="text-xs text-gray-700 flex items-start gap-1.5">
-                        <span className="mt-1 w-1.5 h-1.5 rounded-full shrink-0" style={{ background: s.color }} />
-                        {it}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                ))}
               </div>
-            );
-          })}
-        </div>
+            </div>
 
-        {/* ── Cumul saisonnier ── */}
-        <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">Cumul saisonnier — 3 derniers mois</h2>
+            {/* Chart pluie */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-1">Pluviométrie — 4 dernières semaines</h2>
+              <p className="text-[11px] text-gray-400 mb-4">Barres bleues par semaine · Ligne orange pointillée = ETP quotidienne 4,2 mm</p>
+              <RainForecastChart />
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ backgroundColor: "#F8FBF8" }}>
-                  {["Mois", "Pluie observée", "Normale 30 ans", "Écart", "Jours de pluie"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {cumulMensuel.map((row, i) => {
-                  const ecartPos = row.ecart.startsWith("+");
-                  return (
-                    <tr key={i} className={`border-t border-gray-50 hover:bg-gray-50 ${i % 2 === 0 ? "" : "bg-gray-50/40"}`}>
-                      <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{row.mois}</td>
-                      <td className="px-4 py-3 text-blue-700 font-semibold">{row.obs} mm</td>
-                      <td className="px-4 py-3 text-gray-600">{row.normale} mm</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-                          style={ecartPos
-                            ? { background: "#E8F5E9", color: "#1B5E20" }
-                            : { background: "#F5F5F5", color: "#616161" }}
-                        >
-                          {row.ecart}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">{row.jours}j</td>
+        )}
+
+        {/* ── Historique ───────────────────────────────────────────────────── */}
+        {activeTab === "Historique" && (
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Données climatiques 2025</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Mois", "T° moy", "Pluie totale", "Jours pluie", "ETP", "Bilan hydrique"].map((h) => (
+                        <th key={h} className="px-3 py-2 text-left text-[11px] font-semibold text-gray-600">{h}</th>
+                      ))}
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                  </thead>
+                  <tbody>
+                    {historique.map((row, i) => (
+                      <tr key={row.mois} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                        <td className="px-3 py-2 font-medium text-gray-800">{row.mois}</td>
+                        <td className="px-3 py-2 text-gray-600">{row.temp}</td>
+                        <td className="px-3 py-2 text-blue-700 font-medium">{row.pluie}</td>
+                        <td className="px-3 py-2 text-gray-600">{row.jp}</td>
+                        <td className="px-3 py-2 text-gray-600">{row.etp}</td>
+                        <td className={`px-3 py-2 font-semibold ${row.bc}`}>{row.badge} {row.bilan}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-        {/* ── Recommandations agro ── */}
-        <div>
-          <h2 className="font-semibold text-gray-900 mb-3">Recommandations agro basées sur météo</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {recommandations.map((r, i) => {
-              const s = {
-                danger:  { bg: "#FFF1F2", border: "#FECDD3", color: "#991B1B", iconBg: "#FEE2E2" },
-                info:    { bg: "#EFF6FF", border: "#BFDBFE", color: "#1D4ED8", iconBg: "#DBEAFE" },
-                warning: { bg: "#FFFBEB", border: "#FCD34D", color: "#92400E", iconBg: "#FEF3C7" },
-              }[r.urgence] ?? { bg: "#F9F9F9", border: "#E0E0E0", color: "#555", iconBg: "#F0F0F0" };
-              return (
-                <div key={i} className="rounded-2xl border p-5 flex flex-col gap-3" style={{ background: s.bg, borderColor: s.border }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: s.iconBg }}>
-                    {r.emoji}
-                  </div>
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-1">Pluviométrie mensuelle 2025 vs Normale 30 ans</h2>
+              <p className="text-[11px] text-gray-400 mb-4">Bleu plein = réel 2025 · Vert contouré = normale historique</p>
+              <MonthlyRainChart />
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-1">Températures 2025 — Min / Max mensuelles</h2>
+              <p className="text-[11px] text-gray-400 mb-4">Vert foncé = T° max · Vert clair = T° min · Zone = amplitude thermique</p>
+              <TempChart />
+            </div>
+
+            <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 flex gap-3">
+              <span className="text-amber-500 text-lg mt-0.5">📊</span>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                <strong>Corrélation pluie-rendement R²=0,78.</strong> La sécheresse Jan–Mar 2025 a causé un stress
+                hydrique PAR-A3. Irrigation d'appoint recommandée pour la parcelle PAR-A3 en l'absence de
+                précipitations suffisantes.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Alertes agricoles ────────────────────────────────────────────── */}
+        {activeTab === "Alertes agricoles" && (
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <div className="rounded-2xl border border-red-100 bg-red-50 p-5">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl mt-0.5">🔴</span>
                   <div>
-                    <p className="text-sm font-semibold mb-1" style={{ color: s.color }}>{r.titre}</p>
-                    <p className="text-xs text-gray-600 leading-relaxed">{r.detail}</p>
+                    <p className="text-sm font-bold text-red-800">Pluies 12-13/07 : 36 mm prévus</p>
+                    <p className="text-xs text-red-700 mt-1 leading-relaxed">
+                      <strong>Risque :</strong> Reporter traitements (DRE Ridomil 14j). Traitement PAR-B1 effectué à 08h30 ce matin ✅.<br />
+                      <strong>Impact fermentation LOT-048 :</strong> Surveiller hygrométrie entrepôt.
+                    </p>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── Indicateurs agro-météo ── */}
-        <div>
-          <h2 className="font-semibold text-gray-900 mb-3">Indicateurs agrométéorologiques</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            {[
-              { icon: "💧", label: "ETP (Évapotranspiration pot.)", value: "4,8 mm/j", sub: "Besoin hydrique moyen", bg: "#EFF6FF", color: "#1D4ED8" },
-              { icon: "🌱", label: "Bilan hydrique sol",            value: "+12 mm",   sub: "Sol bien alimenté — excédentaire", bg: "#F0FDF4", color: "#15803D" },
-              { icon: "🌡️", label: "GDD — Growing Degree Days",     value: "1 842 °C.j", sub: "Croissance optimale cacao", bg: "#FFF7ED", color: "#C2410C" },
-              { icon: "🍄", label: "Risque pathogène",               value: "5,8 / 10", sub: "Élevé — Surveiller mildiou", bg: "#FEF3C7", color: "#B45309" },
-            ].map((ind, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col gap-3 hover:shadow-sm transition-shadow">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0" style={{ backgroundColor: ind.bg }}>
-                  {ind.icon}
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1 leading-snug">{ind.label}</p>
-                  <p className="text-xl font-bold" style={{ color: ind.color }}>{ind.value}</p>
-                  <p className="text-xs text-gray-500 mt-1">{ind.sub}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
 
+              <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl mt-0.5">🟡</span>
+                  <div>
+                    <p className="text-sm font-bold text-amber-800">Déficit hydrique Jan–Mar 2025</p>
+                    <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                      <strong>Bilan :</strong> -250 mm (norme max -170 mm). Impact PAR-A3 confirmé NDVI.<br />
+                      <strong>Action :</strong> KCl urgent + mulching PAR-A3.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-green-100 bg-green-50 p-5">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl mt-0.5">🟢</span>
+                  <div>
+                    <p className="text-sm font-bold text-green-800">Saison des pluies 2025 conforme</p>
+                    <p className="text-xs text-green-700 mt-1">
+                      Cumul Mai–Jun 388 mm (normale 392 mm, 98%). Prévision Juillet : 180–200 mm (normale 188 mm).
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Calendrier agronomique IA */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-[#2E7D32]">🤖</span>
+                <h2 className="text-sm font-semibold text-gray-800">Calendrier agronomique IA</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Opération", "Fenêtre optimale", "Météo requise", "Statut"].map((h) => (
+                        <th key={h} className="px-3 py-2 text-left text-[11px] font-semibold text-gray-600">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {agendaIA.map((row, i) => (
+                      <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                        <td className="px-3 py-2 font-medium text-gray-800">{row.op}</td>
+                        <td className="px-3 py-2 text-gray-600">{row.fenetre}</td>
+                        <td className="px-3 py-2 text-gray-500">{row.meteo}</td>
+                        <td className="px-3 py-2">
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg ${row.sc}`}>
+                            {row.statut}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

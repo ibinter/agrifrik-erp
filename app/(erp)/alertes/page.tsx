@@ -2,321 +2,364 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
-import {
-  AlertTriangle,
-  CheckCircle,
-  Info,
-  Bell,
-  ShoppingCart,
-  Eye,
-  UserCheck,
-  XCircle,
-  FileText,
-  Settings,
-} from "lucide-react";
 
-type CategoryFilter =
-  | "Toutes"
-  | "Stock"
-  | "Finance"
-  | "RH"
-  | "Production"
-  | "Qualité"
-  | "Sécurité"
-  | "Système";
+const TABS = ["Alertes actives", "Règles", "Historique"] as const;
+type Tab = typeof TABS[number];
 
-const CATEGORY_FILTERS: CategoryFilter[] = [
-  "Toutes",
-  "Stock",
-  "Finance",
-  "RH",
-  "Production",
-  "Qualité",
-  "Sécurité",
-  "Système",
-];
-
-interface AlertRule {
-  id: number;
-  rule: string;
-  condition: string;
-  threshold: string;
-  channel: string;
-  recipient: string;
-}
-
-const ALERT_RULES: AlertRule[] = [
-  { id: 1, rule: "Stock critique", condition: "Quantité < seuil", threshold: "Paramétrable", channel: "App + Email", recipient: "Responsable stock" },
-  { id: 2, rule: "Dépassement budget", condition: "> 100% du budget", threshold: "Par poste", channel: "App + Email", recipient: "DAF" },
-  { id: 3, rule: "Contrat expirant", condition: "< 90 jours", threshold: "—", channel: "App + Email", recipient: "DRH + DAF" },
-  { id: 4, rule: "Qualité hors norme", condition: "Humidité > 10%", threshold: "Paramétrable", channel: "App + SMS", recipient: "Resp. qualité" },
-  { id: 5, rule: "Retard paiement", condition: "> 30 jours", threshold: "—", channel: "App + Email", recipient: "DAF" },
-  { id: 6, rule: "Maintenance préventive", condition: "> 90% compteur", threshold: "—", channel: "App", recipient: "Mécanicien" },
-  { id: 7, rule: "Météo extrême", condition: "Alerte Météo API", threshold: "—", channel: "App + SMS", recipient: "Tous cadres" },
-  { id: 8, rule: "Non-conformité", condition: "Toute NC P1/P2", threshold: "—", channel: "App + Email", recipient: "Dir. Qualité" },
-];
-
-export default function AlertesPage() {
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("Toutes");
-  const [dismissedCritical, setDismissedCritical] = useState<Set<number>>(new Set());
-  const [inProgressCritical, setInProgressCritical] = useState<Set<number>>(new Set());
-
-  const kpis = [
-    { label: "Alertes critiques", value: 3, color: "text-red-600", bg: "bg-red-50", border: "border-red-100", icon: <AlertTriangle size={18} className="text-red-600" /> },
-    { label: "Avertissements", value: 8, color: "text-yellow-600", bg: "bg-yellow-50", border: "border-yellow-100", icon: <Bell size={18} className="text-yellow-600" /> },
-    { label: "Informations", value: 14, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100", icon: <Info size={18} className="text-blue-600" /> },
-    { label: "Résolues (7j)", value: 22, color: "text-green-600", bg: "bg-green-50", border: "border-green-100", icon: <CheckCircle size={18} className="text-green-600" /> },
+// ─── SVG Alertes par mois (stacked bar) ─────────────────────────────────────
+function AlertesHistoChart() {
+  const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun"];
+  // [critiques, importantes, infos]
+  const data = [
+    [2, 3, 2],
+    [1, 4, 3],
+    [2, 5, 4],
+    [1, 3, 2],
+    [2, 4, 3],
+    [3, 4, 2],
   ];
-
-  const criticalAlerts = [
-    {
-      id: 1,
-      category: "Stock" as CategoryFilter,
-      title: "STOCK CRITIQUE — KCl Engrais",
-      created: "09/07/2025 à 08:42",
-      details: [
-        { label: "Stock actuel", value: "45 kg" },
-        { label: "Seuil critique", value: "50 kg" },
-        { label: "Stock recommandé", value: "200 kg" },
-      ],
-      action: "Commander immédiatement auprès de YARA Nederland",
-      buttons: [
-        { label: "Créer bon de commande", icon: <ShoppingCart size={12} />, primary: true },
-        { label: "Marquer en cours", icon: <UserCheck size={12} />, primary: false },
-        { label: "Ignorer", icon: <XCircle size={12} />, danger: true },
-      ],
-    },
-    {
-      id: 2,
-      category: "Finance" as CategoryFilter,
-      title: "CONTRATS EXPIRANT — TOTAL Énergie + Transport Rapide",
-      created: "08/07/2025 à 09:00",
-      details: [
-        { label: "Contrats concernés", value: "2 fournisseurs" },
-        { label: "Date d'expiration", value: "31/12/2025" },
-        { label: "Renouvellement", value: "Non initié" },
-      ],
-      action: "Initier processus de renouvellement avant le 30/09/2025",
-      buttons: [
-        { label: "Voir contrats", icon: <Eye size={12} />, primary: true },
-        { label: "Assigner à Jean-Baptiste K.", icon: <UserCheck size={12} />, primary: false },
-        { label: "Ignorer", icon: <XCircle size={12} />, danger: true },
-      ],
-    },
-    {
-      id: 3,
-      category: "Qualité" as CategoryFilter,
-      title: "ANOMALIE QUALITÉ — Lot LOT-032 Anacarde",
-      created: "07/07/2025 à 14:18",
-      details: [
-        { label: "Humidité mesurée", value: "12,4%" },
-        { label: "Norme RA", value: "< 10%" },
-        { label: "Risque", value: "Moisissures → perte lot" },
-      ],
-      action: "Séchage d'urgence. Ne pas expédier. Isoler en zone quarantaine B.",
-      buttons: [
-        { label: "Voir lot", icon: <Eye size={12} />, primary: true },
-        { label: "Déclencher protocole", icon: <AlertTriangle size={12} />, primary: false },
-        { label: "Assigner à Ibrahim S.", icon: <UserCheck size={12} />, primary: false },
-        { label: "Ignorer", icon: <XCircle size={12} />, danger: true },
-      ],
-    },
-  ];
-
-  const warnings = [
-    { id: 1, category: "Finance" as CategoryFilter, text: "Budget R&D dépassé de 8% — 118 000 XOF hors budget" },
-    { id: 2, category: "RH" as CategoryFilter, text: "Contrats CDD × 3 expirant en Oct 2025 — Décision RH requise" },
-    { id: 3, category: "Production" as CategoryFilter, text: "Tracteur JD 6120M : révision à 3 000h (actuellement 2 847h — prévoir dans ~30h de travail)" },
-    { id: 4, category: "Finance" as CategoryFilter, text: "Retard paiement client Cemoi Chocolatier — Facture FAC-2025-028 — 18j de retard" },
-    { id: 5, category: "Production" as CategoryFilter, text: "Tempête prévue le 13/07 — Protéger séchoirs et bâches parcelles D1, D2, D3" },
-    { id: 6, category: "Qualité" as CategoryFilter, text: "Lot LOT-028 Cacao : date limite fermentation le 11/07 — Passer au séchage" },
-    { id: 7, category: "Qualité" as CategoryFilter, text: "Renouvellement certification Rainforest Alliance : audit le 15/09 — Préparer dossier" },
-    { id: 8, category: "Stock" as CategoryFilter, text: "Stock Cypermethrine : 18L vs seuil 20L — Commander avant la semaine prochaine" },
-  ];
-
-  const visibleCritical = criticalAlerts.filter(
-    (a) => !dismissedCritical.has(a.id) && (activeCategory === "Toutes" || a.category === activeCategory)
-  );
-  const visibleWarnings = warnings.filter(
-    (w) => activeCategory === "Toutes" || w.category === activeCategory
-  );
+  const W = 400;
+  const H = 180;
+  const padL = 36;
+  const padB = 30;
+  const padT = 20;
+  const maxVal = 12;
+  const avail = H - padB - padT;
+  const slotW = (W - padL - 8) / 6;
+  const bw = slotW * 0.55;
+  const fy = (v: number) => padT + avail * (1 - v / maxVal);
+  const colors = ["#ef4444", "#f97316", "#22c55e"];
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar title="Alertes & Surveillance" breadcrumb={["Administration", "Alertes"]} />
+    <div className="overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[400px]">
+        {[0, 3, 6, 9, 12].map((v) => {
+          const y = fy(v);
+          return (
+            <g key={v}>
+              <line x1={padL} x2={W - 4} y1={y} y2={y} stroke="#e5e7eb" strokeWidth="0.5" />
+              <text x={padL - 4} y={y + 4} textAnchor="end" fontSize="8" fill="#9ca3af">{v}</text>
+            </g>
+          );
+        })}
+        {data.map((seg, i) => {
+          const cx = padL + i * slotW + slotW / 2;
+          let cumul = 0;
+          return (
+            <g key={i}>
+              {seg.map((v, j) => {
+                const h = avail * (v / maxVal);
+                const y = fy(cumul + v);
+                cumul += v;
+                return (
+                  <rect key={j} x={cx - bw / 2} y={y} width={bw} height={h}
+                    fill={colors[j]} rx={j === 0 ? 2 : 0}
+                    style={{ borderRadius: j === 0 ? "2px 2px 0 0" : "0" }} />
+                );
+              })}
+              <text x={cx} y={H - padB + 12} textAnchor="middle" fontSize="8" fill="#6b7280">{months[i]}</text>
+            </g>
+          );
+        })}
+        {/* Légende */}
+        {[["Critiques", "#ef4444"], ["Importantes", "#f97316"], ["Infos", "#22c55e"]].map(([label, color], i) => (
+          <g key={label}>
+            <rect x={padL + 4 + i * 68} y={padT - 2} width={7} height={7} fill={color} rx="1" />
+            <text x={padL + 13 + i * 68} y={padT + 5} fontSize="8" fill="#374151">{label}</text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
 
-      <main className="flex-1 p-6 space-y-6 max-w-6xl mx-auto w-full">
-        {/* KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {kpis.map((kpi) => (
-            <div
-              key={kpi.label}
-              className={`bg-white rounded-2xl border ${kpi.border} p-4 flex items-center gap-3`}
-            >
-              <div className={`w-10 h-10 rounded-full ${kpi.bg} flex items-center justify-center flex-shrink-0`}>
-                {kpi.icon}
-              </div>
-              <div>
-                <p className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</p>
-                <p className="text-xs text-gray-500 font-medium leading-tight">{kpi.label}</p>
-              </div>
+// ─── Données alertes actives ──────────────────────────────────────────────────
+const alertesActives = [
+  {
+    niveau: "CRITIQUE",
+    color: "border-red-200 bg-red-50",
+    labelColor: "bg-red-100 text-red-700",
+    dot: "🔴",
+    titre: "Stock KCl insuffisant pour campagne sep",
+    module: "Stocks",
+    date: "10/07",
+    assignee: "Bamba O.",
+    detail: "Stock actuel 240 kg, besoin campagne 1 440 kg, délai SCPA 21 jours. Commande limite le 15/07.",
+    actions: [
+      { label: "Commander maintenant", style: "bg-[#2E7D32] text-white" },
+      { label: "Reporter", style: "border border-gray-200 text-gray-600 bg-white" },
+    ],
+  },
+  {
+    niveau: "CRITIQUE",
+    color: "border-red-200 bg-red-50",
+    labelColor: "bg-red-100 text-red-700",
+    dot: "🔴",
+    titre: "Certificat eau potable expiré",
+    module: "Certifications",
+    date: "08/07",
+    assignee: "Adjoua M.",
+    detail: "Analyse CIAPOL site Soubré expirée 30/06. Non-conformité NC-2025-003. Risque audit RA.",
+    actions: [
+      { label: "Planifier analyse", style: "bg-[#2E7D32] text-white" },
+      { label: "Contacter CIAPOL", style: "border border-gray-200 text-gray-600 bg-white" },
+    ],
+  },
+  {
+    niveau: "IMPORTANTE",
+    color: "border-amber-200 bg-amber-50",
+    labelColor: "bg-amber-100 text-amber-700",
+    dot: "🟡",
+    titre: "Loyer PAR-B1+B2 dû dans 3 jours",
+    module: "Foncier",
+    date: "11/07",
+    assignee: "Admin",
+    detail: "1 980 000 XOF dû le 14/07. Trésorerie disponible 18,4 M XOF ✅.",
+    actions: [
+      { label: "Créer virement", style: "bg-[#2E7D32] text-white" },
+      { label: "Voir contrat", style: "border border-gray-200 text-gray-600 bg-white" },
+    ],
+  },
+  {
+    niveau: "IMPORTANTE",
+    color: "border-amber-200 bg-amber-50",
+    labelColor: "bg-amber-100 text-amber-700",
+    dot: "🟡",
+    titre: "MAT-001 révision 3 500h à prévoir",
+    module: "Matériels",
+    date: "09/07",
+    assignee: "Bamba O.",
+    detail: "Tracteur MAT-001 en maintenance hydraulique. À la remise en service, révision 3 500h obligatoire avant prochaine campagne.",
+    actions: [
+      { label: "Planifier révision", style: "border border-gray-200 text-gray-600 bg-white" },
+    ],
+  },
+  {
+    niveau: "IMPORTANTE",
+    color: "border-amber-200 bg-amber-50",
+    labelColor: "bg-amber-100 text-amber-700",
+    dot: "🟡",
+    titre: "Quota OpenWeatherMap presque atteint",
+    module: "Intégrations",
+    date: "11/07",
+    assignee: "—",
+    detail: "958 / 1 000 requêtes utilisées ce mois. Reset au 01/08.",
+    actions: [
+      { label: "Voir usage", style: "border border-gray-200 text-gray-600 bg-white" },
+      { label: "Augmenter quota", style: "bg-[#2E7D32] text-white" },
+    ],
+  },
+  {
+    niveau: "IMPORTANTE",
+    color: "border-amber-200 bg-amber-50",
+    labelColor: "bg-amber-100 text-amber-700",
+    dot: "🟡",
+    titre: "Contrat SCPA KCl en attente signature",
+    module: "Achats",
+    date: "07/07",
+    assignee: "—",
+    detail: "Contrat 7,2 M XOF non signé depuis 5 jours. SCPA relance en attente.",
+    actions: [
+      { label: "Voir contrat", style: "border border-gray-200 text-gray-600 bg-white" },
+    ],
+  },
+  {
+    niveau: "INFO",
+    color: "border-green-200 bg-green-50",
+    labelColor: "bg-green-100 text-green-700",
+    dot: "🟢",
+    titre: "Formation FORM-002 demain",
+    module: "Formations",
+    date: "10/07",
+    assignee: "—",
+    detail: "BPA RA — 12/07. 14/15 participants confirmés.",
+    actions: [],
+  },
+  {
+    niveau: "INFO",
+    color: "border-green-200 bg-green-50",
+    labelColor: "bg-green-100 text-green-700",
+    dot: "🟢",
+    titre: "MSC Allegria : Transit nominal",
+    module: "Logistique",
+    date: "10/07",
+    assignee: "—",
+    detail: "LOT-2025-045 — 24 900 kg. ETA Rotterdam 05/08 confirmé.",
+    actions: [],
+  },
+];
+
+// ─── Règles configurées ───────────────────────────────────────────────────────
+const regles = [
+  { nom: "Stock < seuil min",       module: "Stocks",        condition: "Stock < 80% du seuil",      assignee: "Bamba O.",  canaux: "App + SMS",   actif: true },
+  { nom: "Certificat expiration",   module: "Certif.",       condition: "< 60 jours avant exp.",     assignee: "Adjoua M.", canaux: "App + Email", actif: true },
+  { nom: "Loyer à payer",          module: "Foncier",       condition: "< 7 jours avant échéance",  assignee: "Admin",     canaux: "App + SMS",   actif: true },
+  { nom: "Température entrepôt",   module: "IoT",           condition: "> 27°C ou < 15°C",          assignee: "Ibrahim S.", canaux: "App + SMS",  actif: true },
+  { nom: "Humidité entrepôt",      module: "IoT",           condition: "> 75% ou < 55%",            assignee: "Ibrahim S.", canaux: "App + SMS",  actif: true },
+  { nom: "Pluie post-traitement",  module: "Météo",         condition: "Pluie >15mm dans 24h",      assignee: "Ibrahim S.", canaux: "App",        actif: true },
+  { nom: "Entretien matériel",     module: "Matériels",     condition: "< 200h avant révision",     assignee: "Bamba O.",  canaux: "App",        actif: true },
+  { nom: "Facture impayée",        module: "Finance",       condition: "> 30j depuis émission",     assignee: "Comptable", canaux: "Email",      actif: true },
+  { nom: "Trésorerie basse",       module: "Finance",       condition: "< 5 M XOF",                 assignee: "DG",        canaux: "App + SMS",  actif: true },
+  { nom: "Audit RA approche",      module: "Certif.",       condition: "< 90j avant audit",         assignee: "Adjoua M.", canaux: "Email",      actif: true },
+  { nom: "Nouvelle NC ouverte",    module: "Qualité",       condition: "Toute NC créée",            assignee: "Adjoua M.", canaux: "App + Email",actif: true },
+  { nom: "Lot fermentation J6",    module: "Transformation",condition: "J6 fermentation atteint",   assignee: "Ibrahim S.", canaux: "App",       actif: true },
+];
+
+// ─── Historique des alertes résolues ─────────────────────────────────────────
+const historiqueAlertes = [
+  { date: "08/07", alerte: "Humidité entrepôt > 75%",           module: "IoT",       resoluLe: "08/07", par: "Ibrahim S.",  delai: "4h" },
+  { date: "06/07", alerte: "Stock engrais NPK insuffisant",     module: "Stocks",    resoluLe: "07/07", par: "Bamba O.",    delai: "1 j" },
+  { date: "05/07", alerte: "Facture FOU-2025-031 impayée",     module: "Finance",   resoluLe: "09/07", par: "Comptable",   delai: "4 j" },
+  { date: "03/07", alerte: "Certificat phyto. expiré",         module: "Certif.",   resoluLe: "05/07", par: "Adjoua M.",   delai: "2 j" },
+  { date: "02/07", alerte: "MAT-003 entretien 500h dépassé",   module: "Matériels", resoluLe: "04/07", par: "Bamba O.",    delai: "2 j" },
+  { date: "30/06", alerte: "Pluie post-traitement PAR-C1",     module: "Météo",     resoluLe: "30/06", par: "Ibrahim S.",  delai: "2h" },
+  { date: "28/06", alerte: "Stock herbicide bas",              module: "Stocks",    resoluLe: "01/07", par: "Bamba O.",    delai: "3 j" },
+  { date: "26/06", alerte: "Loyer PAR-A3 dû dans 5 jours",   module: "Foncier",   resoluLe: "28/06", par: "Admin",       delai: "2 j" },
+  { date: "24/06", alerte: "NC-2025-002 ouverte (emballage)",  module: "Qualité",   resoluLe: "02/07", par: "Adjoua M.",   delai: "8 j" },
+  { date: "22/06", alerte: "Lot fermentation J6 LOT-043",     module: "Transform.",resoluLe: "22/06", par: "Ibrahim S.",  delai: "1h" },
+  { date: "20/06", alerte: "Trésorerie < 5 M XOF",           module: "Finance",   resoluLe: "21/06", par: "DG",          delai: "1 j" },
+  { date: "18/06", alerte: "Température entrepôt 28,2°C",     module: "IoT",       resoluLe: "18/06", par: "Ibrahim S.",  delai: "3h" },
+  { date: "15/06", alerte: "Certificat eau potable -45j",     module: "Certif.",   resoluLe: "17/06", par: "Adjoua M.",   delai: "2 j" },
+  { date: "12/06", alerte: "Stock semences maïs insuffisant", module: "Stocks",    resoluLe: "14/06", par: "Bamba O.",    delai: "2 j" },
+  { date: "10/06", alerte: "Facture FOURx-2025-028 impayée",  module: "Finance",   resoluLe: "24/06", par: "Comptable",   delai: "14 j" },
+  { date: "08/06", alerte: "Entretien MAT-002 dans 180h",     module: "Matériels", resoluLe: "10/06", par: "Bamba O.",    delai: "2 j" },
+  { date: "05/06", alerte: "Pluie post-traitement PAR-B2",    module: "Météo",     resoluLe: "05/06", par: "Ibrahim S.",  delai: "1h" },
+  { date: "02/06", alerte: "Lot fermentation J6 LOT-041",     module: "Transform.",resoluLe: "02/06", par: "Ibrahim S.",  delai: "2h" },
+  { date: "30/05", alerte: "Quota API météo >80%",            module: "Intégrat.", resoluLe: "01/06", par: "Admin",       delai: "2 j" },
+  { date: "28/05", alerte: "Loyer PAR-B1 dû dans 7 jours",   module: "Foncier",   resoluLe: "29/05", par: "Admin",       delai: "1 j" },
+];
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+export default function AlertesPage() {
+  const [activeTab, setActiveTab] = useState<Tab>("Alertes actives");
+
+  const critiques = alertesActives.filter((a) => a.niveau === "CRITIQUE").length;
+  const importantes = alertesActives.filter((a) => a.niveau === "IMPORTANTE").length;
+  const infos = alertesActives.filter((a) => a.niveau === "INFO").length;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Topbar breadcrumbs={["Admin", "Alertes & Surveillance"]} />
+
+      <div className="p-6 max-w-6xl mx-auto space-y-5">
+        {/* En-tête */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-bold text-gray-800">Centre d'alertes</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Surveillance temps réel — AGRIFRIK Soubré</p>
+          </div>
+          <div className="flex gap-3">
+            <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-2 text-center">
+              <p className="text-xl font-bold text-red-600">{critiques}</p>
+              <p className="text-[10px] text-red-500 font-medium">Critiques</p>
             </div>
-          ))}
+            <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-2 text-center">
+              <p className="text-xl font-bold text-amber-600">{importantes}</p>
+              <p className="text-[10px] text-amber-500 font-medium">Importantes</p>
+            </div>
+            <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-2 text-center">
+              <p className="text-xl font-bold text-green-600">{infos}</p>
+              <p className="text-[10px] text-green-500 font-medium">Informations</p>
+            </div>
+            <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-2 text-center">
+              <p className="text-xl font-bold text-gray-700">{alertesActives.length}</p>
+              <p className="text-[10px] text-gray-500 font-medium">Total</p>
+            </div>
+          </div>
         </div>
 
-        {/* Category filters */}
-        <div className="flex flex-wrap gap-2">
-          {CATEGORY_FILTERS.map((f) => (
+        {/* Onglets */}
+        <div className="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1 w-fit">
+          {TABS.map((tab) => (
             <button
-              key={f}
-              onClick={() => setActiveCategory(f)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                activeCategory === f
-                  ? "bg-[#2E7D32] text-white border-[#2E7D32]"
-                  : "bg-white text-gray-600 border-gray-200 hover:border-[#2E7D32] hover:text-[#2E7D32]"
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+                activeTab === tab
+                  ? "bg-[#2E7D32] text-white shadow"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
               }`}
             >
-              {f}
+              {tab}
             </button>
           ))}
         </div>
 
-        {/* Critical alerts */}
-        {visibleCritical.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-red-700 flex items-center gap-2">
-              <AlertTriangle size={15} />
-              Alertes critiques ({visibleCritical.length})
-            </h2>
-            {visibleCritical.map((alert) => (
-              <div
-                key={alert.id}
-                className="bg-white rounded-2xl border border-red-200 border-l-4 border-l-red-500 p-5 space-y-3"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">CRITIQUE</span>
-                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{alert.category}</span>
-                  </div>
-                  <span className="text-[10px] text-gray-400">Créée le {alert.created}</span>
-                </div>
-
-                <p className="text-sm font-bold text-red-800">{alert.title}</p>
-
-                <div className="flex flex-wrap gap-4">
-                  {alert.details.map((d) => (
-                    <div key={d.label} className="text-xs">
-                      <span className="text-gray-500">{d.label} : </span>
-                      <span className="font-semibold text-gray-800">{d.value}</span>
+        {/* ── Alertes actives ──────────────────────────────────────────────── */}
+        {activeTab === "Alertes actives" && (
+          <div className="space-y-3">
+            {alertesActives.map((a, i) => (
+              <div key={i} className={`rounded-2xl border p-5 ${a.color}`}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <span className="text-lg mt-0.5 flex-shrink-0">{a.dot}</span>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${a.labelColor}`}>
+                          {a.niveau}
+                        </span>
+                        <span className="text-[10px] text-gray-500">{a.module}</span>
+                        <span className="text-[10px] text-gray-400">{a.date}</span>
+                        {a.assignee !== "—" && (
+                          <span className="text-[10px] text-gray-500">→ {a.assignee}</span>
+                        )}
+                      </div>
+                      <p className="text-sm font-semibold text-gray-800">{a.titre}</p>
+                      <p className="text-xs text-gray-600 mt-1 leading-relaxed">{a.detail}</p>
                     </div>
-                  ))}
-                </div>
-
-                <div className="bg-red-50 rounded-xl px-4 py-2 text-xs text-red-700 font-medium flex items-start gap-1.5">
-                  <span className="mt-0.5 flex-shrink-0">⚡</span>
-                  <span>Action requise : {alert.action}</span>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {alert.buttons.map((btn) => (
-                    <button
-                      key={btn.label}
-                      onClick={() => {
-                        if (btn.danger) setDismissedCritical((s) => new Set([...s, alert.id]));
-                        else if (btn.label.startsWith("Marquer")) setInProgressCritical((s) => new Set([...s, alert.id]));
-                      }}
-                      className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl font-medium transition-colors ${
-                        btn.primary
-                          ? "bg-[#2E7D32] text-white hover:bg-[#256027]"
-                          : btn.danger
-                          ? "border border-red-200 text-red-500 hover:bg-red-50"
-                          : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {btn.icon}
-                      {btn.label}
-                    </button>
-                  ))}
-                  {inProgressCritical.has(alert.id) && (
-                    <span className="text-xs text-yellow-600 font-medium px-2 py-1.5 bg-yellow-50 rounded-xl border border-yellow-200">
-                      En cours de traitement
-                    </span>
+                  </div>
+                  {a.actions.length > 0 && (
+                    <div className="flex gap-2 flex-shrink-0">
+                      {a.actions.map((action, j) => (
+                        <button
+                          key={j}
+                          className={`text-[11px] font-medium px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80 ${action.style}`}
+                        >
+                          {action.label}
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
             ))}
-          </section>
-        )}
-
-        {/* Warnings */}
-        {visibleWarnings.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-yellow-700 flex items-center gap-2">
-              <Bell size={15} />
-              Avertissements ({visibleWarnings.length})
-            </h2>
-            <div className="space-y-2">
-              {visibleWarnings.map((w) => (
-                <div
-                  key={w.id}
-                  className="bg-white rounded-2xl border border-yellow-100 border-l-4 border-l-yellow-400 px-5 py-3 flex items-start gap-3"
-                >
-                  <span className="text-yellow-500 mt-0.5 flex-shrink-0 text-sm">🟡</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-800">{w.text}</p>
-                    <span className="text-[10px] bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full mt-1 inline-block">
-                      {w.category}
-                    </span>
-                  </div>
-                  <button className="text-xs px-3 py-1.5 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 whitespace-nowrap flex-shrink-0">
-                    Traiter
-                  </button>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {visibleCritical.length === 0 && visibleWarnings.length === 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400 text-sm">
-            Aucune alerte dans cette catégorie.
           </div>
         )}
 
-        {/* Alert rules table */}
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-            <Settings size={15} className="text-gray-400" />
-            Règles d&apos;alertes actives (8)
-          </h2>
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        {/* ── Règles ───────────────────────────────────────────────────────── */}
+        {activeTab === "Règles" && (
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-gray-800">Règles configurées ({regles.length})</h2>
+              <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
+                + Créer une règle
+              </button>
+            </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-[#F8FBF8] border-b border-gray-100">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Règle</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Condition</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Seuil</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Canal</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Destinataire</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Statut</th>
+                  <tr className="bg-[#F8FBF8]">
+                    {["Règle", "Module", "Condition", "Assigné", "Canaux", "Actif"].map((h) => (
+                      <th key={h} className="px-3 py-2 text-left text-[11px] font-semibold text-gray-600">{h}</th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {ALERT_RULES.map((rule) => (
-                    <tr key={rule.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-xs font-semibold text-gray-800 whitespace-nowrap">{rule.rule}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{rule.condition}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{rule.threshold}</td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full whitespace-nowrap">
-                          {rule.channel}
+                <tbody>
+                  {regles.map((row, i) => (
+                    <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                      <td className="px-3 py-2 font-medium text-gray-800">{row.nom}</td>
+                      <td className="px-3 py-2">
+                        <span className="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-md font-medium">
+                          {row.module}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">{rule.recipient}</td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
-                          ✅ Active
+                      <td className="px-3 py-2 text-gray-600">{row.condition}</td>
+                      <td className="px-3 py-2 text-gray-600">{row.assignee}</td>
+                      <td className="px-3 py-2 text-gray-500">{row.canaux}</td>
+                      <td className="px-3 py-2">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-md">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                          Actif
                         </span>
                       </td>
                     </tr>
@@ -325,8 +368,54 @@ export default function AlertesPage() {
               </table>
             </div>
           </div>
-        </section>
-      </main>
+        )}
+
+        {/* ── Historique ───────────────────────────────────────────────────── */}
+        {activeTab === "Historique" && (
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-1">Alertes par mois 2025</h2>
+              <p className="text-[11px] text-gray-400 mb-4">Rouge = critiques · Orange = importantes · Vert = informations</p>
+              <AlertesHistoChart />
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">20 dernières alertes résolues</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-[#F8FBF8]">
+                      {["Date", "Alerte", "Module", "Résolu le", "Par", "Délai"].map((h) => (
+                        <th key={h} className="px-3 py-2 text-left text-[11px] font-semibold text-gray-600">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historiqueAlertes.map((row, i) => (
+                      <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                        <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{row.date}</td>
+                        <td className="px-3 py-2 text-gray-800">{row.alerte}</td>
+                        <td className="px-3 py-2">
+                          <span className="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded font-medium">
+                            {row.module}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{row.resoluLe}</td>
+                        <td className="px-3 py-2 text-gray-600">{row.par}</td>
+                        <td className="px-3 py-2">
+                          <span className="text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-md">
+                            ✅ {row.delai}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
