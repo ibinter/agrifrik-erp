@@ -1,344 +1,290 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
 import Topbar from "../../components/Topbar";
-import {
-  FileText,
-  AlertTriangle,
-  Clock,
-  TrendingUp,
-  RefreshCw,
-  Eye,
-  MessageSquare,
-  CheckCircle,
-  XCircle,
-  ChevronRight,
-} from "lucide-react";
 
-const breadcrumb = ["Admin", "Contrats"];
-
-type Tab = "actifs" | "renouveler" | "historique";
-
-const contratsActifs = [
-  { num: "CTR-2025-001", type: "Client",       partie: "Barry Callebaut SA",      objet: "Cacao Grade AA - 80t/an FOB",       valeur: 88000000, debut: "01/01/2025", fin: "31/12/2025", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-002", type: "Client",       partie: "Cargill International",   objet: "Cacao AA/A - 50t/an FOB",           valeur: 55000000, debut: "01/01/2025", fin: "31/12/2025", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-003", type: "Client",       partie: "Olam CI",                 objet: "Cacao A - 30t/an FOB",              valeur: 31200000, debut: "01/01/2025", fin: "31/12/2025", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-004", type: "Client",       partie: "JDE Peet's",              objet: "Cacao AA - 20t/an FOB",             valeur: 22000000, debut: "01/01/2025", fin: "31/12/2025", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-005", type: "Fournisseur",  partie: "SCPA CI",                 objet: "Intrants NPK/KCl/Uree",             valeur: 18400000, debut: "01/01/2025", fin: "31/12/2025", statut: "warn",    statutLabel: "KCl en attente signature" },
-  { num: "CTR-2025-006", type: "Fournisseur",  partie: "Concess. JD Abidjan",     objet: "Maintenance JD 6120M",              valeur: 2400000,  debut: "01/01/2025", fin: "31/12/2025", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-007", type: "Assurance",    partie: "SAHAM Assurances",        objet: "Multi-risques agricoles",           valeur: 4840000,  debut: "01/01/2025", fin: "31/12/2025", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-008", type: "Assurance",    partie: "NSIA Assurances",         objet: "Responsabilite civile",             valeur: 1200000,  debut: "01/01/2025", fin: "31/12/2025", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-009", type: "Foncier",      partie: "Proprietaire PAR-B1",     objet: "Fermage 3,2 ha - Soubre",           valeur: 2160000,  debut: "01/03/2022", fin: "28/02/2027", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-010", type: "Foncier",      partie: "Proprietaire PAR-B2",     objet: "Fermage 3,4 ha - Soubre",           valeur: 1800000,  debut: "01/03/2022", fin: "28/02/2027", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-011", type: "Foncier",      partie: "Proprietaire PAR-D1",     objet: "Fermage 5,6 ha - Gagnoa",           valeur: 2520000,  debut: "01/07/2023", fin: "30/06/2026", statut: "expiring", statutLabel: "Actif - Expire dans 11 mois" },
-  { num: "CTR-2025-012", type: "Foncier",      partie: "Proprietaire PAR-D2",     objet: "Fermage 4,2 ha - Gagnoa",           valeur: 1890000,  debut: "01/07/2023", fin: "30/06/2026", statut: "expiring", statutLabel: "Actif - Expire dans 11 mois" },
-  { num: "CTR-2025-013", type: "Fournisseur",  partie: "MSC Lines CI",            objet: "Transport maritime mensuel",         valeur: 3600000,  debut: "01/01/2025", fin: "31/12/2025", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-014", type: "Fournisseur",  partie: "Rainforest Alliance",     objet: "Licence certification",             valeur: 2400000,  debut: "01/01/2025", fin: "31/03/2026", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-015", type: "Emploi",       partie: "Ibrahim Sawadogo",        objet: "CDI - Resp. Terrain",               valeur: 3600000,  debut: "01/03/2019", fin: "-",           statut: "ok",      statutLabel: "CDI" },
-  { num: "CTR-2025-016", type: "Emploi",       partie: "Adjoua Messou",           objet: "CDI - Controleur Qualite",          valeur: 2880000,  debut: "01/06/2021", fin: "-",           statut: "ok",      statutLabel: "CDI" },
-  { num: "CTR-2025-017", type: "IT",           partie: "Supabase",                objet: "Hebergement donnees",               valeur: 600000,   debut: "01/01/2025", fin: "31/12/2025", statut: "ok",      statutLabel: "Actif" },
-  { num: "CTR-2025-018", type: "IT",           partie: "OpenWeatherMap",          objet: "API meteo",                         valeur: 240000,   debut: "01/01/2025", fin: "31/12/2025", statut: "ok",      statutLabel: "Actif" },
-];
-
-const contratsRenouveler = [
+const contrats = [
   {
-    num: "CTR-2025-005",
-    partie: "SCPA CI",
-    objet: "Intrants NPK/KCl/Uree",
-    fin: "31/12/2025",
-    niveau: "rouge",
-    note: "Avenant KCl non signe (7,2 M XOF en jeu)",
+    num: "CTR-2025-001",
+    partie: "Barry Callebaut CI",
+    type: "Vente cadre",
+    produit: "Cacao Grade AA",
+    volume: "48t/an",
+    duree: "Jan-Déc 2025",
+    valeur: "52,2M XOF",
+    statut: "Actif",
+    detail: "7/12 livraisons",
   },
   {
-    num: "CTR-2025-013",
-    partie: "MSC Lines CI",
-    objet: "Transport maritime mensuel",
-    fin: "31/12/2025",
-    niveau: "jaune",
-    note: "Renouvellement habituel - proposer extension 2 ans (3 600 000 XOF/an)",
+    num: "CTR-2025-002",
+    partie: "Cargill CI",
+    type: "Vente cadre",
+    produit: "Anacarde WW240",
+    volume: "2t/an",
+    duree: "Mar-Nov 2025",
+    valeur: "3,05M XOF",
+    statut: "Actif",
+    detail: "",
   },
   {
-    num: "CTR-2025-017",
-    partie: "Supabase",
-    objet: "Hebergement IT",
-    fin: "31/12/2025",
-    niveau: "jaune",
-    note: "Renouvellement annuel automatique",
+    num: "CTR-2025-003",
+    partie: "SCPA Afrique",
+    type: "Approvisionnement",
+    produit: "Intrants phyto",
+    volume: "80 kg/an",
+    duree: "Jan-Déc 2025",
+    valeur: "672 000 XOF",
+    statut: "Actif",
+    detail: "",
+  },
+  {
+    num: "CTR-2025-004",
+    partie: "KCl Distribution",
+    type: "Approvisionnement",
+    produit: "KCl 60%",
+    volume: "60 sacs/an",
+    duree: "Jan-Déc 2025",
+    valeur: "4,8M XOF",
+    statut: "Actif",
+    detail: "",
+  },
+  {
+    num: "CTR-2024-001",
+    partie: "Barry Callebaut CI",
+    type: "Vente cadre",
+    produit: "Cacao Grade AA",
+    volume: "44t",
+    duree: "Jan-Déc 2024",
+    valeur: "47,8M XOF",
+    statut: "Expiré",
+    detail: "renouvelé",
   },
 ];
 
-const contratsHistorique = [
-  { num: "CTR-2019-001", type: "Foncier",     partie: "Proprietaire PAR-C1",    periode: "01/01/2019 - 31/12/2022", motif: "Non-renouvellement - terrain revendu" },
-  { num: "CTR-2020-002", type: "Assurance",   partie: "AXA Assurances",         periode: "01/01/2020 - 31/12/2023", motif: "Changement d'assureur - tarif SAHAM plus avantageux" },
-  { num: "CTR-2021-003", type: "Fournisseur", partie: "CIDT",                   periode: "01/03/2021 - 28/02/2023", motif: "Fin de contrat - passage en achat direct" },
-  { num: "CTR-2021-004", type: "Client",      partie: "Touton SA",              periode: "01/01/2021 - 31/12/2022", motif: "Resiliation mutuelle - reorientation client" },
-  { num: "CTR-2022-005", type: "Fournisseur", partie: "Societe Ivoirienne Sem", periode: "01/01/2022 - 31/12/2023", motif: "Fin contrat - fournisseur liquide" },
-  { num: "CTR-2022-006", type: "IT",          partie: "AWS Lightsail",          periode: "01/06/2022 - 31/05/2023", motif: "Migration vers Supabase" },
-  { num: "CTR-2023-007", type: "Emploi",      partie: "Kone Brahima",           periode: "01/04/2023 - 30/09/2023", motif: "CDD - fin de mission recolte" },
-  { num: "CTR-2023-008", type: "Foncier",     partie: "Proprietaire PAR-A4",    periode: "01/01/2020 - 31/12/2023", motif: "Refus renouvellement - proprietaire" },
-  { num: "CTR-2024-009", type: "Assurance",   partie: "Allianz CI",             periode: "01/01/2024 - 31/12/2024", motif: "Non-renouvellement - rationalisation polices" },
-  { num: "CTR-2024-010", type: "Fournisseur", partie: "Agro Service CI",        periode: "01/01/2024 - 30/06/2024", motif: "Resiliation - rupture stock fournisseur" },
+const barData = [
+  { label: "CTR-2025-001 BC", pct: 66.7, realise: "32t/48t", color: "#2E7D32" },
+  { label: "CTR-2025-002 Cargill", pct: 100, realise: "2t/2t", color: "#1B5E20" },
+  { label: "CTR-2025-003 SCPA", pct: 75, realise: "60kg/80kg", color: "#4CAF50" },
+  { label: "CTR-2025-004 KCl", pct: 42, realise: "25 sacs/60", color: "#E65100" },
 ];
 
-function formatXOF(n: number) {
-  return n.toLocaleString("fr-FR") + " XOF";
-}
-
-function TypeBadge({ type }: { type: string }) {
-  const colors: Record<string, string> = {
-    Client: "bg-blue-50 text-blue-700",
-    Fournisseur: "bg-orange-50 text-orange-700",
-    Assurance: "bg-purple-50 text-purple-700",
-    Foncier: "bg-yellow-50 text-yellow-700",
-    Emploi: "bg-green-50 text-green-700",
-    IT: "bg-gray-100 text-gray-600",
-  };
-  return (
-    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${colors[type] ?? "bg-gray-100 text-gray-600"}`}>
-      {type}
-    </span>
-  );
-}
-
-function StatutBadge({ statut, label }: { statut: string; label: string }) {
-  if (statut === "ok") return <span className="flex items-center gap-1 text-[10px] text-green-700"><CheckCircle size={11} className="text-green-500" />{label}</span>;
-  if (statut === "warn") return <span className="flex items-center gap-1 text-[10px] text-orange-600"><AlertTriangle size={11} />{label}</span>;
-  if (statut === "expiring") return <span className="flex items-center gap-1 text-[10px] text-yellow-700"><Clock size={11} />{label}</span>;
-  return <span className="text-[10px] text-gray-500">{label}</span>;
-}
+const alertes = [
+  {
+    icon: "⏳",
+    alerte: "Renouvellement CTR-2025-001 (BC)",
+    contrat: "Barry Callebaut",
+    echeance: "31/12/2025",
+    action: "Négocier avant octobre",
+  },
+  {
+    icon: "⏳",
+    alerte: "Livraison 8/12 CTR-2025-001",
+    contrat: "Barry Callebaut",
+    echeance: "15/08/2025",
+    action: "Préparer lot août",
+  },
+  {
+    icon: "🔔",
+    alerte: "Devis OLAM expire",
+    contrat: "OLAM Cocoa CI",
+    echeance: "09/08/2025",
+    action: "Relancer d'ici le 22/07",
+  },
+];
 
 export default function ContratsPage() {
-  const [tab, setTab] = useState<Tab>("actifs");
-
-  const kpis = [
-    { label: "Contrats actifs", value: "18", icon: FileText, color: "text-[#2E7D32]", bg: "bg-green-50" },
-    { label: "Expiration < 3 mois", value: "3", icon: AlertTriangle, color: "text-orange-600", bg: "bg-orange-50" },
-    { label: "Valeur engagements/an", value: "42,8 M XOF", icon: TrendingUp, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Contrats fournisseurs", value: "8", icon: RefreshCw, color: "text-purple-600", bg: "bg-purple-50" },
-    { label: "Contrats clients", value: "4", icon: CheckCircle, color: "text-[#2E7D32]", bg: "bg-green-50" },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Topbar breadcrumb={breadcrumb} />
+    <div className="flex-1 flex flex-col min-h-screen bg-[#F8FBF8]">
+      <Topbar breadcrumb={["Commerce", "Contrats"]} />
 
-      <div className="max-w-[1400px] mx-auto px-6 py-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+      <main className="flex-1 p-6 space-y-6">
+        {/* En-tête */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Gestion des Contrats</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Suivi et renouvellement des engagements contractuels</p>
+            <h1 className="text-xl font-bold text-gray-900">Contrats Commerciaux</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Contrats cadre, accords de vente et engagements pluriannuels
+            </p>
           </div>
-          <button className="flex items-center gap-2 bg-[#2E7D32] text-white px-4 py-2 rounded-xl text-xs font-medium hover:bg-[#1B5E20] transition-colors">
-            <FileText size={13} />
-            Nouveau contrat
+          <button className="inline-flex items-center gap-2 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors self-start md:self-auto">
+            + Nouveau contrat
           </button>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-5 gap-4 mb-6">
-          {kpis.map((k) => (
-            <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-5">
-              <div className={`w-9 h-9 rounded-xl ${k.bg} flex items-center justify-center mb-3`}>
-                <k.icon size={16} className={k.color} />
-              </div>
-              <p className="text-xl font-bold text-gray-900">{k.value}</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">{k.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Onglets */}
-        <div className="flex gap-1 mb-4">
-          {(
-            [
-              { key: "actifs" as Tab, label: "Actifs", count: 18 },
-              { key: "renouveler" as Tab, label: "A renouveler", count: 3 },
-              { key: "historique" as Tab, label: "Historique", count: 10 },
-            ]
-          ).map(({ key, label, count }) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-colors ${
-                tab === key
-                  ? "bg-[#2E7D32] text-white"
-                  : "bg-white border border-gray-100 text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {label}
-              <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  tab === key ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
-                }`}
-              >
-                {count}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Tab: Actifs */}
-        {tab === "actifs" && (
-          <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-50 bg-[#F8FBF8]">
-              <p className="text-xs font-semibold text-gray-700">18 contrats actifs</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-[#F8FBF8] border-b border-gray-100">
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">N°</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Type</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Contrepartie</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600">Objet</th>
-                    <th className="text-right px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Valeur/an (XOF)</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Debut</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Fin</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Statut</th>
-                    <th className="px-4 py-2.5"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contratsActifs.map((c, i) => (
-                    <tr
-                      key={c.num}
-                      className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${
-                        i % 2 === 0 ? "" : "bg-gray-50/30"
-                      }`}
-                    >
-                      <td className="px-4 py-2.5 font-mono text-[11px] text-gray-700 whitespace-nowrap">{c.num}</td>
-                      <td className="px-4 py-2.5 whitespace-nowrap"><TypeBadge type={c.type} /></td>
-                      <td className="px-4 py-2.5 font-medium text-gray-800 whitespace-nowrap">{c.partie}</td>
-                      <td className="px-4 py-2.5 text-gray-600 max-w-[200px] truncate">{c.objet}</td>
-                      <td className="px-4 py-2.5 text-right font-semibold text-gray-800 whitespace-nowrap">
-                        {c.valeur.toLocaleString("fr-FR")}
-                      </td>
-                      <td className="px-4 py-2.5 text-gray-500 whitespace-nowrap">{c.debut}</td>
-                      <td className="px-4 py-2.5 text-gray-500 whitespace-nowrap">{c.fin}</td>
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        <StatutBadge statut={c.statut} label={c.statutLabel} />
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <button className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
-                          <Eye size={13} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        {/* 4 KPI */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <p className="text-xs text-gray-500 mb-1">Contrats actifs</p>
+            <p className="text-3xl font-bold text-[#2E7D32]">4</p>
           </div>
-        )}
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <p className="text-xs text-gray-500 mb-1">Volume contractualisé</p>
+            <p className="text-3xl font-bold text-gray-900">58t</p>
+          </div>
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <p className="text-xs text-gray-500 mb-1">CA garanti</p>
+            <p className="text-3xl font-bold text-gray-900">63,2M</p>
+            <p className="text-xs text-gray-400">XOF</p>
+          </div>
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <p className="text-xs text-gray-500 mb-1">Litiges</p>
+            <p className="text-3xl font-bold text-[#2E7D32]">0</p>
+          </div>
+        </div>
 
-        {/* Tab: A renouveler */}
-        {tab === "renouveler" && (
-          <div className="space-y-4">
-            {contratsRenouveler.map((c) => (
-              <div
-                key={c.num}
-                className={`rounded-2xl border bg-white p-5 ${
-                  c.niveau === "rouge"
-                    ? "border-red-200 bg-red-50/30"
-                    : "border-yellow-200 bg-yellow-50/20"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        c.niveau === "rouge" ? "bg-red-100" : "bg-yellow-100"
-                      }`}
-                    >
-                      {c.niveau === "rouge" ? (
-                        <XCircle size={18} className="text-red-500" />
+        {/* Tableau contrats actifs */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Contrats actifs</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[800px]">
+              <thead>
+                <tr className="bg-[#F8FBF8] text-xs text-gray-500 uppercase">
+                  <th className="text-left py-2 px-3">N°</th>
+                  <th className="text-left py-2 px-3">Client / Fournisseur</th>
+                  <th className="text-left py-2 px-3">Type</th>
+                  <th className="text-left py-2 px-3">Produit</th>
+                  <th className="text-left py-2 px-3">Volume</th>
+                  <th className="text-left py-2 px-3">Durée</th>
+                  <th className="text-right py-2 px-3">Valeur</th>
+                  <th className="text-center py-2 px-3">Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {contrats.map((c) => (
+                  <tr key={c.num} className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="py-2.5 px-3 font-medium text-[#2E7D32] text-xs">{c.num}</td>
+                    <td className="py-2.5 px-3 text-gray-900 font-medium">{c.partie}</td>
+                    <td className="py-2.5 px-3 text-gray-500 text-xs">{c.type}</td>
+                    <td className="py-2.5 px-3 text-gray-700">{c.produit}</td>
+                    <td className="py-2.5 px-3 text-gray-700">{c.volume}</td>
+                    <td className="py-2.5 px-3 text-gray-500 text-xs">{c.duree}</td>
+                    <td className="py-2.5 px-3 text-right font-semibold text-gray-900">{c.valeur}</td>
+                    <td className="py-2.5 px-3 text-center">
+                      {c.statut === "Actif" ? (
+                        <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-200 text-xs px-2 py-0.5 rounded-full font-medium">
+                          ✅ Actif{c.detail ? ` (${c.detail})` : ""}
+                        </span>
                       ) : (
-                        <Clock size={18} className="text-yellow-600" />
+                        <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-500 border border-gray-200 text-xs px-2 py-0.5 rounded-full font-medium">
+                          ✅ Expiré — {c.detail}
+                        </span>
                       )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold text-gray-800">{c.num}</span>
-                        <span className="text-xs text-gray-600">—</span>
-                        <span className="text-xs font-medium text-gray-700">{c.partie}</span>
-                        <span className="text-xs text-gray-500">—</span>
-                        <span className="text-xs text-gray-600">{c.objet}</span>
-                      </div>
-                      <p className="text-[11px] text-gray-500 mb-1">
-                        Expire : <span className="font-semibold text-gray-700">{c.fin}</span>
-                      </p>
-                      <p
-                        className={`text-[11px] font-medium ${
-                          c.niveau === "rouge" ? "text-red-600" : "text-yellow-700"
-                        }`}
-                      >
-                        {c.note}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {c.niveau === "rouge" && (
-                      <button className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white rounded-lg text-[11px] font-medium hover:bg-red-600 transition-colors">
-                        <MessageSquare size={11} />
-                        Relancer {c.partie.split(" ")[0]}
-                      </button>
-                    )}
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg text-[11px] font-medium hover:bg-gray-50 transition-colors">
-                      <Eye size={11} />
-                      Voir contrat
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Tab: Historique */}
-        {tab === "historique" && (
-          <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-50 bg-[#F8FBF8]">
-              <p className="text-xs font-semibold text-gray-700">10 contrats termines ou resilies</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-[#F8FBF8] border-b border-gray-100">
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">N°</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Type</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Contrepartie</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Periode</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600">Motif de cloture</th>
-                    <th className="px-4 py-2.5"></th>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {contratsHistorique.map((c, i) => (
-                    <tr
-                      key={c.num}
-                      className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${
-                        i % 2 === 0 ? "" : "bg-gray-50/30"
-                      }`}
-                    >
-                      <td className="px-4 py-2.5 font-mono text-[11px] text-gray-500 whitespace-nowrap">{c.num}</td>
-                      <td className="px-4 py-2.5 whitespace-nowrap"><TypeBadge type={c.type} /></td>
-                      <td className="px-4 py-2.5 font-medium text-gray-700 whitespace-nowrap">{c.partie}</td>
-                      <td className="px-4 py-2.5 text-gray-500 whitespace-nowrap">{c.periode}</td>
-                      <td className="px-4 py-2.5 text-gray-600 max-w-[280px]">{c.motif}</td>
-                      <td className="px-4 py-2.5">
-                        <button className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
-                          <ChevronRight size={13} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+        </div>
+
+        {/* SVG taux d'exécution */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Taux d&apos;exécution des contrats 2025</h2>
+          <svg
+            viewBox="0 0 640 200"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full max-w-2xl"
+            aria-label="Taux d'exécution des contrats 2025"
+          >
+            {/* Grid verticals */}
+            {[0, 25, 50, 75, 100].map((pct) => {
+              const x = 180 + (pct / 100) * 400;
+              return (
+                <g key={pct}>
+                  <line x1={x} y1={10} x2={x} y2={175} stroke="#E5E7EB" strokeWidth="1" />
+                  <text x={x} y={190} textAnchor="middle" fontSize="9" fill="#9CA3AF">
+                    {pct}%
+                  </text>
+                </g>
+              );
+            })}
+
+            {barData.map((b, i) => {
+              const barY = 20 + i * 40;
+              const barW = (b.pct / 100) * 400;
+              return (
+                <g key={b.label}>
+                  {/* Label */}
+                  <text x="175" y={barY + 13} textAnchor="end" fontSize="10" fill="#374151">
+                    {b.label}
+                  </text>
+                  {/* Background bar */}
+                  <rect x={180} y={barY} width={400} height={22} rx={4} fill="#F3F4F6" />
+                  {/* Filled bar */}
+                  <rect x={180} y={barY} width={barW} height={22} rx={4} fill={b.color} />
+                  {/* Pct text */}
+                  <text x={180 + barW + 6} y={barY + 14} fontSize="10" fill={b.color} fontWeight="600">
+                    {b.pct}% ({b.realise})
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+
+        {/* Contrats en négociation */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Contrats en négociation</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[700px]">
+              <thead>
+                <tr className="bg-[#F8FBF8] text-xs text-gray-500 uppercase">
+                  <th className="text-left py-2 px-3">N°</th>
+                  <th className="text-left py-2 px-3">Partie</th>
+                  <th className="text-left py-2 px-3">Objet</th>
+                  <th className="text-left py-2 px-3">Volume visé</th>
+                  <th className="text-right py-2 px-3">Valeur est.</th>
+                  <th className="text-center py-2 px-3">Stade</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-t border-gray-100">
+                  <td className="py-2.5 px-3 text-xs text-blue-600 font-medium">
+                    DEV-2025-003 → CTR-2025-005
+                  </td>
+                  <td className="py-2.5 px-3 font-medium text-gray-900">OLAM Cocoa CI</td>
+                  <td className="py-2.5 px-3 text-gray-700">Cacao Grade AA</td>
+                  <td className="py-2.5 px-3 text-gray-700">8t</td>
+                  <td className="py-2.5 px-3 text-right font-semibold text-gray-900">8,76M XOF</td>
+                  <td className="py-2.5 px-3 text-center">
+                    <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2 py-0.5 rounded-full font-medium">
+                      🔵 Devis envoyé — en attente
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Alertes contrats */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Alertes contrats</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[600px]">
+              <thead>
+                <tr className="bg-[#F8FBF8] text-xs text-gray-500 uppercase">
+                  <th className="text-left py-2 px-3">Alerte</th>
+                  <th className="text-left py-2 px-3">Contrat</th>
+                  <th className="text-left py-2 px-3">Échéance</th>
+                  <th className="text-left py-2 px-3">Action recommandée</th>
+                </tr>
+              </thead>
+              <tbody>
+                {alertes.map((a) => (
+                  <tr key={a.alerte} className="border-t border-gray-100">
+                    <td className="py-2.5 px-3 text-gray-800">
+                      {a.icon} {a.alerte}
+                    </td>
+                    <td className="py-2.5 px-3 text-gray-600">{a.contrat}</td>
+                    <td className="py-2.5 px-3 text-gray-700 font-medium">{a.echeance}</td>
+                    <td className="py-2.5 px-3 text-gray-600 text-xs">{a.action}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

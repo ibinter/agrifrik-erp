@@ -1,238 +1,298 @@
-import Link from "next/link";
 import Topbar from "../../../components/Topbar";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 interface Props {
   params: Promise<{ id: string }>;
 }
 
-// ── SVG: Cours historique 24 mois ─────────────────────────────────────────────
-// BCC Abidjan XOF/kg (left axis), London ICE et NYMEX USD/t (right axis)
-// 24 months Jul 2023 → Jun 2025 + Jul 2025
-const histData = [
-  { m: "J23", bcc: 820, ice: 2310, nymex: 2290 },
-  { m: "A", bcc: 835, ice: 2360, nymex: 2340 },
-  { m: "S", bcc: 852, ice: 2420, nymex: 2405 },
-  { m: "O", bcc: 870, ice: 2510, nymex: 2480 },
-  { m: "N", bcc: 890, ice: 2580, nymex: 2560 },
-  { m: "D", bcc: 910, ice: 2650, nymex: 2630 },
-  { m: "J24", bcc: 940, ice: 2720, nymex: 2700 },
-  { m: "F", bcc: 965, ice: 2790, nymex: 2770 },
-  { m: "M", bcc: 998, ice: 2880, nymex: 2850 },
-  { m: "A", bcc: 1020, ice: 2960, nymex: 2940 },
-  { m: "M", bcc: 1055, ice: 3040, nymex: 3010 },
-  { m: "J", bcc: 980, ice: 2880, nymex: 2860 },
-  { m: "J", bcc: 980, ice: 2820, nymex: 2800 },
-  { m: "A", bcc: 1010, ice: 2910, nymex: 2890 },
-  { m: "S", bcc: 1038, ice: 2970, nymex: 2950 },
-  { m: "O", bcc: 1124, ice: 3140, nymex: 3120 },
-  { m: "N", bcc: 1098, ice: 3080, nymex: 3060 },
-  { m: "D", bcc: 1075, ice: 3010, nymex: 2990 },
-  { m: "J25", bcc: 1060, ice: 2960, nymex: 2940 },
-  { m: "F", bcc: 1045, ice: 2900, nymex: 2880 },
-  { m: "M", bcc: 1052, ice: 2930, nymex: 2910 },
-  { m: "A", bcc: 1068, ice: 2980, nymex: 2960 },
-  { m: "M", bcc: 1079, ice: 3050, nymex: 3030 },
-  { m: "J", bcc: 1082, ice: 2980, nymex: 2960 },
-  { m: "J", bcc: 1087, ice: 2842, nymex: 3241 },
+// ── Chart data ────────────────────────────────────────────────────────────────
+const MONTHS = [
+  { label: "Jul 24", value: 980 },
+  { label: "Aoû 24", value: 1002 },
+  { label: "Sep 24", value: 1018 },
+  { label: "Oct 24", value: 1045 },
+  { label: "Nov 24", value: 1052 },
+  { label: "Déc 24", value: 1060 },
+  { label: "Jan 25", value: 1045 },
+  { label: "Fév 25", value: 1058 },
+  { label: "Mar 25", value: 1072 },
+  { label: "Avr 25", value: 1068 },
+  { label: "Mai 25", value: 1075 },
+  { label: "Jun 25", value: 1082 },
+  { label: "Jul 25", value: 1087 },
 ];
 
-function HistChart() {
-  const W = 700, H = 280, PL = 52, PR = 52, PT = 20, PB = 40;
-  const cW = W - PL - PR, cH = H - PT - PB;
-  const n = histData.length;
+// ── SVG Area chart ────────────────────────────────────────────────────────────
+function CoursAreaChart() {
+  const W = 640, H = 240;
+  const PL = 56, PR = 20, PT = 20, PB = 40;
+  const cW = W - PL - PR;
+  const cH = H - PT - PB;
+  const MIN = 820, MAX = 1120;
+  const n = MONTHS.length;
+
   const xOf = (i: number) => PL + (i / (n - 1)) * cW;
+  const yOf = (v: number) => PT + cH - ((v - MIN) / (MAX - MIN)) * cH;
 
-  // BCC: 800–1150
-  const bccMin = 800, bccMax = 1150;
-  const yBcc = (v: number) => PT + ((bccMax - v) / (bccMax - bccMin)) * cH;
+  const dusY = yOf(850);
+  const contractY = yOf(1087);
 
-  // ICE/NYMEX: 2200–3300
-  const rMin = 2200, rMax = 3300;
-  const yR = (v: number) => PT + ((rMax - v) / (rMax - rMin)) * cH;
+  // Area path
+  const pts = MONTHS.map((m, i) => `${xOf(i).toFixed(1)},${yOf(m.value).toFixed(1)}`);
+  const areaD =
+    `M${pts[0]} ` +
+    pts.slice(1).map((p) => `L${p}`).join(" ") +
+    ` L${xOf(n - 1).toFixed(1)},${(PT + cH).toFixed(1)} L${xOf(0).toFixed(1)},${(PT + cH).toFixed(1)} Z`;
+  const lineD = `M${pts[0]} ` + pts.slice(1).map((p) => `L${p}`).join(" ");
 
-  const ptsBcc = histData.map((d, i) => xOf(i) + "," + yBcc(d.bcc)).join(" ");
-  const ptsIce = histData.map((d, i) => xOf(i) + "," + yR(d.ice)).join(" ");
-  const ptsNym = histData.map((d, i) => xOf(i) + "," + yR(d.nymex)).join(" ");
-
-  // annotation: plus haut 1124 (Oct 2024 = index 15) et plus bas 980 (Jul-Aug 2024 = index 12-13)
-  const hiX = xOf(15), hiY = yBcc(1124);
-  const loX = xOf(12), loY = yBcc(980);
+  const yGrids = [850, 900, 950, 1000, 1050, 1100];
 
   return (
-    <svg viewBox={"0 0 " + W + " " + H} className="w-full" style={{ maxWidth: W }}>
-      {/* grid */}
-      {[800, 850, 900, 950, 1000, 1050, 1100, 1150].map((v) => (
+    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="max-w-full">
+      {/* Grid */}
+      {yGrids.map((v) => (
         <g key={v}>
-          <line x1={PL} y1={yBcc(v)} x2={PL + cW} y2={yBcc(v)} stroke="#e5e7eb" strokeWidth="0.8" />
-          <text x={PL - 4} y={yBcc(v) + 4} fontSize="9" fill="#9ca3af" textAnchor="end">{v}</text>
+          <line
+            x1={PL} y1={yOf(v)} x2={PL + cW} y2={yOf(v)}
+            stroke="#E5E7EB" strokeWidth="1"
+            strokeDasharray={v === 850 ? "0" : "4,3"}
+          />
+          <text x={PL - 6} y={yOf(v) + 4} textAnchor="end" fontSize="10" fill="#9CA3AF">{v}</text>
         </g>
       ))}
-      {/* right axis labels */}
-      {[2200, 2500, 2800, 3100].map((v) => (
-        <text key={v} x={PL + cW + 4} y={yR(v) + 4} fontSize="9" fill="#9ca3af" textAnchor="start">{v}</text>
+
+      {/* Area verte */}
+      <path d={areaD} fill="#4CAF50" fillOpacity="0.13" />
+
+      {/* Ligne prix plancher DUS orange pointillée */}
+      <line
+        x1={PL} y1={dusY} x2={PL + cW} y2={dusY}
+        stroke="#E65100" strokeWidth="1.5" strokeDasharray="6,4"
+      />
+      <text x={PL + 6} y={dusY - 5} fontSize="10" fill="#E65100">
+        Prix plancher DUS 850 XOF
+      </text>
+
+      {/* Ligne contrat Barry Callebaut bleue */}
+      <line
+        x1={PL} y1={contractY} x2={PL + cW} y2={contractY}
+        stroke="#1D4ED8" strokeWidth="1.5"
+      />
+      <text x={PL + cW - 4} y={contractY - 5} textAnchor="end" fontSize="10" fill="#1D4ED8">
+        Prix contractuel Barry Callebaut : 1 087 XOF/kg
+      </text>
+
+      {/* Courbe verte */}
+      <path d={lineD} fill="none" stroke="#2E7D32" strokeWidth="2" strokeLinejoin="round" />
+
+      {/* Points */}
+      {MONTHS.map((m, i) => (
+        <circle key={i} cx={xOf(i)} cy={yOf(m.value)} r="3" fill="#2E7D32" />
       ))}
-      {/* lines */}
-      <polyline points={ptsIce} fill="none" stroke="#3b82f6" strokeWidth="1.8" />
-      <polyline points={ptsNym} fill="none" stroke="#E65100" strokeWidth="1.8" strokeDasharray="4 3" />
-      <polyline points={ptsBcc} fill="none" stroke="#2E7D32" strokeWidth="2.5" />
-      {/* annotations */}
-      <circle cx={hiX} cy={hiY} r="4" fill="#2E7D32" />
-      <text x={hiX + 5} y={hiY - 5} fontSize="9" fill="#1B5E20" fontWeight="600">Plus haut 1 124</text>
-      <circle cx={loX} cy={loY} r="4" fill="#ef4444" />
-      <text x={loX + 5} y={loY + 12} fontSize="9" fill="#ef4444" fontWeight="600">Plus bas 980</text>
-      {/* x labels every 4 months */}
-      {histData.map((d, i) => i % 4 === 0 && (
-        <text key={i} x={xOf(i)} y={H - 6} fontSize="9" fill="#6b7280" textAnchor="middle">{d.m}</text>
+
+      {/* Labels X */}
+      {MONTHS.map((m, i) => (
+        <text key={i} x={xOf(i)} y={H - 8} textAnchor="middle" fontSize="9" fill="#9CA3AF">
+          {m.label}
+        </text>
       ))}
-      {/* axis titles */}
-      <text x={8} y={H / 2} fontSize="9" fill="#6b7280" textAnchor="middle"
-        transform={"rotate(-90, 8, " + (H / 2) + ")"}>XOF/kg</text>
-      <text x={W - 4} y={H / 2} fontSize="9" fill="#6b7280" textAnchor="middle"
-        transform={"rotate(90, " + (W - 4) + ", " + (H / 2) + ")"}>USD/t</text>
     </svg>
   );
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
-export default async function PrixMarcheFichePage({ params }: Props) {
+export default async function PrixMarcheDetailPage({ params }: Props) {
   const { id } = await params;
 
-  const technicalData = [
-    { label: "Moyenne mobile 30j", value: "1 082 XOF/kg" },
-    { label: "Moyenne mobile 90j", value: "1 058 XOF/kg" },
-    { label: "Plus haut 52 semaines", value: "1 124 XOF/kg (Oct 2024)" },
-    { label: "Plus bas 52 semaines", value: "980 XOF/kg (Jul 2024)" },
-    { label: "RSI (14j)", value: "58 — neutre" },
-    { label: "Signal", value: "⬆️ Tendance haussière — MACD positif" },
-  ];
-
-  const fundamentals = [
-    { label: "Production mondiale", value: "4,92 Mt (ICCO 2024-2025 estimé)" },
-    { label: "Consommation mondiale", value: "5,18 Mt" },
-    { label: "Déficit global", value: "-260 000 t → bullish ⬆️" },
-    { label: "Stock mondial / consommation", value: "28,4% — bas historique" },
-    { label: "Part Côte d'Ivoire", value: "40,8% de la production mondiale" },
-    { label: "Taxe BCC DKL", value: "22 XOF/kg" },
-    { label: "Taxe FDPCC", value: "14 XOF/kg" },
-  ];
-
-  const simulations = [
-    { qty: "24 900 kg", current: "27 087 300", m30: "26 940 180", m90: "26 343 420", delta: "+743 880 XOF" },
-    { qty: "10 000 kg", current: "10 870 000", m30: "10 820 000", m90: "10 580 000", delta: "+290 000 XOF" },
-    { qty: "1 000 kg", current: "1 087 000", m30: "1 082 000", m90: "1 058 000", delta: "+29 000 XOF" },
-  ];
-
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar breadcrumb={["Commerce", "Prix Marchés", `Fiche ${id}`]} />
+    <div className="flex flex-col min-h-screen bg-[#F8FBF8]">
+      <Topbar breadcrumb={["Commerce", "Prix Marchés", `Cours ${id}`]} />
 
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
-        {/* Back */}
-        <Link
-          href="/prix-marche"
-          className="inline-flex items-center gap-1.5 text-sm text-[#2E7D32] hover:underline"
-        >
-          ← Retour aux prix marchés
-        </Link>
+      <main className="flex-1 p-6 space-y-6 max-w-7xl mx-auto w-full">
 
-        {/* Header */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+        {/* ── En-tête bandeau vert ──────────────────────────────────────── */}
+        <div className="rounded-2xl bg-[#1B5E20] text-white p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Cacao en fèves brut fermenté séché</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Code douanier : 1801.00.00</p>
+              <p className="text-green-300 text-xs font-medium uppercase tracking-wider mb-1">
+                Bourse du Café et du Cacao d&apos;Abidjan (BCC)
+              </p>
+              <h1 className="text-2xl font-bold leading-tight">Cacao sec Grade AA</h1>
+              <p className="text-green-200 text-sm mt-0.5">Filière Côte d&apos;Ivoire</p>
             </div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 text-green-800 text-sm font-medium">
-              🟢 Cours en hausse (+1,1% sur 7j)
+            <div className="flex flex-col items-end gap-2">
+              <span className="inline-flex items-center gap-1.5 bg-green-500/25 border border-green-400/40 rounded-full px-3 py-1 text-xs font-semibold text-green-100">
+                <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
+                Marché ouvert
+              </span>
+              <span className="inline-flex items-center gap-1 bg-white/10 rounded-full px-3 py-1 text-xs font-medium text-green-100">
+                ↗ Tendance Haussière (+0,7% sur 30j)
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-4 text-xs text-green-300 border-t border-green-700/60 pt-3 mt-4">
+            <span>Code : <span className="text-white font-semibold">BCC-CAC-AA</span></span>
+            <span className="text-green-600">|</span>
+            <span>Mise à jour : <span className="text-white font-semibold">11/07/2025 à 08h30</span></span>
+          </div>
+        </div>
+
+        {/* ── 5 KPI ─────────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {[
+            {
+              label: "Cours actuel",
+              value: "1 087",
+              unit: "XOF/kg",
+              sub: null,
+              valueColor: "text-[#1B5E20]",
+            },
+            {
+              label: "Variation J-1",
+              value: "+12 XOF",
+              unit: null,
+              sub: "↑ +1,1%",
+              valueColor: "text-green-600",
+              subColor: "text-green-500",
+            },
+            {
+              label: "ICE Londres (équiv.)",
+              value: "1 112",
+              unit: "XOF/kg (+2,3%)",
+              sub: null,
+              valueColor: "text-gray-800",
+            },
+            {
+              label: "Prix plancher DUS CI 2025",
+              value: "850",
+              unit: "XOF/kg",
+              sub: "Gouvernement",
+              valueColor: "text-[#E65100]",
+              subColor: "text-gray-400",
+            },
+            {
+              label: "Premium Grade AA vs A",
+              value: "+34 XOF",
+              unit: null,
+              sub: "+3,2%",
+              valueColor: "text-blue-700",
+              subColor: "text-blue-500",
+            },
+          ].map((k, i) => (
+            <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5">
+              <p className="text-xs text-gray-500 mb-1">{k.label}</p>
+              <p className={`text-2xl font-bold ${k.valueColor}`}>{k.value}</p>
+              {k.unit && <p className="text-xs text-gray-400 mt-0.5">{k.unit}</p>}
+              {k.sub && (
+                <p className={`text-xs mt-0.5 ${k.subColor ?? "text-gray-400"}`}>{k.sub}</p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* ── Évolution des cours ───────────────────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-sm font-semibold text-gray-800 mb-1">Évolution des cours</h2>
+          <p className="text-xs text-gray-400 mb-4">Cours cacao BCC — 12 derniers mois (XOF/kg)</p>
+          <div className="overflow-x-auto">
+            <CoursAreaChart />
+          </div>
+          {/* Légende */}
+          <div className="flex flex-wrap gap-5 mt-3 text-xs text-gray-500">
+            <span className="flex items-center gap-1.5">
+              <span className="w-6 h-0.5 bg-[#2E7D32] inline-block rounded-full" />
+              Cours BCC
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-6 h-0 border-t-2 border-dashed border-[#E65100] inline-block" />
+              Prix plancher DUS 850 XOF
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-6 h-0.5 bg-blue-700 inline-block rounded-full" />
+              Contrat Barry Callebaut 1 087 XOF/kg
             </span>
           </div>
-
-          {/* 5 KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-5">
-            {[
-              { label: "BCC Abidjan", value: "1 087 XOF/kg", delta: "▲ +12", up: true },
-              { label: "London ICE", value: "£2 842/t", delta: "", up: true },
-              { label: "NYMEX", value: "$3 241/t", delta: "", up: true },
-              { label: "EUR/XOF", value: "655,96", delta: "", up: null },
-              { label: "Premium Grade AA", value: "+120 XOF/kg", delta: "", up: true },
-            ].map((k) => (
-              <div key={k.label} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-                <p className="text-xs text-gray-500 mb-1">{k.label}</p>
-                <p className="text-lg font-bold text-gray-900">{k.value}</p>
-                {k.delta && (
-                  <p className="text-xs font-medium mt-0.5 text-green-700">{k.delta}</p>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Line chart 24 months */}
+        {/* ── Comparatif bourses mondiales ─────────────────────────────── */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <h2 className="text-sm font-semibold text-gray-700">Cours historique — 24 mois</h2>
-            <div className="flex items-center gap-4 text-xs text-gray-500">
-              <span className="flex items-center gap-1.5"><span className="w-4 h-0.5 bg-[#2E7D32] inline-block" /> BCC Abidjan (XOF/kg)</span>
-              <span className="flex items-center gap-1.5"><span className="w-4 h-0.5 bg-blue-500 inline-block" /> London ICE (USD/t)</span>
-              <span className="flex items-center gap-1.5"><span className="w-4 h-0.5 bg-[#E65100] inline-block border-dashed border-t" style={{ borderStyle: "dashed" }} /> NYMEX (USD/t)</span>
-            </div>
-          </div>
-          <HistChart />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Analyse technique */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">Analyse technique</h2>
-            <table className="w-full text-sm">
-              <tbody>
-                {technicalData.map((r) => (
-                  <tr key={r.label} className="border-t border-gray-50">
-                    <td className="py-2 pr-3 text-gray-500 text-xs">{r.label}</td>
-                    <td className="py-2 font-medium text-gray-900 text-xs">{r.value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Fondamentaux */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">Fondamentaux de marché</h2>
-            <table className="w-full text-sm">
-              <tbody>
-                {fundamentals.map((r) => (
-                  <tr key={r.label} className="border-t border-gray-50">
-                    <td className="py-2 pr-3 text-gray-500 text-xs">{r.label}</td>
-                    <td className="py-2 font-medium text-gray-900 text-xs">{r.value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Simulation valorisation */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Simulation de valorisation</h2>
+          <h2 className="text-sm font-semibold text-gray-800 mb-4">Comparatif bourses mondiales</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#F8FBF8]">
-                  {["Quantité", "Prix actuel (XOF)", "Prix M-30j (XOF)", "Prix M-90j (XOF)", "Variation vs M-90j"].map((h) => (
-                    <th key={h} className="px-3 py-2 text-left text-xs font-medium text-gray-500">{h}</th>
+                  {["Bourse", "Symbole", "Prix actuel", "Équiv. XOF", "Écart vs BCC"].map((h, i) => (
+                    <th
+                      key={h}
+                      className={`px-4 py-2.5 text-xs font-semibold text-gray-500 ${i === 0 ? "text-left rounded-tl-xl" : i === 4 ? "text-right rounded-tr-xl" : i <= 1 ? "text-left" : "text-right"}`}
+                    >
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
-                {simulations.map((r) => (
-                  <tr key={r.qty} className="border-t border-gray-50 hover:bg-gray-50">
-                    <td className="px-3 py-2 font-medium text-gray-900">{r.qty}</td>
-                    <td className="px-3 py-2 text-gray-700">{r.current}</td>
-                    <td className="px-3 py-2 text-gray-600">{r.m30}</td>
-                    <td className="px-3 py-2 text-gray-600">{r.m90}</td>
-                    <td className="px-3 py-2 font-semibold text-green-700">{r.delta} ✅</td>
+              <tbody className="divide-y divide-gray-50">
+                <tr className="bg-green-50">
+                  <td className="px-4 py-3 text-xs font-semibold text-[#1B5E20]">BCC Abidjan</td>
+                  <td className="px-4 py-3 text-xs text-gray-600">BCC-CAC-AA</td>
+                  <td className="px-4 py-3 text-right text-xs font-semibold text-gray-800">1 087 XOF/kg</td>
+                  <td className="px-4 py-3 text-right text-xs font-semibold text-[#1B5E20]">1 087 XOF</td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-500">Référence CI</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-xs text-gray-700">ICE Futures Europe (Londres)</td>
+                  <td className="px-4 py-3 text-xs text-gray-500">LIFFE CAC</td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-700">8 412 GBP/t</td>
+                  <td className="px-4 py-3 text-right text-xs font-semibold text-gray-800">1 112 XOF/kg</td>
+                  <td className="px-4 py-3 text-right text-xs text-green-600">+25 XOF (+2,3%)</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-xs text-gray-700">ICE Futures US (New York)</td>
+                  <td className="px-4 py-3 text-xs text-gray-500">ICE CAC</td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-700">9 645 USD/t</td>
+                  <td className="px-4 py-3 text-right text-xs font-semibold text-gray-800">1 135 XOF/kg</td>
+                  <td className="px-4 py-3 text-right text-xs text-green-600">+48 XOF (+4,4%)</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-xs text-gray-700">Euronext Paris</td>
+                  <td className="px-4 py-3 text-xs text-gray-500">—</td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-700">8 204 EUR/t</td>
+                  <td className="px-4 py-3 text-right text-xs font-semibold text-gray-800">1 096 XOF/kg</td>
+                  <td className="px-4 py-3 text-right text-xs text-green-600">+9 XOF (+0,8%)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-xs text-gray-600 bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5">
+            Le BCC Abidjan est la référence légale pour toutes les transactions de cacao en CI (Loi n° 2012-537). Nos contrats Barry Callebaut sont indexés sur le BCC.
+          </p>
+        </div>
+
+        {/* ── Analyse des facteurs de prix ─────────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-sm font-semibold text-gray-800 mb-1">Analyse des facteurs de prix</h2>
+          <p className="text-xs text-gray-400 mb-4">Facteurs influençant le cours actuel</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 rounded-tl-xl">Facteur</th>
+                  <th className="text-center px-4 py-2.5 text-xs font-semibold text-gray-500">Impact</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 rounded-tr-xl">Détail</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[
+                  { facteur: "Production CI 2024-25", impact: "🔴 Baissier", detail: "Saison intermédiaire faible (-8% vs N-1)", color: "text-red-600" },
+                  { facteur: "Demande Europe & Amérique", impact: "🟢 Haussier", detail: "Demande chocolat premium en hausse +4%", color: "text-green-600" },
+                  { facteur: "Stocks mondiaux ICCO", impact: "🔴 Baissier", detail: "Ratio stock/usage à 35% (bas historique)", color: "text-red-600" },
+                  { facteur: "Taux de change EUR/XOF", impact: "🟡 Neutre", detail: "Zone franc UEMOA — parité fixe", color: "text-yellow-600" },
+                  { facteur: "Récolte Ghana (2ème producteur)", impact: "🟡 Mixte", detail: "Estimation bonne récolte oct 2025", color: "text-yellow-600" },
+                  { facteur: "Politique DUS (prix plancher CI)", impact: "🟢 Haussier", detail: "DUS 850 XOF — soutien prix CI", color: "text-green-600" },
+                ].map((row, i) => (
+                  <tr key={i}>
+                    <td className="px-4 py-3 text-xs font-medium text-gray-800">{row.facteur}</td>
+                    <td className={`px-4 py-3 text-center text-xs font-semibold ${row.color}`}>{row.impact}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600">{row.detail}</td>
                   </tr>
                 ))}
               </tbody>
@@ -240,38 +300,103 @@ export default async function PrixMarcheFichePage({ params }: Props) {
           </div>
         </div>
 
-        {/* Prévisions IA */}
+        {/* ── Simulation de prix ────────────────────────────────────────── */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Prévisions IA</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="rounded-xl bg-blue-50 border border-blue-100 p-4">
-              <p className="text-xs font-semibold text-blue-700 mb-1">Horizon 30 jours</p>
-              <p className="text-lg font-bold text-gray-900">1 095 – 1 115 XOF/kg</p>
-              <p className="text-xs text-gray-600 mt-1">Probabilité hausse : <span className="font-semibold text-green-700">68%</span></p>
-            </div>
-            <div className="rounded-xl bg-purple-50 border border-purple-100 p-4">
-              <p className="text-xs font-semibold text-purple-700 mb-1">Horizon 90 jours</p>
-              <p className="text-lg font-bold text-gray-900">1 080 – 1 130 XOF/kg</p>
-              <p className="text-xs text-gray-600 mt-1">Stocks ICCO bas, bonne récolte CI attendue</p>
-            </div>
-            <div className="rounded-xl bg-green-50 border border-green-100 p-4">
-              <p className="text-xs font-semibold text-green-700 mb-2">Signal vente</p>
-              <p className="text-2xl font-bold text-green-800">⭐⭐⭐⭐ <span className="text-base">4/5</span></p>
-              <p className="text-xs text-gray-600 mt-1 font-medium">Favorable</p>
-              <p className="text-xs text-gray-500 mt-0.5">&ldquo;Cours au-dessus MM90, déficit mondial confirmé.&rdquo;</p>
-            </div>
+          <h2 className="text-sm font-semibold text-gray-800 mb-1">Simulation de prix pour votre exploitation</h2>
+          <p className="text-xs text-gray-400 mb-4">Impact cours sur CA EXP-001</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  {["Scénario", "Cours BCC", "Production H2 (8,2t)", "CA estimé H2", "Total 2025"].map((h, i) => (
+                    <th
+                      key={h}
+                      className={`px-4 py-2.5 text-xs font-semibold text-gray-500 ${i === 0 ? "text-left rounded-tl-xl" : "text-right"} ${i === 4 ? "rounded-tr-xl" : ""}`}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                <tr className="bg-red-50">
+                  <td className="px-4 py-3 text-xs font-semibold text-red-700">Pessimiste (-15%)</td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-700">924 XOF/kg</td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-700">8 200 kg</td>
+                  <td className="px-4 py-3 text-right text-xs font-semibold text-gray-800">7 577 000 XOF</td>
+                  <td className="px-4 py-3 text-right text-xs font-bold text-red-700">34,3M XOF</td>
+                </tr>
+                <tr className="bg-green-50">
+                  <td className="px-4 py-3 text-xs font-semibold text-green-700">Neutre (actuel)</td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-700">1 087 XOF/kg</td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-700">8 200 kg</td>
+                  <td className="px-4 py-3 text-right text-xs font-semibold text-gray-800">8 913 400 XOF</td>
+                  <td className="px-4 py-3 text-right text-xs font-bold text-green-700">39,6M XOF</td>
+                </tr>
+                <tr className="bg-blue-50">
+                  <td className="px-4 py-3 text-xs font-semibold text-blue-700">Optimiste (+10%)</td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-700">1 196 XOF/kg</td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-700">8 200 kg</td>
+                  <td className="px-4 py-3 text-right text-xs font-semibold text-gray-800">9 807 200 XOF</td>
+                  <td className="px-4 py-3 text-right text-xs font-bold text-blue-700">43,5M XOF</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-3 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 text-xs text-green-800">
+            Votre contrat CTR-2025-001 (Barry Callebaut) fixe le prix à 1 087 XOF/kg jusqu&apos;au 31/12/2025, vous protégeant des fluctuations baissières.
           </div>
         </div>
 
-        {/* Back button bottom */}
-        <div>
-          <Link
+        {/* ── Alertes de prix configurées ───────────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-sm font-semibold text-gray-800 mb-4">Alertes de prix configurées</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 rounded-tl-xl">Alerte</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500">Seuil</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 rounded-tr-xl">Statut</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                <tr>
+                  <td className="px-4 py-3 text-xs font-medium text-gray-800">Alerte baisse critique</td>
+                  <td className="px-4 py-3 text-xs text-gray-600">Cours &lt; 950 XOF/kg</td>
+                  <td className="px-4 py-3 text-xs font-medium text-green-600">🟢 Non déclenchée</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-xs font-medium text-gray-800">Alerte hausse opportunité</td>
+                  <td className="px-4 py-3 text-xs text-gray-600">Cours &gt; 1 150 XOF/kg</td>
+                  <td className="px-4 py-3 text-xs font-medium text-green-600">🟢 Non déclenchée</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-xs font-medium text-gray-800">Notification quotidienne cours</td>
+                  <td className="px-4 py-3 text-xs text-gray-600">Chaque jour à 08h30</td>
+                  <td className="px-4 py-3 text-xs font-medium text-blue-600">✅ Active (email)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── Actions ───────────────────────────────────────────────────── */}
+        <div className="flex flex-wrap gap-3 pb-2">
+          <a
             href="/prix-marche"
-            className="inline-flex items-center gap-1.5 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-5 py-2.5 hover:bg-[#1B5E20] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             ← Retour aux prix marchés
-          </Link>
+          </a>
+          <button className="px-4 py-2 rounded-xl bg-[#2E7D32] text-white text-xs font-medium hover:bg-[#1B5E20] transition-colors">
+            Configurer alertes
+          </button>
+          <button className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            Historique complet
+          </button>
         </div>
+
       </main>
     </div>
   );

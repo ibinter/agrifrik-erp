@@ -1,225 +1,168 @@
 import Topbar from "../../../components/Topbar";
-import AchatActions from "./AchatActions";
+import { CheckCircle, Package, Clock, TrendingUp } from "lucide-react";
 
-interface Props {
+export default async function AchatDetailPage({
+  params,
+}: {
   params: Promise<{ id: string }>;
-}
-
-export default async function AchatDetailPage({ params }: Props) {
+}) {
   const { id } = await params;
 
-  const lignes = [
-    { num: 1, ref: "JD R503311", designation: "Joint hydraulique JD 6120M — Relevage arrière droit", qte: 2, unite: "pcs", pu: 42000, total: 84000 },
-    { num: 2, ref: "JD AT366488", designation: 'Flexible HP hydraulique 1/2" — 1 200mm', qte: 1, unite: "pcs", pu: 128000, total: 128000 },
-    { num: 3, ref: "SHELL HYD68", designation: "Huile hydraulique Shell Tellus S2 V 68 — 20L", qte: 1, unite: "bidon", pu: 72000, total: 72000 },
+  const kpis = [
+    { label: "Montant HT", value: "33 600 XOF", icon: Package, color: "#2E7D32", bg: "#E8F5E9" },
+    { label: "TVA (18% CI)", value: "6 048 XOF", icon: TrendingUp, color: "#1565C0", bg: "#E3F2FD" },
+    { label: "Montant TTC", value: "39 648 XOF", icon: CheckCircle, color: "#1B5E20", bg: "#E8F5E9" },
+    { label: "Délai livraison réel", value: "5 jours ✅", icon: Clock, color: "#6A1B9A", bg: "#F3E5F5" },
+  ];
+
+  const historiqueScpa = [
+    { cmd: "ACH-2025-006", date: "28/03", produit: "Super Cupravit 8 kg", qte: "8 kg", ttc: "79 296 XOF", delai: "4j ✅", current: false },
+    { cmd: "ACH-2025-014", date: "15/05", produit: "Ridomil Gold 48 WP 4 kg", qte: "4 kg", ttc: "90 720 XOF", delai: "5j ✅", current: false },
+    { cmd: "ACH-2025-017", date: "02/06", produit: "Super Cupravit 4 kg", qte: "4 kg", ttc: "39 648 XOF", delai: "3j ✅", current: false },
+    { cmd: "ACH-2025-022", date: "09/06", produit: "Super Cupravit 4 kg", qte: "4 kg", ttc: "39 648 XOF", delai: "5j ✅", current: true },
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8FBF8]">
-      <Topbar breadcrumb={["Logistique", "Achats", `Bon de commande ${id}`]} />
+    <div>
+      <Topbar
+        title={`Commande ${id}`}
+        breadcrumb={["Logistique", "Achats", `Commande ${id}`]}
+      />
 
-      <main className="flex-1 p-6 space-y-6 max-w-7xl mx-auto w-full">
+      <div className="p-6 space-y-6">
 
-        {/* En-tête */}
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-2xl font-bold text-gray-900">ACH-2025-091</span>
-                <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full border border-amber-200">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                  </svg>
-                  En attente livraison
+        {/* ── Bandeau en-tête ── */}
+        <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: "#1B5E20" }}>
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xl font-bold">ACH-2025-022</span>
+                <span className="px-3 py-1 rounded-full text-xs font-semibold"
+                  style={{ backgroundColor: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)" }}>
+                  ✅ Livrée et réceptionnée
                 </span>
               </div>
-              <p className="text-gray-700 font-semibold text-base">Concessionnaire John Deere Abidjan</p>
+              <div className="text-sm font-semibold text-green-100">SCPA Afrique CI</div>
+              <div className="text-xs text-green-200">Société Commerciale des Produits Agrochimiques</div>
+              <div className="text-sm text-green-100 mt-2">Super Cupravit OB 50 WP — 4 kg (fongicide cuivrique)</div>
             </div>
-            <div className="text-sm text-gray-600 space-y-1 text-right">
-              <p><span className="font-semibold text-gray-700">Date commande :</span> 09/07/2025</p>
-              <p><span className="font-semibold text-gray-700">Livraison prévue :</span> 15/07/2025</p>
+            <div className="text-right space-y-1 text-sm text-green-100">
+              <div>Date commande : <span className="font-semibold text-white">09/06/2025</span></div>
+              <div>Livraison : <span className="font-semibold text-white">14/06/2025 (J+5)</span></div>
             </div>
           </div>
         </div>
 
-        {/* 5 KPI */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {[
-            { label: "Montant HT", value: "284 000 XOF", sub: "hors taxes" },
-            { label: "TVA (18%)", value: "51 120 XOF", sub: "taxe sur valeur ajoutée" },
-            { label: "Montant TTC", value: "335 120 XOF", sub: "toutes taxes comprises" },
-            { label: "Budget rattaché", value: "Maintenance", sub: "Matériels agricoles" },
-            { label: "Paiement", value: "Virement BICICI", sub: "30 jours net" },
-          ].map((kpi) => (
-            <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5">
-              <p className="text-xs text-gray-500 mb-1">{kpi.label}</p>
-              <p className="text-sm font-bold text-[#1B5E20] leading-tight">{kpi.value}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{kpi.sub}</p>
-            </div>
-          ))}
+        {/* ── KPIs ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {kpis.map(k => {
+            const Icon = k.icon;
+            return (
+              <div key={k.label} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
+                  style={{ backgroundColor: k.bg }}>
+                  <Icon size={18} color={k.color} strokeWidth={1.8} />
+                </div>
+                <div className="text-lg font-bold text-gray-900 leading-tight">{k.value}</div>
+                <div className="text-xs text-gray-500 mt-0.5">{k.label}</div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Lignes de commande */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Lignes de commande</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="bg-[#F8FBF8]">
-                  {["#", "Référence", "Désignation", "Qté", "PU HT (XOF)", "Total HT (XOF)"].map((h) => (
-                    <th key={h} className="text-left px-3 py-2 font-semibold text-gray-600">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {lignes.map((l) => (
-                  <tr key={l.num} className="border-t border-gray-50 hover:bg-[#F8FBF8] transition-colors">
-                    <td className="px-3 py-3 text-gray-400">{l.num}</td>
-                    <td className="px-3 py-3 font-mono text-gray-600">{l.ref}</td>
-                    <td className="px-3 py-3 text-gray-700">{l.designation}</td>
-                    <td className="px-3 py-3 text-gray-700">{l.qte} {l.unite}</td>
-                    <td className="px-3 py-3 text-gray-700">{l.pu.toLocaleString("fr-FR")}</td>
-                    <td className="px-3 py-3 font-semibold text-gray-800">{l.total.toLocaleString("fr-FR")}</td>
-                  </tr>
-                ))}
-                <tr className="border-t border-gray-200 bg-[#F8FBF8]">
-                  <td colSpan={5} className="px-3 py-2 text-right font-semibold text-gray-700">TOTAL HT</td>
-                  <td className="px-3 py-2 font-bold text-gray-800">284 000</td>
-                </tr>
-                <tr className="border-t border-gray-100">
-                  <td colSpan={5} className="px-3 py-2 text-right text-gray-500">TVA 18%</td>
-                  <td className="px-3 py-2 text-gray-600">51 120</td>
-                </tr>
-                <tr className="border-t border-gray-200 bg-[#E8F5E9]">
-                  <td colSpan={5} className="px-3 py-2.5 text-right font-bold text-[#1B5E20]">TOTAL TTC</td>
-                  <td className="px-3 py-2.5 font-bold text-[#1B5E20]">335 120</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Informations fournisseur */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Informations fournisseur</h2>
-            <div className="space-y-2 text-xs text-gray-600">
-              <p className="font-bold text-gray-800 text-sm">Concessionnaire John Deere CI</p>
-              <p>Zone industrielle de Yopougon, Abidjan</p>
-              <p>Jean-Baptiste Assoumou (+225 27 21 24 58 00)</p>
-              <p><span className="font-semibold text-gray-700">RCCM :</span> CI-ABJ-2005-B-4821</p>
-              <p><span className="font-semibold text-gray-700">Compte :</span> SGBCI — IBAN CI87...</p>
-            </div>
 
-            <div className="mt-5">
-              <p className="text-xs font-semibold text-gray-600 mb-3">Historique commandes</p>
-              <table className="w-full text-xs">
+          {/* ── Détail de la commande ── */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h2 className="text-sm font-bold text-gray-900">Détail de la commande</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#F8FBF8]">
-                    {["N° BC", "Date", "Montant", "Statut"].map((h) => (
-                      <th key={h} className="text-left px-2 py-1.5 font-semibold text-gray-600">{h}</th>
+                  <tr style={{ backgroundColor: "#F8FBF8" }}>
+                    {["#", "Désignation", "Réf.", "Qté", "PU HT", "Total HT"].map(h => (
+                      <th key={h} className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody>
-                  {[
-                    { bc: "ACH-2025-062", date: "15/06/2025", montant: "189 000 XOF", statut: "✅ Livré" },
-                    { bc: "ACH-2025-018", date: "10/01/2025", montant: "62 000 XOF", statut: "✅ Livré" },
-                    { bc: "ACH-2024-084", date: "20/08/2024", montant: "271 000 XOF", statut: "✅ Livré" },
-                    { bc: "ACH-2025-091", date: "09/07/2025", montant: "335 120 XOF", statut: "⚠️ En attente" },
-                  ].map((row, i) => (
-                    <tr key={i} className="border-t border-gray-50">
-                      <td className="px-2 py-2 font-mono text-gray-600">{row.bc}</td>
-                      <td className="px-2 py-2 text-gray-500">{row.date}</td>
-                      <td className="px-2 py-2 text-gray-700">{row.montant}</td>
-                      <td className="px-2 py-2 text-gray-600">{row.statut}</td>
-                    </tr>
-                  ))}
+                <tbody className="divide-y divide-gray-50">
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs text-gray-500">1</td>
+                    <td className="px-4 py-3 text-xs font-medium text-gray-900 whitespace-nowrap">Super Cupravit OB 50 WP (sachets 1 kg)</td>
+                    <td className="px-4 py-3 text-xs font-mono text-gray-400 whitespace-nowrap">SCPA-CUP-1KG</td>
+                    <td className="px-4 py-3 text-xs font-bold text-gray-900">4 kg</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 whitespace-nowrap">8 400 XOF/kg</td>
+                    <td className="px-4 py-3 text-xs font-bold text-gray-900 whitespace-nowrap">33 600 XOF</td>
+                  </tr>
+                  <tr style={{ backgroundColor: "#F8FBF8" }}>
+                    <td className="px-4 py-2.5 text-xs text-gray-500 font-semibold" colSpan={5}>Sous-total HT</td>
+                    <td className="px-4 py-2.5 text-xs font-bold text-gray-900 whitespace-nowrap">33 600 XOF</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2.5 text-xs text-gray-500" colSpan={5}>TVA 18%</td>
+                    <td className="px-4 py-2.5 text-xs text-gray-700 whitespace-nowrap">6 048 XOF</td>
+                  </tr>
+                  <tr style={{ backgroundColor: "#E8F5E9" }}>
+                    <td className="px-4 py-3 text-xs font-bold" colSpan={5} style={{ color: "#1B5E20" }}>TOTAL TTC</td>
+                    <td className="px-4 py-3 text-sm font-bold whitespace-nowrap" style={{ color: "#1B5E20" }}>39 648 XOF</td>
+                  </tr>
                 </tbody>
               </table>
-              <p className="text-xs text-[#2E7D32] font-semibold mt-3 text-right">Total 2024-2025 : 857 120 XOF</p>
+            </div>
+            <div className="px-5 py-3 text-xs text-gray-500 border-t border-gray-100 bg-gray-50">
+              Paiement à 30 jours · Livraison franco domicile EXP-001 Soubré
             </div>
           </div>
 
-          {/* Livraison & réception */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Livraison &amp; réception</h2>
-            <div className="space-y-2 text-xs text-gray-600 mb-5">
-              <p><span className="font-semibold text-gray-700">Mode livraison :</span> DHLExpress → Concessionnaire JD Abidjan (groupage)</p>
-              <p>
-                <span className="font-semibold text-gray-700">Tracking DHL :</span>{" "}
-                1234567890CI —{" "}
-                <a href="#" className="text-[#2E7D32] underline hover:text-[#1B5E20]">Suivre le colis</a>
-              </p>
-              <p><span className="font-semibold text-gray-700">ETA pièces Abidjan :</span> 14/07/2025</p>
-              <p><span className="font-semibold text-gray-700">ETA livraison sur site Soubré :</span> 15/07/2025</p>
+          {/* ── Bon de livraison ── */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h2 className="text-sm font-bold text-gray-900">Bon de livraison</h2>
             </div>
-
-            <div className="border border-dashed border-gray-300 rounded-xl p-4 space-y-3">
-              <p className="text-xs font-semibold text-gray-600 mb-2">Bon de réception (à remplir à la livraison)</p>
-              <div className="space-y-3 text-xs text-gray-600">
-                <div className="flex items-center gap-2">
-                  <span className="w-32 shrink-0">Réceptionné par :</span>
-                  <div className="flex-1 border-b border-gray-300 h-5" />
+            <div className="p-5 space-y-2.5">
+              {[
+                { champ: "N° BL fournisseur", val: "SCPA-BL-2025-0847" },
+                { champ: "Date livraison", val: "14/06/2025 à 10h30" },
+                { champ: "Livreur", val: "Chauffeur SCPA — Véhicule CI-AB-1234" },
+                { champ: "Réceptionnaire", val: "Ibrahim Sawadogo" },
+                { champ: "Contrôle à réception", val: "✅ Quantité conforme (4 sachets 1 kg intacts)" },
+                { champ: "Condition produit", val: "✅ Sachets non percés, date de péremption 31/12/2027" },
+                { champ: "Stockage immédiat", val: "ENT-001 Zone C (phyto) — registre entrée effectué" },
+              ].map((row, i) => (
+                <div key={i} className="flex items-start gap-3 text-xs">
+                  <span className="text-gray-500 w-36 shrink-0">{row.champ}</span>
+                  <span className="font-medium text-gray-800">{row.val}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-32 shrink-0">Date réception :</span>
-                  <div className="flex-1 border-b border-gray-300 h-5" />
-                </div>
-                <div className="flex items-center gap-4">
-                  <span>Quantités conformes :</span>
-                  <label className="flex items-center gap-1">
-                    <input type="checkbox" className="w-3 h-3" readOnly /> Oui
-                  </label>
-                  <label className="flex items-center gap-1">
-                    <input type="checkbox" className="w-3 h-3" readOnly /> Non
-                  </label>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="w-32 shrink-0 mt-0.5">Observations :</span>
-                  <div className="flex-1 space-y-1.5">
-                    <div className="border-b border-gray-300 h-5" />
-                    <div className="border-b border-gray-300 h-5" />
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Approbations */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-[#1B5E20] mb-4">Approbations</h2>
+        {/* ── Impact sur stock ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h2 className="text-sm font-bold text-gray-900">Impact sur stock</h2>
+          </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#F8FBF8]">
-                  {["Étape", "Responsable", "Date", "Statut"].map((h) => (
-                    <th key={h} className="text-left px-3 py-2 font-semibold text-gray-600">{h}</th>
-                  ))}
+                <tr style={{ backgroundColor: "#F8FBF8" }}>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 w-48">Indicateur</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500">Avant livraison</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500">Après livraison</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-50">
                 {[
-                  { etape: "Demande d'achat", resp: "Bamba Oumar (Mécanicien)", date: "09/07/2025", statut: "done" },
-                  { etape: "Validation technique", resp: "Ibrahim Sawadogo (Resp. terrain)", date: "09/07/2025", statut: "done" },
-                  { etape: "Validation budgétaire", resp: "Directeur Financier", date: "09/07/2025", statut: "done" },
-                  { etape: "Émission BC", resp: "Service Achats", date: "09/07/2025", statut: "done" },
-                  { etape: "Réception marchandises", resp: "Bamba Oumar", date: "—", statut: "pending" },
-                  { etape: "Validation facture", resp: "Comptabilité", date: "—", statut: "pending" },
-                  { etape: "Paiement fournisseur", resp: "Trésorerie", date: "08/08/2025", statut: "pending" },
+                  { ind: "Stock Super Cupravit", avant: "1,0 kg", apres: "5,0 kg ✅" },
+                  { ind: "Valeur stock article", avant: "8 400 XOF", apres: "42 000 XOF" },
+                  { ind: "Alerte stock", avant: "🔴 Active", apres: "✅ Résolue" },
                 ].map((row, i) => (
-                  <tr key={i} className="border-t border-gray-50 hover:bg-[#F8FBF8] transition-colors">
-                    <td className="px-3 py-2.5 text-gray-700 font-medium">{row.etape}</td>
-                    <td className="px-3 py-2.5 text-gray-600">{row.resp}</td>
-                    <td className="px-3 py-2.5 text-gray-500">{row.date}</td>
-                    <td className="px-3 py-2.5">
-                      {row.statut === "done" ? (
-                        <span className="inline-flex items-center gap-1 bg-[#E8F5E9] text-[#2E7D32] text-xs font-medium px-2 py-0.5 rounded-full">✅ Validé</span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full">⏳ En attente</span>
-                      )}
-                    </td>
+                  <tr key={i} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs font-medium text-gray-700">{row.ind}</td>
+                    <td className="px-4 py-3 text-xs text-red-600 font-medium">{row.avant}</td>
+                    <td className="px-4 py-3 text-xs font-bold" style={{ color: "#2E7D32" }}>{row.apres}</td>
                   </tr>
                 ))}
               </tbody>
@@ -227,27 +170,66 @@ export default async function AchatDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Boutons d'action */}
-        <div className="flex flex-wrap gap-3 pb-6">
-          <a
-            href="/achats"
-            className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-gray-50 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Retour aux achats
-          </a>
-          <button className="inline-flex items-center gap-2 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            Imprimer le bon de commande
-          </button>
-          <AchatActions />
+        {/* ── Historique achats SCPA ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+            <h2 className="text-sm font-bold text-gray-900">Historique achats SCPA — 2025</h2>
+            <div className="flex items-center gap-2 text-xs text-gray-600">
+              <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: "#2E7D32" }} />
+              Score fournisseur SCPA :
+              <span className="font-bold text-gray-900 ml-1">94/100 ✅</span>
+              <span className="text-gray-400">(délais, qualité, prix)</span>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ backgroundColor: "#F8FBF8" }}>
+                  {["Commande", "Date", "Produit", "Qté", "Montant TTC", "Délai"].map(h => (
+                    <th key={h} className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {historiqueScpa.map(row => (
+                  <tr key={row.cmd}
+                    className="transition-colors"
+                    style={row.current ? { backgroundColor: "#E8F5E9" } : {}}>
+                    <td className="px-4 py-3 text-xs font-mono whitespace-nowrap"
+                      style={{ color: row.current ? "#1B5E20" : "#6B7280", fontWeight: row.current ? 700 : 400 }}>
+                      {row.cmd}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">{row.date}</td>
+                    <td className="px-4 py-3 text-xs whitespace-nowrap"
+                      style={{ color: row.current ? "#1B5E20" : "#374151", fontWeight: row.current ? 600 : 400 }}>
+                      {row.produit}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-700">{row.qte}</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 whitespace-nowrap">{row.ttc}</td>
+                    <td className="px-4 py-3 text-xs font-medium whitespace-nowrap" style={{ color: "#2E7D32" }}>{row.delai}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-      </main>
+        {/* ── Actions ── */}
+        <div className="flex gap-3 flex-wrap pb-6">
+          <a href="/achats"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50">
+            ← Retour aux achats
+          </a>
+          <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50">
+            Réapprovisionnement automatique
+          </button>
+          <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium text-white"
+            style={{ backgroundColor: "#2E7D32" }}>
+            Contacter SCPA
+          </button>
+        </div>
+
+      </div>
     </div>
   );
 }
