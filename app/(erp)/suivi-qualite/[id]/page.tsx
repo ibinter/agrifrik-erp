@@ -12,11 +12,7 @@ export default async function SuiviQualiteDetailPage({
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-gray-50">
       <Topbar
-        breadcrumb={[
-          { label: "Commerce", href: "/ventes" },
-          { label: "Suivi Qualité", href: "/suivi-qualite" },
-          { label: `Contrôle ${id}` },
-        ]}
+        breadcrumb={["Commerce", "Suivi Qualité", `Contrôle ${id}`]}
       />
 
       <div className="p-6 space-y-6">
