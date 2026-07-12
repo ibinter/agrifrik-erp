@@ -1,476 +1,55 @@
 "use client";
 
-import { useState } from "react";
 import Topbar from "../../components/Topbar";
-import {
-  Shield,
-  AlertTriangle,
-  FileText,
-  Calendar,
-  TrendingUp,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react";
+import { Shield, AlertTriangle, FileText, CheckCircle, Plus } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+/* ─── SVG Donut — Répartition garanties NSIA MPR ────────────────────────────── */
+function SvgDonutGaranties() {
+  const cx = 130, cy = 130, r = 90, inner = 54;
+  const tranches = [
+    { pct: 44.5, color: "#1B5E20", label: "Bâtiments & constructions", montant: "28 000 000 XOF" },
+    { pct: 29.4, color: "#2E7D32", label: "Matériels & équipements", montant: "18 500 000 XOF" },
+    { pct: 19.6, color: "#E65100", label: "Récoltes sur pied", montant: "12 350 000 XOF" },
+    { pct: 6.5, color: "#9E9E9E", label: "RC pro + véhicule", montant: "4 000 000 XOF" },
+  ];
 
-type OngletId = "contrats" | "sinistres" | "calendrier" | "risques";
+  let cumul = 0;
+  const arcs = tranches.map((t) => {
+    const start = cumul;
+    cumul += t.pct;
+    const startAngle = (start / 100) * 2 * Math.PI - Math.PI / 2;
+    const endAngle = (cumul / 100) * 2 * Math.PI - Math.PI / 2;
+    const x1 = cx + r * Math.cos(startAngle);
+    const y1 = cy + r * Math.sin(startAngle);
+    const x2 = cx + r * Math.cos(endAngle);
+    const y2 = cy + r * Math.sin(endAngle);
+    const xi1 = cx + inner * Math.cos(startAngle);
+    const yi1 = cy + inner * Math.sin(startAngle);
+    const xi2 = cx + inner * Math.cos(endAngle);
+    const yi2 = cy + inner * Math.sin(endAngle);
+    const large = t.pct > 50 ? 1 : 0;
+    const d = `M ${xi1} ${yi1} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${xi2} ${yi2} A ${inner} ${inner} 0 ${large} 0 ${xi1} ${yi1} Z`;
+    return { ...t, d };
+  });
 
-// ─── Données ──────────────────────────────────────────────────────────────────
-
-const contrats = [
-  {
-    id: "ASS-001",
-    titre: "Multirisque agricole récolte cacao",
-    assureur: "NSIA Assurances CI",
-    police: "NSIA-2025-AGRI-08421",
-    valeur: "120 M XOF",
-    valeurNote: "production cacao attendue",
-    risques: ["Sécheresse", "Excès pluie", "Parasites", "Feu"],
-    prime: "1 200 000 XOF",
-    franchise: "10%",
-    validite: "Jan → Déc 2025",
-    beneficiaire: "AGRIFRIK SAS",
-    statut: "actif",
-    alerte: false,
-  },
-  {
-    id: "ASS-002",
-    titre: "Multirisque bâtiments & entrepôts",
-    assureur: "SAHAM Assurances",
-    police: "SAH-2025-IMMO-00124",
-    valeur: "85 M XOF",
-    valeurNote: "",
-    risques: ["Incendie", "Vol", "Dégâts des eaux", "Effondrement"],
-    prime: "680 000 XOF",
-    franchise: "—",
-    validite: "Jan → Déc 2025",
-    beneficiaire: "AGRIFRIK SAS",
-    statut: "actif",
-    alerte: false,
-  },
-  {
-    id: "ASS-003",
-    titre: "Flotte véhicules (4 véhicules)",
-    assureur: "AXA CI",
-    police: "AXA-2025-AUTO-5521",
-    valeur: "—",
-    valeurNote: "Renault T460, Isuzu NQR, Toyota Hilux, Honda XR150",
-    risques: ["RC + Tous risques (Renault T460)"],
-    prime: "840 000 XOF",
-    franchise: "25%",
-    validite: "Mar 2025 → Mar 2026",
-    beneficiaire: "AGRIFRIK SAS",
-    statut: "actif",
-    alerte: false,
-  },
-  {
-    id: "ASS-004",
-    titre: "Responsabilité civile professionnelle",
-    assureur: "ALLIANZ CI",
-    police: "ALL-2025-RC-PRO-1847",
-    valeur: "50 M XOF",
-    valeurNote: "",
-    risques: ["RC exploitation agricole"],
-    prime: "420 000 XOF",
-    franchise: "—",
-    validite: "Jan → Déc 2025",
-    beneficiaire: "AGRIFRIK SAS",
-    statut: "actif",
-    alerte: false,
-  },
-  {
-    id: "ASS-005",
-    titre: "Assurance récolte anacarde",
-    assureur: "NSIA CI",
-    police: "—",
-    valeur: "15 M XOF",
-    valeurNote: "",
-    risques: ["Sécheresse", "Parasites"],
-    prime: "280 000 XOF",
-    franchise: "—",
-    validite: "Jan → Déc 2025",
-    beneficiaire: "AGRIFRIK SAS",
-    statut: "actif",
-    alerte: false,
-  },
-  {
-    id: "ASS-006",
-    titre: "Drone DJI Agras T30",
-    assureur: "AXA CI (flottante équip.)",
-    police: "—",
-    valeur: "12,4 M XOF",
-    valeurNote: "",
-    risques: ["Casse", "Vol", "Accident"],
-    prime: "186 000 XOF",
-    franchise: "—",
-    validite: "Jan → Déc 2025",
-    beneficiaire: "AGRIFRIK SAS",
-    statut: "actif",
-    alerte: false,
-  },
-  {
-    id: "ASS-007",
-    titre: "Tracteur John Deere 6120M",
-    assureur: "SAHAM",
-    police: "—",
-    valeur: "28,4 M XOF",
-    valeurNote: "⚠️ VNC actuelle : 19,2 M — sous-assurance possible",
-    risques: ["Casse mécanique", "Incendie", "Vol"],
-    prime: "420 000 XOF",
-    franchise: "—",
-    validite: "Jan → Déc 2025",
-    beneficiaire: "AGRIFRIK SAS",
-    statut: "alerte",
-    alerte: true,
-  },
-  {
-    id: "ASS-008",
-    titre: "Prévoyance collective personnel",
-    assureur: "SUNU Assurances Vie",
-    police: "—",
-    valeur: "—",
-    valeurNote: "287 bénéficiaires",
-    risques: ["Remboursement soins", "Décès"],
-    prime: "174 000 XOF",
-    franchise: "—",
-    validite: "Jan → Déc 2025",
-    beneficiaire: "Personnel AGRIFRIK",
-    statut: "actif",
-    alerte: false,
-  },
-];
-
-const echeances = [
-  { contrat: "ASS-001 Récolte cacao", assureur: "NSIA", expiration: "31/12/2025", jours: 173, prime: "Janv 2026", renouvellement: "Automatique", alerte: false },
-  { contrat: "ASS-002 Bâtiments", assureur: "SAHAM", expiration: "31/12/2025", jours: 173, prime: "Janv 2026", renouvellement: "Automatique", alerte: false },
-  { contrat: "ASS-003 Flotte", assureur: "AXA", expiration: "01/03/2026", jours: 233, prime: "Mar 2026", renouvellement: "Automatique", alerte: false },
-  { contrat: "ASS-004 RC Pro", assureur: "ALLIANZ", expiration: "31/12/2025", jours: 173, prime: "Janv 2026", renouvellement: "Automatique", alerte: false },
-  { contrat: "ASS-007 Tracteur JD", assureur: "SAHAM", expiration: "31/12/2025", jours: 173, prime: "⚠️ Réévaluer VNC", renouvellement: "Réviser montant", alerte: true },
-];
-
-// ─── Onglets ─────────────────────────────────────────────────────────────────
-
-function OngletContrats() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {contrats.map((c) => (
-        <div
-          key={c.id}
-          className={`rounded-2xl bg-white dark:bg-gray-900 border p-5 ${
-            c.alerte
-              ? "border-orange-200 dark:border-orange-800 bg-orange-50/30 dark:bg-orange-900/10"
-              : "border-gray-100 dark:border-gray-800"
-          }`}
-        >
-          <div className="flex items-start justify-between gap-2 mb-3">
-            <div>
-              <span className="inline-block px-2 py-0.5 rounded-full text-xs font-mono font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 mb-1">
-                {c.id}
-              </span>
-              <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 leading-tight">{c.titre}</h3>
-            </div>
-            {c.statut === "actif" ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 whitespace-nowrap flex-shrink-0">
-                <CheckCircle size={10} /> Actif
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 whitespace-nowrap flex-shrink-0">
-                <AlertTriangle size={10} /> À réviser
-              </span>
-            )}
-          </div>
-
-          <div className="space-y-1.5 text-xs text-gray-600 dark:text-gray-400">
-            <div className="flex gap-2">
-              <span className="font-medium text-gray-500 dark:text-gray-500 w-24 flex-shrink-0">Assureur</span>
-              <span className="text-gray-800 dark:text-gray-200">{c.assureur}</span>
-            </div>
-            {c.police !== "—" && (
-              <div className="flex gap-2">
-                <span className="font-medium text-gray-500 dark:text-gray-500 w-24 flex-shrink-0">Police</span>
-                <span className="font-mono text-gray-700 dark:text-gray-300">{c.police}</span>
-              </div>
-            )}
-            <div className="flex gap-2">
-              <span className="font-medium text-gray-500 dark:text-gray-500 w-24 flex-shrink-0">Valeur assurée</span>
-              <span className="font-semibold text-gray-800 dark:text-gray-200">{c.valeur}</span>
-            </div>
-            {c.valeurNote && (
-              <p className={`text-xs pl-[6.5rem] ${c.alerte ? "text-orange-600 dark:text-orange-400" : "text-gray-400 dark:text-gray-500"}`}>
-                {c.valeurNote}
-              </p>
-            )}
-            <div className="flex gap-2">
-              <span className="font-medium text-gray-500 dark:text-gray-500 w-24 flex-shrink-0">Risques couverts</span>
-              <div className="flex flex-wrap gap-1">
-                {c.risques.map((r) => (
-                  <span key={r} className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-xs">{r}</span>
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <span className="font-medium text-gray-500 dark:text-gray-500 w-24 flex-shrink-0">Prime 2025</span>
-              <span className="font-bold text-[#2E7D32]">{c.prime}</span>
-              {c.franchise !== "—" && <span className="text-gray-400">• Franchise {c.franchise}</span>}
-            </div>
-            <div className="flex gap-2">
-              <span className="font-medium text-gray-500 dark:text-gray-500 w-24 flex-shrink-0">Validité</span>
-              <span>{c.validite}</span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function OngletSinistres() {
-  return (
-    <div className="space-y-5">
-      {/* Sinistre 2025 */}
-      <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <AlertCircle size={18} className="text-orange-500" />
-          <span className="font-bold text-gray-800 dark:text-gray-100">Sinistres 2025 (1)</span>
-        </div>
-        <div className="border-t border-gray-100 dark:border-gray-800 mb-4" />
-        <div className="rounded-xl border border-gray-100 dark:border-gray-800 p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-sm font-bold text-gray-800 dark:text-gray-100">SIN-2025-001</span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-              <CheckCircle size={10} /> Clôturé
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
-            <div><span className="text-gray-500 dark:text-gray-400">Date : </span><span className="text-gray-800 dark:text-gray-200 font-medium">28/04/2025</span></div>
-            <div><span className="text-gray-500 dark:text-gray-400">Contrat : </span><span className="text-gray-800 dark:text-gray-200 font-medium">ASS-003 (flotte véhicules)</span></div>
-            <div><span className="text-gray-500 dark:text-gray-400">Véhicule : </span><span className="text-gray-800 dark:text-gray-200 font-medium">Toyota Hilux (MAT-005)</span></div>
-            <div><span className="text-gray-500 dark:text-gray-400">Franchise : </span><span className="text-gray-800 dark:text-gray-200 font-medium">280 000 XOF (25%)</span></div>
-            <div className="col-span-2"><span className="text-gray-500 dark:text-gray-400">Événement : </span><span className="text-gray-700 dark:text-gray-300">Accrochage arrière parking Soubré — dommages arrière droite</span></div>
-            <div><span className="text-gray-500 dark:text-gray-400">Montant dommages : </span><span className="text-gray-800 dark:text-gray-200 font-semibold">1 120 000 XOF</span></div>
-            <div><span className="text-gray-500 dark:text-gray-400">Indemnisation : </span><span className="text-[#2E7D32] font-bold">840 000 XOF</span><span className="text-gray-500 dark:text-gray-400"> — Reçue le 15/06/2025 ✅</span></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Historique */}
-      <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <FileText size={18} className="text-gray-500" />
-          <span className="font-bold text-gray-800 dark:text-gray-100">Historique sinistres 2023-2024</span>
-        </div>
-        <div className="border-t border-gray-100 dark:border-gray-800 mb-4" />
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-left text-gray-500 dark:text-gray-400 bg-[#F8FBF8] dark:bg-gray-800/50">
-                {["Année", "N°", "Contrat", "Événement", "Montant", "Indemnisation", "Statut"].map((h) => (
-                  <th key={h} className="px-3 py-2 font-medium whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                <td className="px-3 py-2.5 font-semibold text-gray-700 dark:text-gray-300">2024</td>
-                <td className="px-3 py-2.5 font-mono text-gray-600 dark:text-gray-400">SIN-2024-001</td>
-                <td className="px-3 py-2.5 text-gray-700 dark:text-gray-300 whitespace-nowrap">ASS-001 Récolte</td>
-                <td className="px-3 py-2.5 text-gray-600 dark:text-gray-400 whitespace-nowrap">Excès pluie Soubré (Aoû 2024)</td>
-                <td className="px-3 py-2.5 font-semibold text-gray-800 dark:text-gray-200 whitespace-nowrap">2,4 M XOF</td>
-                <td className="px-3 py-2.5 font-semibold text-[#2E7D32] whitespace-nowrap">2,16 M XOF</td>
-                <td className="px-3 py-2.5">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                    ✅ Clôturé
-                  </span>
-                </td>
-              </tr>
-              <tr className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                <td className="px-3 py-2.5 font-semibold text-gray-700 dark:text-gray-300">2023</td>
-                <td className="px-3 py-2.5 font-mono text-gray-600 dark:text-gray-400">SIN-2023-001</td>
-                <td className="px-3 py-2.5 text-gray-700 dark:text-gray-300 whitespace-nowrap">ASS-002 Bâtiments</td>
-                <td className="px-3 py-2.5 text-gray-600 dark:text-gray-400 whitespace-nowrap">Vol intrants nuit 15/11/2023</td>
-                <td className="px-3 py-2.5 font-semibold text-gray-800 dark:text-gray-200 whitespace-nowrap">420 000 XOF</td>
-                <td className="px-3 py-2.5 text-gray-500 dark:text-gray-500 whitespace-nowrap">0 (franchise)</td>
-                <td className="px-3 py-2.5">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                    ✅ Clôturé
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function OngletCalendrier() {
-  return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Calendar size={18} className="text-[#2E7D32]" />
-        <span className="font-bold text-gray-800 dark:text-gray-100">Calendrier des renouvellements et échéances 2025-2026</span>
-      </div>
-      <div className="border-t border-gray-100 dark:border-gray-800 mb-4" />
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-gray-500 dark:text-gray-400 bg-[#F8FBF8] dark:bg-gray-800/50">
-              {["Contrat", "Assureur", "Expiration", "Jours restants", "Prochaine prime", "Renouvellement"].map((h) => (
-                <th key={h} className="px-3 py-2 text-xs font-medium whitespace-nowrap">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {echeances.map((e, i) => (
-              <tr
-                key={i}
-                className={`border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors ${
-                  e.alerte ? "bg-orange-50/60 dark:bg-orange-900/10" : ""
-                }`}
-              >
-                <td className="px-3 py-3 text-xs font-semibold text-gray-800 dark:text-gray-200 whitespace-nowrap">{e.contrat}</td>
-                <td className="px-3 py-3 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">{e.assureur}</td>
-                <td className="px-3 py-3 font-mono text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">{e.expiration}</td>
-                <td className="px-3 py-3 text-xs">
-                  <span className={`inline-block px-2 py-0.5 rounded-full font-semibold ${
-                    e.jours < 200
-                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                      : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                  }`}>
-                    {e.jours} j
-                  </span>
-                </td>
-                <td className={`px-3 py-3 text-xs font-medium whitespace-nowrap ${e.alerte ? "text-orange-600 dark:text-orange-400" : "text-gray-700 dark:text-gray-300"}`}>
-                  {e.prime}
-                </td>
-                <td className="px-3 py-3 text-xs">
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
-                    e.alerte
-                      ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                      : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                  }`}>
-                    {e.alerte ? <AlertTriangle size={10} /> : "🔵"} {e.renouvellement}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function OngletRisques() {
-  return (
-    <div className="space-y-5">
-      {/* Matrice */}
-      <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp size={18} className="text-[#2E7D32]" />
-          <span className="font-bold text-gray-800 dark:text-gray-100">Matrice des risques</span>
-        </div>
-        <div className="border-t border-gray-100 dark:border-gray-800 mb-4" />
-        <div className="overflow-x-auto">
-          <svg viewBox="0 0 520 340" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-xl" style={{ minWidth: 340 }}>
-            {/* Axes */}
-            <text x="260" y="18" fontSize="12" fontWeight="bold" fill="#374151" textAnchor="middle">IMPACT</text>
-            <text x="12" y="185" fontSize="12" fontWeight="bold" fill="#374151" textAnchor="middle" transform="rotate(-90 12 185)">PROBABILITÉ</text>
-
-            {/* Quadrants */}
-            {/* Faible prob × Faible impact */}
-            <rect x="60" y="200" width="200" height="110" fill="#DCF5DC" rx="4" />
-            <text x="160" y="260" fontSize="10" fill="#2E7D32" textAnchor="middle" opacity="0.7">RISQUE FAIBLE</text>
-            {/* Haute prob × Faible impact */}
-            <rect x="60" y="30" width="200" height="165" fill="#FEF3C7" rx="4" />
-            <text x="160" y="120" fontSize="10" fill="#D97706" textAnchor="middle" opacity="0.7">RISQUE MODÉRÉ</text>
-            {/* Faible prob × Fort impact */}
-            <rect x="265" y="200" width="240" height="110" fill="#FEE2E2" rx="4" />
-            <text x="385" y="260" fontSize="10" fill="#DC2626" textAnchor="middle" opacity="0.7">RISQUE ÉLEVÉ</text>
-            {/* Haute prob × Fort impact */}
-            <rect x="265" y="30" width="240" height="165" fill="#FEE2E2" rx="4" />
-            <text x="385" y="120" fontSize="10" fill="#DC2626" fontWeight="bold" textAnchor="middle" opacity="0.8">RISQUE TRÈS ÉLEVÉ</text>
-
-            {/* Ligne médiane */}
-            <line x1="60" y1="197" x2="505" y2="197" stroke="#9CA3AF" strokeWidth="1.5" strokeDasharray="4,3" />
-            <line x1="262" y1="27" x2="262" y2="312" stroke="#9CA3AF" strokeWidth="1.5" strokeDasharray="4,3" />
-
-            {/* Labels axes */}
-            <text x="160" y="315" fontSize="9" fill="#6B7280" textAnchor="middle">Impact faible</text>
-            <text x="385" y="315" fontSize="9" fill="#6B7280" textAnchor="middle">Impact fort</text>
-            <text x="55" y="260" fontSize="9" fill="#6B7280" textAnchor="end">Prob. faible</text>
-            <text x="55" y="120" fontSize="9" fill="#6B7280" textAnchor="end">Prob. haute</text>
-
-            {/* Risque 1 — Sécheresse prolongée */}
-            <circle cx="420" cy="70" r="22" fill="#EF4444" fillOpacity="0.85" />
-            <text x="420" y="66" fontSize="9" fill="white" textAnchor="middle" fontWeight="bold">Séche-</text>
-            <text x="420" y="77" fontSize="9" fill="white" textAnchor="middle" fontWeight="bold">resse</text>
-
-            {/* Risque 2 — Vol équipements */}
-            <circle cx="340" cy="240" r="18" fill="#F97316" fillOpacity="0.85" />
-            <text x="340" y="236" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">Vol</text>
-            <text x="340" y="246" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">équip.</text>
-
-            {/* Risque 3 — Excès pluie */}
-            <circle cx="370" cy="100" r="18" fill="#FBBF24" fillOpacity="0.9" />
-            <text x="370" y="96" fontSize="8" fill="#78350F" textAnchor="middle" fontWeight="bold">Excès</text>
-            <text x="370" y="106" fontSize="8" fill="#78350F" textAnchor="middle" fontWeight="bold">pluie</text>
-
-            {/* Risque 4 — Accident véhicule */}
-            <circle cx="160" cy="240" r="16" fill="#34D399" fillOpacity="0.85" />
-            <text x="160" y="236" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">Acc.</text>
-            <text x="160" y="246" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">véhic.</text>
-
-            {/* Risque 5 — Maladie cacao */}
-            <circle cx="300" cy="80" r="16" fill="#EF4444" fillOpacity="0.7" />
-            <text x="300" y="76" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">Mal.</text>
-            <text x="300" y="86" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">cacao</text>
-
-            {/* Risque 6 — Incendie entrepôt */}
-            <circle cx="430" cy="220" r="16" fill="#F97316" fillOpacity="0.7" />
-            <text x="430" y="216" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">Incen.</text>
-            <text x="430" y="226" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">entrepôt</text>
-          </svg>
-        </div>
-      </div>
-
-      {/* Recommandations */}
-      <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Shield size={18} className="text-[#2E7D32]" />
-          <span className="font-bold text-gray-800 dark:text-gray-100">Recommandations assurances</span>
-        </div>
-        <div className="border-t border-gray-100 dark:border-gray-800 mb-4" />
-        <div className="space-y-3">
-          {[
-            {
-              num: "1",
-              color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-              titre: "Augmenter franchise ASS-001 à 5% pour réduire prime",
-              detail: "Économie potentielle estimée : -200 000 XOF/an sur la prime récolte cacao.",
-            },
-            {
-              num: "2",
-              color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-              titre: "Réévaluer ASS-007 John Deere 6120M à VNC 19,2 M",
-              detail: "Valeur assurée actuelle : 28,4 M XOF. VNC réelle : 19,2 M. Sur-assurance potentielle à corriger au renouvellement.",
-            },
-            {
-              num: "3",
-              color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-              titre: "Ajouter garantie \"perte d'exploitation\"",
-              detail: "Couverture recommandée en cas d'arrêt de production suite à sinistre (sécheresse, incendie). Devis à demander à NSIA.",
-            },
-          ].map((r) => (
-            <div key={r.num} className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
-              <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold flex-shrink-0 ${r.color}`}>
-                {r.num}
-              </span>
+    <div className="rounded-2xl border border-gray-100 bg-white p-5">
+      <h3 className="mb-4 text-sm font-semibold text-gray-700">Répartition des garanties — NSIA MPR</h3>
+      <div className="flex flex-col sm:flex-row items-center gap-6">
+        <svg viewBox="0 0 260 260" width="260" height="260" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+          {arcs.map((a, i) => (
+            <path key={i} d={a.d} fill={a.color} />
+          ))}
+          <text x={cx} y={cy - 8} fontSize="12" fontWeight="bold" fill="#333" textAnchor="middle">62,85 M</text>
+          <text x={cx} y={cy + 8} fontSize="9" fill="#888" textAnchor="middle">XOF assurés</text>
+        </svg>
+        <div className="space-y-2 text-xs">
+          {tranches.map((t, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <span className="mt-0.5 h-3 w-3 shrink-0 rounded-sm" style={{ background: t.color }} />
               <div>
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{r.titre}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{r.detail}</p>
+                <p className="font-medium text-gray-700">{t.label}</p>
+                <p className="text-gray-400">{t.pct}% — {t.montant}</p>
               </div>
             </div>
           ))}
@@ -480,69 +59,211 @@ function OngletRisques() {
   );
 }
 
-// ─── Page principale ──────────────────────────────────────────────────────────
-
+/* ─── Page ──────────────────────────────────────────────────────────────────── */
 export default function AssurancesPage() {
-  const [onglet, setOnglet] = useState<OngletId>("contrats");
-
-  const onglets: { id: OngletId; label: string; icon: React.ReactNode }[] = [
-    { id: "contrats", label: "Contrats", icon: <Shield size={14} /> },
-    { id: "sinistres", label: "Sinistres", icon: <AlertCircle size={14} /> },
-    { id: "calendrier", label: "Calendrier", icon: <Calendar size={14} /> },
-    { id: "risques", label: "Analyse risques", icon: <TrendingUp size={14} /> },
-  ];
-
   const kpis = [
-    { icon: <Shield size={20} className="text-[#2E7D32]" />, bg: "bg-green-100 dark:bg-green-900/30", label: "Contrats actifs", value: "8" },
-    { icon: <FileText size={20} className="text-blue-600" />, bg: "bg-blue-100 dark:bg-blue-900/30", label: "Primes annuelles", value: "4,2 M XOF" },
-    { icon: <TrendingUp size={20} className="text-purple-600" />, bg: "bg-purple-100 dark:bg-purple-900/30", label: "Valeur assurée", value: "285 M XOF" },
-    { icon: <AlertTriangle size={20} className="text-orange-500" />, bg: "bg-orange-100 dark:bg-orange-900/30", label: "Sinistres 2025", value: "1" },
-    { icon: <CheckCircle size={20} className="text-emerald-600" />, bg: "bg-emerald-100 dark:bg-emerald-900/30", label: "Indemnisation reçue", value: "840 000 XOF" },
+    { label: "Polices actives", value: "3", icon: Shield, color: "#2E7D32" },
+    { label: "Valeur assurée", value: "62,85 M XOF", icon: FileText, color: "#1565C0" },
+    { label: "Primes 2025", value: "546 000 XOF", icon: AlertTriangle, color: "#E65100" },
+    { label: "Sinistres 2025", value: "0 ✅", icon: CheckCircle, color: "#4CAF50" },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Topbar title="Assurances & Couvertures" breadcrumb={["Finance", "Assurances"]} />
+    <div className="min-h-screen bg-gray-50">
+      <Topbar breadcrumb={["Finance", "Assurances"]} title="Assurances" />
 
-      <div className="p-6 max-w-7xl mx-auto space-y-5">
-        {/* KPI */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          {kpis.map((k, i) => (
-            <div key={i} className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${k.bg}`}>
-                {k.icon}
-              </div>
-              <div>
-                <p className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">{k.value}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight mt-0.5">{k.label}</p>
+      <div className="p-6 space-y-6">
+        {/* En-tête */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-gray-800">Assurances</h1>
+            <p className="mt-0.5 text-sm text-gray-500">Polices en vigueur — Protection de l&apos;exploitation EXP-001</p>
+          </div>
+          <button className="inline-flex items-center gap-2 rounded-xl bg-[#2E7D32] px-4 py-2 text-xs font-medium text-white hover:bg-[#1B5E20] transition-colors">
+            <Plus size={14} />
+            Nouvelle police
+          </button>
+        </div>
+
+        {/* KPIs */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {kpis.map((k) => (
+            <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-5">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500">{k.label}</p>
+                  <p className="mt-1 text-xl font-bold text-gray-800">{k.value}</p>
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: k.color + "18" }}>
+                  <k.icon size={20} style={{ color: k.color }} />
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Onglets */}
-        <div className="flex gap-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-1.5">
-          {onglets.map((o) => (
-            <button
-              key={o.id}
-              onClick={() => setOnglet(o.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium transition-colors flex-1 justify-center ${
-                onglet === o.id
-                  ? "bg-[#2E7D32] text-white"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`}
-            >
-              {o.icon}
-              {o.label}
+        {/* Alerte */}
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={16} className="mt-0.5 shrink-0 text-red-600" />
+            <div className="text-xs text-red-700">
+              <p className="font-semibold">Solde prime NSIA-MPR — 273 000 XOF — Échéance 15/07/2025 (dans 4 jours)</p>
+              <p className="mt-1 text-red-600">Effectuer le virement SGBCI référence NSIA-MPR-2025-EXP001-S2.</p>
+            </div>
+            <button className="ml-auto shrink-0 rounded-xl bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors">
+              Payer
             </button>
-          ))}
+          </div>
         </div>
 
-        {/* Contenu onglet */}
-        {onglet === "contrats" && <OngletContrats />}
-        {onglet === "sinistres" && <OngletSinistres />}
-        {onglet === "calendrier" && <OngletCalendrier />}
-        {onglet === "risques" && <OngletRisques />}
+        {/* Polices en vigueur */}
+        <div>
+          <h2 className="mb-4 text-sm font-semibold text-gray-700">Polices en vigueur</h2>
+          <div className="grid gap-4 lg:grid-cols-3">
+
+            {/* Police 1 — NSIA Multirisque */}
+            <div className="rounded-2xl border border-orange-200 bg-orange-50/30 bg-white p-5 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 font-mono text-xs font-semibold text-gray-600">NSIA-MPR-CI-2025-EXP001</span>
+                  <h3 className="mt-1 text-sm font-bold text-gray-800">NSIA Multirisque Professionnelle</h3>
+                </div>
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                  <CheckCircle size={10} /> Actif
+                </span>
+              </div>
+              <div className="space-y-1.5 text-xs text-gray-600">
+                <div className="flex gap-2">
+                  <span className="w-28 shrink-0 font-medium text-gray-500">Couverture</span>
+                  <span>Bâtiments (28M) + Matériels (18,5M) + Récoltes (12,35M) + RC + Véhicule</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-28 shrink-0 font-medium text-gray-500">Valeur assurée</span>
+                  <span className="font-bold text-gray-800">62 850 000 XOF</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-28 shrink-0 font-medium text-gray-500">Prime annuelle</span>
+                  <span className="font-bold text-[#2E7D32]">546 000 XOF/an</span>
+                  <span className="text-gray-400">(0,87%)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-28 shrink-0 font-medium text-gray-500">Validité</span>
+                  <span>01/01 – 31/12/2025 ✅</span>
+                </div>
+              </div>
+              <div className="rounded-xl border border-orange-200 bg-orange-50 p-3 text-xs text-orange-700">
+                ⚠️ Solde prime <strong>273 000 XOF</strong> dû le 15/07/2025
+              </div>
+            </div>
+
+            {/* Police 2 — BICICI */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 font-mono text-xs font-semibold text-gray-600">BICICI-LC-CI-2025-EXP001</span>
+                  <h3 className="mt-1 text-sm font-bold text-gray-800">BICICI Assurance Crédit Documentaire</h3>
+                </div>
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                  <CheckCircle size={10} /> Actif
+                </span>
+              </div>
+              <div className="space-y-1.5 text-xs text-gray-600">
+                <div className="flex gap-2">
+                  <span className="w-28 shrink-0 font-medium text-gray-500">Couverture</span>
+                  <span>LC irrévocables Barry Callebaut (jusqu&apos;à 4M XOF/LC)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-28 shrink-0 font-medium text-gray-500">Prime</span>
+                  <span>Incluse dans frais bancaires LC (0,15%/LC)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-28 shrink-0 font-medium text-gray-500">Validité</span>
+                  <span>Permanente (liée au compte SGBCI) ✅</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Police 3 — Mutuelle Agricole */}
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 font-mono text-xs font-semibold text-gray-600">MUTA-NAWA-EXP001-2025</span>
+                  <h3 className="mt-1 text-sm font-bold text-gray-800">Mutuelle Agricole COOPAGRI-NAWA</h3>
+                </div>
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                  <CheckCircle size={10} /> Actif
+                </span>
+              </div>
+              <div className="space-y-1.5 text-xs text-gray-600">
+                <div className="flex gap-2">
+                  <span className="w-28 shrink-0 font-medium text-gray-500">Couverture</span>
+                  <span>Cotisation accidents travail saisonniers (2 saisonniers × 15 000 XOF)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-28 shrink-0 font-medium text-gray-500">Prime</span>
+                  <span className="font-bold text-[#2E7D32]">30 000 XOF/an</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-28 shrink-0 font-medium text-gray-500">Validité</span>
+                  <span>01/03 – 28/02/2026 ✅</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Donut + Historique */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <SvgDonutGaranties />
+
+          {/* Historique sinistres */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <FileText size={16} className="text-gray-500" />
+              <h3 className="text-sm font-semibold text-gray-700">Historique sinistres</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-xs">
+                <thead>
+                  <tr className="bg-[#F8FBF8]">
+                    {["Année", "Police", "Sinistre", "Indemnisé", "Statut"].map((h) => (
+                      <th key={h} className="whitespace-nowrap px-3 py-2 text-left font-semibold text-gray-600">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { annee: "2022", police: "NSIA MPR", sinistre: "Incendie câblage hangar", indemnise: "230 000 XOF", statut: "Réglé" },
+                    { annee: "2023", police: "NSIA MPR", sinistre: "Aucun", indemnise: "—", statut: "Bonus" },
+                    { annee: "2024", police: "NSIA MPR", sinistre: "Aucun", indemnise: "—", statut: "Bonus" },
+                    { annee: "2025", police: "NSIA MPR", sinistre: "Aucun à ce jour", indemnise: "—", statut: "En cours" },
+                  ].map((row, i) => (
+                    <tr key={i} className="border-t border-gray-50 hover:bg-gray-50">
+                      <td className="whitespace-nowrap px-3 py-2 font-semibold text-gray-700">{row.annee}</td>
+                      <td className="whitespace-nowrap px-3 py-2 text-gray-600">{row.police}</td>
+                      <td className="whitespace-nowrap px-3 py-2 text-gray-600">{row.sinistre}</td>
+                      <td className="whitespace-nowrap px-3 py-2 font-medium text-gray-700">{row.indemnise}</td>
+                      <td className="whitespace-nowrap px-3 py-2">
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                          row.statut === "Réglé" || row.statut === "Bonus"
+                            ? "bg-green-50 text-green-700"
+                            : "bg-blue-50 text-blue-700"
+                        }`}>
+                          ✅ {row.statut}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 p-3 text-xs text-gray-600">
+              <span className="font-semibold">Coefficient bonus-malus actuel :</span>{" "}
+              <span className="font-bold text-[#2E7D32]">0,90</span>{" "}
+              <span className="text-gray-400">(10% de réduction sur prime 2025)</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
