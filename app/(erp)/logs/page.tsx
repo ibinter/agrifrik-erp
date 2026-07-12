@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 type ActionType = "MESSAGE_SENT" | "DATA_REFRESH" | "LOGIN" | "LOGIN_FAILED" | "ALERT_TRIGGERED" | "RECORD_CREATED" | "ORDER_CREATED" | "TASK_UPDATED" | "RECORD_UPDATED" | "AUTO_RECONCILED" | "ALERT_RESOLVED" | "ALERT_REFRESHED" | "REPORT_SUBMITTED" | "PHOTO_UPLOADED" | "REPORT_SENT" | "EXPORT_DONE" | "STOCK_MOVEMENT" | "CQ_VALIDATED";
 
 interface LogEntry {
@@ -16,36 +16,36 @@ interface LogEntry {
   flagged?: boolean;
 }
 
-// ─── Données logs ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ DonnÃ©es logs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const LOGS: LogEntry[] = [
-  { date: "11/07 09h14", user: "Ibrahim S.", module: "Messagerie", action: "MESSAGE_SENT", objet: "Équipe EXP-001", ip: "154.0.x.x" },
-  { date: "11/07 08h47", user: "Système", module: "Météo", action: "DATA_REFRESH", objet: "AWS-EXP001 (auto)", ip: "Serveur" },
+  { date: "11/07 09h14", user: "Ibrahim S.", module: "Messagerie", action: "MESSAGE_SENT", objet: "Ã‰quipe EXP-001", ip: "154.0.x.x" },
+  { date: "11/07 08h47", user: "SystÃ¨me", module: "MÃ©tÃ©o", action: "DATA_REFRESH", objet: "AWS-EXP001 (auto)", ip: "Serveur" },
   { date: "11/07 08h32", user: "Koffi Amani", module: "Auth", action: "LOGIN", objet: "admin@agrifrik.com", ip: "102.176.x.x" },
-  { date: "11/07 08h15", user: "Koffi Amani", module: "Messagerie", action: "MESSAGE_SENT", objet: "Équipe EXP-001", ip: "102.176.x.x" },
+  { date: "11/07 08h15", user: "Koffi Amani", module: "Messagerie", action: "MESSAGE_SENT", objet: "Ã‰quipe EXP-001", ip: "102.176.x.x" },
   { date: "11/07 07h00", user: "Ibrahim S.", module: "Auth", action: "LOGIN", objet: "ibrahim.s@agrifrik.com", ip: "154.0.x.x" },
-  { date: "11/07 06h00", user: "Système", module: "Alertes", action: "ALERT_TRIGGERED", objet: "Cut test LOT-047", ip: "Serveur" },
-  { date: "11/07 06h00", user: "Système", module: "Alertes", action: "ALERT_TRIGGERED", objet: "Stock KCl critique", ip: "Serveur" },
-  { date: "10/07 21h47", user: "Inconnu", module: "Auth", action: "LOGIN_FAILED", objet: "—", ip: "45.32.x.x", flagged: true },
+  { date: "11/07 06h00", user: "SystÃ¨me", module: "Alertes", action: "ALERT_TRIGGERED", objet: "Cut test LOT-047", ip: "Serveur" },
+  { date: "11/07 06h00", user: "SystÃ¨me", module: "Alertes", action: "ALERT_TRIGGERED", objet: "Stock KCl critique", ip: "Serveur" },
+  { date: "10/07 21h47", user: "Inconnu", module: "Auth", action: "LOGIN_FAILED", objet: "â€”", ip: "45.32.x.x", flagged: true },
   { date: "10/07 16h48", user: "Adjoua M.", module: "Auth", action: "LOGIN", objet: "adjoua.m@agrifrik.com", ip: "102.176.x.x" },
-  { date: "10/07 16h22", user: "Adjoua M.", module: "Trésorerie", action: "RECORD_CREATED", objet: "MVT-2025-0921", ip: "102.176.x.x" },
-  { date: "10/07 16h18", user: "Adjoua M.", module: "Comptabilité", action: "RECORD_CREATED", objet: "JNL-2025-0921", ip: "102.176.x.x" },
+  { date: "10/07 16h22", user: "Adjoua M.", module: "TrÃ©sorerie", action: "RECORD_CREATED", objet: "MVT-2025-0921", ip: "102.176.x.x" },
+  { date: "10/07 16h18", user: "Adjoua M.", module: "ComptabilitÃ©", action: "RECORD_CREATED", objet: "JNL-2025-0921", ip: "102.176.x.x" },
   { date: "10/07 14h30", user: "Koffi Amani", module: "Achats", action: "ORDER_CREATED", objet: "ACH-2025-024 KCl", ip: "102.176.x.x" },
-  { date: "10/07 11h22", user: "Ibrahim S.", module: "Planning", action: "TASK_UPDATED", objet: "PCT-2025-034 → Planifié", ip: "154.0.x.x" },
+  { date: "10/07 11h22", user: "Ibrahim S.", module: "Planning", action: "TASK_UPDATED", objet: "PCT-2025-034 â†’ PlanifiÃ©", ip: "154.0.x.x" },
   { date: "09/07 15h14", user: "Koffi Amani", module: "Devis", action: "RECORD_CREATED", objet: "DEV-2025-003 OLAM", ip: "102.176.x.x" },
-  { date: "08/07 14h23", user: "Système", module: "Trésorerie", action: "AUTO_RECONCILED", objet: "MVT-2025-0921", ip: "Serveur" },
-  { date: "08/07 08h00", user: "Koffi Amani", module: "Stocks", action: "ALERT_RESOLVED", objet: "Super Cupravit livré", ip: "102.176.x.x" },
-  { date: "08/07 08h00", user: "Système", module: "Alertes", action: "ALERT_REFRESHED", objet: "7 alertes vérifiées", ip: "Serveur" },
+  { date: "08/07 14h23", user: "SystÃ¨me", module: "TrÃ©sorerie", action: "AUTO_RECONCILED", objet: "MVT-2025-0921", ip: "Serveur" },
+  { date: "08/07 08h00", user: "Koffi Amani", module: "Stocks", action: "ALERT_RESOLVED", objet: "Super Cupravit livrÃ©", ip: "102.176.x.x" },
+  { date: "08/07 08h00", user: "SystÃ¨me", module: "Alertes", action: "ALERT_REFRESHED", objet: "7 alertes vÃ©rifiÃ©es", ip: "Serveur" },
   { date: "07/07 10h30", user: "Ibrahim S.", module: "Rapports", action: "REPORT_SUBMITTED", objet: "RT-2025-028", ip: "154.0.x.x" },
   { date: "07/07 07h00", user: "Ibrahim S.", module: "Auth", action: "LOGIN", objet: "ibrahim.s@agrifrik.com", ip: "154.0.x.x" },
   { date: "07/07 06h58", user: "Ibrahim S.", module: "Terrain", action: "PHOTO_UPLOADED", objet: "14 photos PAR-A1/A2/B1", ip: "154.0.x.x" },
-  { date: "05/07 18h01", user: "Système", module: "Rapports", action: "REPORT_SENT", objet: "Rapport CA hebdo", ip: "Serveur" },
-  { date: "04/07 09h22", user: "Koffi Amani", module: "Ventes", action: "RECORD_UPDATED", objet: "VNT-2025-008 → Réglée", ip: "102.176.x.x" },
+  { date: "05/07 18h01", user: "SystÃ¨me", module: "Rapports", action: "REPORT_SENT", objet: "Rapport CA hebdo", ip: "Serveur" },
+  { date: "04/07 09h22", user: "Koffi Amani", module: "Ventes", action: "RECORD_UPDATED", objet: "VNT-2025-008 â†’ RÃ©glÃ©e", ip: "102.176.x.x" },
   { date: "03/07 15h44", user: "Adjoua M.", module: "Finance", action: "EXPORT_DONE", objet: "Grand livre BC Q2 2025", ip: "102.176.x.x" },
   { date: "02/07 08h12", user: "Ibrahim S.", module: "Stocks", action: "STOCK_MOVEMENT", objet: "Super Cupravit -1,8 kg", ip: "154.0.x.x" },
-  { date: "01/07 14h18", user: "Ibrahim S.", module: "Qualité", action: "CQ_VALIDATED", objet: "CQ-2025-046 Grade AA ✅", ip: "154.0.x.x" },
+  { date: "01/07 14h18", user: "Ibrahim S.", module: "QualitÃ©", action: "CQ_VALIDATED", objet: "CQ-2025-046 Grade AA âœ…", ip: "154.0.x.x" },
 ];
 
-// ─── SVG Bar chart horizontal ─────────────────────────────────────────────────
+// â”€â”€â”€ SVG Bar chart horizontal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function BarChartModules() {
   const data = [
     { module: "Finance", value: 428 },
@@ -53,7 +53,7 @@ function BarChartModules() {
     { module: "Production", value: 287 },
     { module: "Commerce", value: 214 },
     { module: "Rapports", value: 198 },
-    { module: "Qualité", value: 176 },
+    { module: "QualitÃ©", value: 176 },
     { module: "RH", value: 142 },
     { module: "Auth", value: 98 },
     { module: "Admin", value: 64 },
@@ -95,7 +95,7 @@ function BarChartModules() {
   );
 }
 
-// ─── SVG Donut utilisateurs ───────────────────────────────────────────────────
+// â”€â”€â”€ SVG Donut utilisateurs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function DonutUsers() {
   const W = 260, H = 260;
   const cx = 130, cy = 120, r = 90, strokeW = 36;
@@ -104,7 +104,7 @@ function DonutUsers() {
     { label: "Koffi Amani", pct: 42, color: "#2E7D32" },
     { label: "Adjoua Messou", pct: 28, color: "#4CAF50" },
     { label: "Ibrahim Sawadogo", pct: 24, color: "#E65100" },
-    { label: "Système (auto)", pct: 4, color: "#9ca3af" },
+    { label: "SystÃ¨me (auto)", pct: 4, color: "#9ca3af" },
     { label: "Autres", pct: 2, color: "#d1d5db" },
   ];
 
@@ -136,7 +136,7 @@ function DonutUsers() {
         <text x={cx} y={cy - 6} textAnchor="middle" fontSize="22" fontWeight="700" fill="#1f2937">2 847</text>
         <text x={cx} y={cy + 12} textAnchor="middle" fontSize="10" fill="#6b7280">actions / mois</text>
       </svg>
-      {/* Légende */}
+      {/* LÃ©gende */}
       <div className="flex flex-col gap-1 w-full px-4">
         {data.map((d) => (
           <div key={d.label} className="flex items-center justify-between text-xs">
@@ -152,10 +152,10 @@ function DonutUsers() {
   );
 }
 
-// ─── Badge action ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Badge action â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ActionBadge({ action, flagged }: { action: ActionType; flagged?: boolean }) {
   if (flagged || action === "LOGIN_FAILED") {
-    return <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-100 text-red-700">🔴 {action}</span>;
+    return <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-100 text-red-700">ðŸ”´ {action}</span>;
   }
   if (action.includes("CREATED") || action.includes("SUBMITTED") || action.includes("UPLOADED") || action === "CQ_VALIDATED") {
     return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-green-100 text-green-700">{action}</span>;
@@ -169,20 +169,20 @@ function ActionBadge({ action, flagged }: { action: ActionType; flagged?: boolea
   return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-gray-600">{action}</span>;
 }
 
-// ─── Filtres actifs ───────────────────────────────────────────────────────────
-type FilterType = "Tous" | "Créations" | "Modifications" | "Suppressions" | "Connexions";
-const FILTERS: FilterType[] = ["Tous", "Créations", "Modifications", "Suppressions", "Connexions"];
+// â”€â”€â”€ Filtres actifs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+type FilterType = "Tous" | "CrÃ©ations" | "Modifications" | "Suppressions" | "Connexions";
+const FILTERS: FilterType[] = ["Tous", "CrÃ©ations", "Modifications", "Suppressions", "Connexions"];
 
 function matchFilter(log: LogEntry, filter: FilterType): boolean {
   if (filter === "Tous") return true;
-  if (filter === "Créations") return log.action.includes("CREATED") || log.action.includes("SUBMITTED") || log.action.includes("UPLOADED") || log.action === "ORDER_CREATED";
+  if (filter === "CrÃ©ations") return log.action.includes("CREATED") || log.action.includes("SUBMITTED") || log.action.includes("UPLOADED") || log.action === "ORDER_CREATED";
   if (filter === "Modifications") return log.action.includes("UPDATED") || log.action.includes("RESOLVED") || log.action.includes("RECONCILED") || log.action === "TASK_UPDATED" || log.action === "STOCK_MOVEMENT";
   if (filter === "Suppressions") return false;
   if (filter === "Connexions") return log.action === "LOGIN" || log.action === "LOGIN_FAILED";
   return true;
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function LogsPage() {
   const [filter, setFilter] = useState<FilterType>("Tous");
   const [search, setSearch] = useState("");
@@ -203,18 +203,18 @@ export default function LogsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Topbar breadcrumbs={["Admin", "Journal des Actions"]} />
+      <Topbar breadcrumb={["Admin", "Journal des Actions"]} />
 
       <div className="p-6 max-w-7xl mx-auto space-y-5">
-        {/* En-tête */}
+        {/* En-tÃªte */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-xl font-bold text-gray-800">Journal des Actions</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Audit trail complet — Traçabilité de toutes les opérations AGRIFRIK</p>
+              <p className="text-sm text-gray-500 mt-0.5">Audit trail complet â€” TraÃ§abilitÃ© de toutes les opÃ©rations AGRIFRIK</p>
             </div>
             <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
-              Télécharger CSV
+              TÃ©lÃ©charger CSV
             </button>
           </div>
 
@@ -258,7 +258,7 @@ export default function LogsPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#2E7D32] w-72 bg-white"
           />
-          <span className="text-xs text-gray-500">{filtered.length} entrée{filtered.length > 1 ? "s" : ""}</span>
+          <span className="text-xs text-gray-500">{filtered.length} entrÃ©e{filtered.length > 1 ? "s" : ""}</span>
         </div>
 
         {/* Tableau des logs */}
@@ -295,7 +295,7 @@ export default function LogsPage() {
                     <td className="px-3 py-2.5 text-gray-700 max-w-[200px] truncate">{log.objet}</td>
                     <td className="px-3 py-2.5 text-gray-500 font-mono text-[11px] whitespace-nowrap">
                       {log.flagged ? (
-                        <span className="text-red-600 font-semibold">{log.ip} 🔴</span>
+                        <span className="text-red-600 font-semibold">{log.ip} ðŸ”´</span>
                       ) : (
                         log.ip
                       )}
@@ -330,7 +330,7 @@ export default function LogsPage() {
 
           {/* Donut utilisateurs */}
           <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <h2 className="text-sm font-semibold text-gray-800 mb-1">Activité par utilisateur</h2>
+            <h2 className="text-sm font-semibold text-gray-800 mb-1">ActivitÃ© par utilisateur</h2>
             <p className="text-[11px] text-gray-400 mb-4">30 derniers jours</p>
             <DonutUsers />
           </div>
@@ -339,3 +339,4 @@ export default function LogsPage() {
     </div>
   );
 }
+

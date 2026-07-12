@@ -1,24 +1,24 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
 import { Search, Plus, ShoppingCart, Package, CheckCircle2, Clock } from "lucide-react";
 
-/* ─── DONNÉES ───────────────────────────────────────────────── */
+/* â”€â”€â”€ DONNÃ‰ES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 const COMMANDES = [
-  { num: "ACH-2025-001", date: "04/01", fournisseur: "KCl Distribution", produit: "KCl 60% 15 sacs",           montant: 720000,  livraison: "07/01", delai: "3j", statut: "Livrée" },
-  { num: "ACH-2025-002", date: "15/01", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 8 kg",        montant: 79296,   livraison: "19/01", delai: "4j", statut: "Livrée" },
-  { num: "ACH-2025-003", date: "03/02", fournisseur: "Tractafric",       produit: "Filtre huile JD5055E ×3",   montant: 75000,   livraison: "05/02", delai: "2j", statut: "Livrée" },
-  { num: "ACH-2025-004", date: "05/02", fournisseur: "SCPA Afrique",     produit: "Confidor 350 SC 4L",         montant: 141600,  livraison: "09/02", delai: "4j", statut: "Livrée" },
-  { num: "ACH-2025-005", date: "20/03", fournisseur: "Petro Ivoire",     produit: "Gasoil 200L (1 fût)",       montant: 147000,  livraison: "21/03", delai: "1j", statut: "Livrée" },
-  { num: "ACH-2025-006", date: "28/03", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 8 kg",        montant: 79296,   livraison: "01/04", delai: "4j", statut: "Livrée" },
-  { num: "ACH-2025-007", date: "10/04", fournisseur: "KCl Distribution", produit: "KCl 60% 10 sacs",           montant: 480000,  livraison: "13/04", delai: "3j", statut: "Livrée" },
-  { num: "ACH-2025-008", date: "25/04", fournisseur: "Tractafric",       produit: "Huile moteur 15W40 ×6",     montant: 54000,   livraison: "27/04", delai: "2j", statut: "Livrée" },
-  { num: "ACH-2025-017", date: "02/06", fournisseur: "SCPA Afrique",     produit: "Ridomil Gold 4 kg",          montant: 89208,   livraison: "05/06", delai: "3j", statut: "Livrée" },
-  { num: "ACH-2025-020", date: "28/06", fournisseur: "KCl Distribution", produit: "KCl 60% 6 sacs",            montant: 288000,  livraison: "01/07", delai: "3j", statut: "Livrée" },
-  { num: "ACH-2025-021", date: "01/07", fournisseur: "Petro Ivoire",     produit: "Gasoil 200L",               montant: 147000,  livraison: "02/07", delai: "1j", statut: "Livrée" },
-  { num: "ACH-2025-022", date: "09/06", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 4 kg",        montant: 39648,   livraison: "14/06", delai: "5j", statut: "Livrée" },
+  { num: "ACH-2025-001", date: "04/01", fournisseur: "KCl Distribution", produit: "KCl 60% 15 sacs",           montant: 720000,  livraison: "07/01", delai: "3j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-002", date: "15/01", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 8 kg",        montant: 79296,   livraison: "19/01", delai: "4j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-003", date: "03/02", fournisseur: "Tractafric",       produit: "Filtre huile JD5055E Ã—3",   montant: 75000,   livraison: "05/02", delai: "2j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-004", date: "05/02", fournisseur: "SCPA Afrique",     produit: "Confidor 350 SC 4L",         montant: 141600,  livraison: "09/02", delai: "4j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-005", date: "20/03", fournisseur: "Petro Ivoire",     produit: "Gasoil 200L (1 fÃ»t)",       montant: 147000,  livraison: "21/03", delai: "1j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-006", date: "28/03", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 8 kg",        montant: 79296,   livraison: "01/04", delai: "4j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-007", date: "10/04", fournisseur: "KCl Distribution", produit: "KCl 60% 10 sacs",           montant: 480000,  livraison: "13/04", delai: "3j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-008", date: "25/04", fournisseur: "Tractafric",       produit: "Huile moteur 15W40 Ã—6",     montant: 54000,   livraison: "27/04", delai: "2j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-017", date: "02/06", fournisseur: "SCPA Afrique",     produit: "Ridomil Gold 4 kg",          montant: 89208,   livraison: "05/06", delai: "3j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-020", date: "28/06", fournisseur: "KCl Distribution", produit: "KCl 60% 6 sacs",            montant: 288000,  livraison: "01/07", delai: "3j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-021", date: "01/07", fournisseur: "Petro Ivoire",     produit: "Gasoil 200L",               montant: 147000,  livraison: "02/07", delai: "1j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-022", date: "09/06", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 4 kg",        montant: 39648,   livraison: "14/06", delai: "5j", statut: "LivrÃ©e" },
 ];
 
 /* donut */
@@ -32,7 +32,7 @@ const DONUT_DATA = [
 /* bar chart mensuel */
 const BAR_DATA = [
   { mois: "Jan", val: 720000 },
-  { mois: "Fév", val: 220896 },
+  { mois: "FÃ©v", val: 220896 },
   { mois: "Mar", val: 147000 },
   { mois: "Avr", val: 612504 },
   { mois: "Mai", val: 0 },
@@ -40,9 +40,9 @@ const BAR_DATA = [
   { mois: "Jul", val: 147000 },
 ];
 
-const FILTRES = ["Toutes", "En attente", "Livrées", "En cours"] as const;
+const FILTRES = ["Toutes", "En attente", "LivrÃ©es", "En cours"] as const;
 
-/* ─── SVG DONUT ─────────────────────────────────────────────── */
+/* â”€â”€â”€ SVG DONUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function DonutChart() {
   const R = 90; const CX = 140; const CY = 140;
   let offset = -90;
@@ -72,7 +72,7 @@ function DonutChart() {
   );
 }
 
-/* ─── SVG BAR CHART ─────────────────────────────────────────── */
+/* â”€â”€â”€ SVG BAR CHART â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function BarChart() {
   const W = 640; const H = 160;
   const BAR_H = 100; const BAR_W = 50; const GAP = 38; const LEFT = 55;
@@ -110,7 +110,7 @@ function BarChart() {
   );
 }
 
-/* ─── PAGE ───────────────────────────────────────────────────── */
+/* â”€â”€â”€ PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function AchatsPage() {
   const [filtre, setFiltre] = useState<string>("Toutes");
   const [search, setSearch] = useState("");
@@ -118,7 +118,7 @@ export default function AchatsPage() {
   const lignes = COMMANDES.filter((c) => {
     const matchFiltre =
       filtre === "Toutes" ||
-      (filtre === "Livrées" && c.statut === "Livrée") ||
+      (filtre === "LivrÃ©es" && c.statut === "LivrÃ©e") ||
       (filtre === "En attente" && c.statut === "En attente") ||
       (filtre === "En cours" && c.statut === "En cours");
     const matchSearch = search === "" || c.fournisseur.toLowerCase().includes(search.toLowerCase());
@@ -129,16 +129,16 @@ export default function AchatsPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F6F4]">
-      <Topbar breadcrumbs={["Logistique", "Achats"]} />
+      <Topbar breadcrumb={["Logistique", "Achats"]} />
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
-        {/* ── EN-TÊTE ─────────────────────────────────────────── */}
+        {/* â”€â”€ EN-TÃŠTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Achats</h1>
             <p className="text-sm text-gray-500 mt-0.5">
-              Bons de commande — Intrants, matériels, consommables — EXP-001
+              Bons de commande â€” Intrants, matÃ©riels, consommables â€” EXP-001
             </p>
           </div>
           <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2E7D32] text-white text-xs font-medium hover:bg-[#1B5E20] transition-colors">
@@ -146,13 +146,13 @@ export default function AchatsPage() {
           </button>
         </div>
 
-        {/* ── KPI ─────────────────────────────────────────────── */}
+        {/* â”€â”€ KPI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: "Commandes 2025",   val: "12 commandes",                Icon: ShoppingCart },
             { label: "Montant total",     val: `${(total / 1000).toFixed(0)} k XOF`, Icon: Package },
-            { label: "Livrées",           val: "12 livrées",                 Icon: CheckCircle2 },
-            { label: "Délai moyen",       val: "4,2 jours",                  Icon: Clock },
+            { label: "LivrÃ©es",           val: "12 livrÃ©es",                 Icon: CheckCircle2 },
+            { label: "DÃ©lai moyen",       val: "4,2 jours",                  Icon: Clock },
           ].map((k) => (
             <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-4 flex items-center gap-3 shadow-sm">
               <k.Icon size={20} className="text-[#2E7D32] shrink-0" />
@@ -164,7 +164,7 @@ export default function AchatsPage() {
           ))}
         </div>
 
-        {/* ── FILTRES + RECHERCHE ──────────────────────────────── */}
+        {/* â”€â”€ FILTRES + RECHERCHE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex gap-1">
             {FILTRES.map((f) => (
@@ -185,7 +185,7 @@ export default function AchatsPage() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Recherche fournisseur…"
+              placeholder="Recherche fournisseurâ€¦"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-8 pr-4 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#2E7D32] w-52"
@@ -193,13 +193,13 @@ export default function AchatsPage() {
           </div>
         </div>
 
-        {/* ── TABLEAU COMMANDES ────────────────────────────────── */}
+        {/* â”€â”€ TABLEAU COMMANDES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#F8FBF8] text-left">
-                  {["N°","Date","Fournisseur","Produit","Montant TTC","Livraison","Délai","Statut"].map((h) => (
+                  {["NÂ°","Date","Fournisseur","Produit","Montant TTC","Livraison","DÃ©lai","Statut"].map((h) => (
                     <th key={h} className="px-3 py-2.5 text-xs text-gray-500 font-medium whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -222,7 +222,7 @@ export default function AchatsPage() {
                     </td>
                     <td className="px-3 py-2">
                       <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-800 font-medium">
-                        ✅ {c.statut}
+                        âœ… {c.statut}
                       </span>
                     </td>
                   </tr>
@@ -231,11 +231,11 @@ export default function AchatsPage() {
             </table>
           </div>
           {lignes.length === 0 && (
-            <p className="py-8 text-center text-sm text-gray-400">Aucune commande trouvée.</p>
+            <p className="py-8 text-center text-sm text-gray-400">Aucune commande trouvÃ©e.</p>
           )}
         </div>
 
-        {/* ── GRAPHIQUES ──────────────────────────────────────── */}
+        {/* â”€â”€ GRAPHIQUES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
           {/* Donut */}
@@ -270,3 +270,4 @@ export default function AchatsPage() {
     </div>
   );
 }
+

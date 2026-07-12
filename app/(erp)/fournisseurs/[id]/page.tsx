@@ -1,4 +1,4 @@
-import Topbar from "../../../components/Topbar";
+﻿import Topbar from "../../../components/Topbar";
 import Link from "next/link";
 import { ArrowLeft, ShoppingCart, Mail, CheckCircle2, Clock, Package, Star } from "lucide-react";
 
@@ -51,7 +51,7 @@ export default async function FournisseurDetailPage({
 
   return (
     <div className="min-h-screen bg-[#F4F6F4]">
-      <Topbar breadcrumbs={["Logistique", "Fournisseurs", `Fournisseur ${id}`]} />
+      <Topbar breadcrumb={["Logistique", "Fournisseurs", `Fournisseur ${id}`]} />
 
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
 

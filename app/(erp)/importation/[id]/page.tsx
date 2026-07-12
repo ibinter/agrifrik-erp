@@ -1,4 +1,4 @@
-import Topbar from "../../../components/Topbar";
+﻿import Topbar from "../../../components/Topbar";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 interface PageProps {
@@ -49,7 +49,7 @@ export default async function ImportationDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Topbar breadcrumbs={["Commerce", "Importation", `Import ${id}`]} />
+      <Topbar breadcrumb={["Commerce", "Importation", `Import ${id}`]} />
 
       <div className="p-6 max-w-6xl mx-auto space-y-5">
 
