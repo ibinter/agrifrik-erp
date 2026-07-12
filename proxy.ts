@@ -3,16 +3,21 @@ import { createServerClient } from "./lib/supabase/server";
 
 // Routes publiques (pas besoin d'être connecté)
 const PUBLIC_PATHS = [
+  "/",
   "/login",
   "/onboarding",
-  "/api/auth/login",
-  "/api/auth/register",
-  "/api/auth/reset-password",
+  "/inscription",
+  "/mot-de-passe-oublie",
+  "/demo",
+  "/api/auth",
   "/api/webhooks",
+  "/api/prix-marche",
   "/_next",
   "/favicon.ico",
   "/manifest.json",
   "/icons",
+  "/logo",
+  "/public",
 ];
 
 function isPublic(pathname: string): boolean {
