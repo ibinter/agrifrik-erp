@@ -21,7 +21,7 @@ import GlobalSearch from "./GlobalSearch";
 import ThemeToggle from "./ThemeToggle";
 
 interface TopbarProps {
-  title: string;
+  title?: string;
   breadcrumb?: string[];
 }
 
