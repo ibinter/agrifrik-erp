@@ -11,8 +11,9 @@ import {
   BarChart3,
   Brain,
   Globe,
-  ShieldCheck,
+  Leaf,
 } from "lucide-react";
+import Image from "next/image";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -66,13 +67,11 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col h-full p-12">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-2xl"
-              style={{ background: "rgba(76,175,80,0.25)", color: "#A5D6A7" }}
-            >
-              A
+            <Image src="/logo.png" alt="AGRIFRIK" width={48} height={48} className="rounded-xl" />
+            <div>
+              <span className="text-white text-2xl font-extrabold tracking-widest">AGRIFRIK</span>
+              <div className="text-xs font-bold tracking-widest" style={{ color: "#E65100" }}>ERP</div>
             </div>
-            <span className="text-white text-2xl font-extrabold tracking-widest">AGRIFRIK</span>
           </div>
 
           {/* Citation principale */}
@@ -88,23 +87,23 @@ export default function LoginPage() {
             {[
               {
                 Icon: Sprout,
-                title: "Traçabilité cacao 100%",
-                sub: "De la plantation au container",
+                title: "Gestion des cultures",
+                sub: "Parcelles, intrants, récoltes en temps réel",
               },
               {
-                Icon: ShieldCheck,
-                title: "Certifications RA & GlobalG.A.P.",
-                sub: "Gestion documentaire complète",
+                Icon: Globe,
+                title: "Traçabilité complète",
+                sub: "Du champ au client, chaque lot suivi",
               },
               {
                 Icon: Brain,
                 title: "IA agronomique",
-                sub: "Recommandations en temps réel",
+                sub: "Recommandations adaptées à votre exploitation",
               },
               {
-                Icon: Globe,
-                title: "Export simplifié",
-                sub: "Documents douaniers automatiques",
+                Icon: BarChart3,
+                title: "Pilotage financier",
+                sub: "Comptabilité, trésorerie et budgets intégrés",
               },
             ].map(({ Icon, title, sub }) => (
               <div key={title} className="flex items-center gap-4">
@@ -124,12 +123,12 @@ export default function LoginPage() {
             ))}
           </div>
 
-          {/* Stats */}
+          {/* Stats réels */}
           <div className="flex gap-6 mb-8">
             {[
-              { val: "50+", label: "modules" },
-              { val: "287", label: "employés" },
-              { val: "94%", label: "conformité RA" },
+              { val: "50+", label: "modules ERP" },
+              { val: "100%", label: "données locales" },
+              { val: "24/7", label: "disponibilité" },
             ].map(({ val, label }) => (
               <div key={label} className="text-center">
                 <p className="text-white text-2xl font-black">{val}</p>
@@ -140,16 +139,16 @@ export default function LoginPage() {
             ))}
           </div>
 
-          {/* Band partenaires */}
+          {/* Tagline IBIG Soft */}
           <div
             className="rounded-2xl px-5 py-4"
             style={{ background: "rgba(0,0,0,0.35)" }}
           >
             <p className="text-xs font-semibold mb-1" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Utilisé par
+              Développé par
             </p>
             <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.75)" }}>
-              FAO · ANADER · Barry Callebaut · Cargill · Olam
+              IBIG Soft · Solutions numériques africaines
             </p>
           </div>
         </div>
@@ -161,17 +160,13 @@ export default function LoginPage() {
         style={{ width: "100%", maxWidth: "420px" }}
       >
         <div className="flex-1 flex flex-col justify-center px-10 py-12">
-          {/* Logo petit */}
+          {/* Logo */}
           <div className="flex items-center gap-2 mb-10">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-base"
-              style={{ background: "#E8F5E9", color: "#2E7D32" }}
-            >
-              A
+            <Image src="/logo.png" alt="AGRIFRIK" width={32} height={32} className="rounded-lg" />
+            <div>
+              <span className="font-extrabold tracking-widest text-sm" style={{ color: "#1B5E20" }}>AGRIFRIK</span>
+              <div className="text-xs font-bold leading-none" style={{ color: "#E65100", letterSpacing: "0.2em" }}>ERP</div>
             </div>
-            <span className="font-extrabold tracking-widest text-sm" style={{ color: "#1B5E20" }}>
-              AGRIFRIK
-            </span>
           </div>
 
           <h2 className="text-2xl font-bold text-gray-900 mb-1">Connexion à votre espace</h2>
@@ -290,8 +285,8 @@ export default function LoginPage() {
             className="mt-6 rounded-xl px-4 py-3 text-xs text-gray-600 leading-relaxed"
             style={{ background: "#F1F8E9", border: "1px solid #C8E6C9" }}
           >
-            <span className="font-semibold text-gray-700">🔐 Vos données sont hébergées en Afrique</span>{" "}
-            (Supabase EU Frankfurt). Connexion SSL/TLS 256-bit.
+            <span className="font-semibold text-gray-700">🔐 Connexion sécurisée</span>{" "}
+            SSL/TLS 256-bit. Vos données sont protégées.
           </div>
 
           {/* Lien inscription */}
@@ -305,7 +300,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="px-10 pb-6 text-center text-xs text-gray-400">
-          © 2025 AGRIFRIK SAS ·{" "}
+          © 2026 IBIG Soft ·{" "}
           <a href="#" className="hover:underline">
             Mentions légales
           </a>{" "}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   BarChart3,
@@ -11,6 +12,49 @@ import {
   Wheat,
 } from "lucide-react";
 
+const PLANS = [
+  {
+    plan: "Starter",
+    price: "11 900 XOF",
+    period: "/ mois",
+    trial: "30 jours d'essai gratuit",
+    target: "Petite exploitation individuelle",
+    features: ["10 modules ERP", "2 utilisateurs", "1 exploitation", "Support email", "Rapports de base"],
+    cta: "Essayer gratuitement",
+    featured: false,
+  },
+  {
+    plan: "Pro",
+    price: "24 900 XOF",
+    period: "/ mois",
+    trial: "30 jours d'essai gratuit",
+    target: "Exploitation familiale / PME agricole",
+    features: ["25 modules ERP", "10 utilisateurs", "3 exploitations", "Support prioritaire", "Analytics avancés"],
+    cta: "Essayer gratuitement",
+    featured: false,
+  },
+  {
+    plan: "Business",
+    price: "39 900 XOF",
+    period: "/ mois",
+    trial: "30 jours d'essai gratuit",
+    target: "Coopérative / Groupement",
+    features: ["40 modules ERP", "30 utilisateurs", "10 exploitations", "Support 24h/7j", "IA agronomique incluse"],
+    cta: "Essayer gratuitement",
+    featured: true,
+  },
+  {
+    plan: "Entreprise",
+    price: "99 900 XOF",
+    period: "/ mois",
+    trial: "30 jours d'essai gratuit",
+    target: "Grande exploitation / Exportateur",
+    features: ["50+ modules ERP", "Utilisateurs illimités", "Exploitations illimitées", "Manager dédié", "Déploiement cloud privé"],
+    cta: "Essayer gratuitement",
+    featured: false,
+  },
+];
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white font-sans">
@@ -22,9 +66,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#4CAF50" }}>
-              <Leaf size={20} color="white" />
-            </div>
+            <Image src="/logo.png" alt="AGRIFRIK" width={40} height={40} className="rounded-lg" />
             <div>
               <span className="text-white font-bold text-lg leading-none">AGRIFRIK</span>
               <br />
@@ -225,18 +267,15 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Bande partenaires */}
+        {/* Tagline bas de hero */}
         <div className="border-t border-white/10 py-5">
           <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center gap-6">
             <p className="text-xs font-semibold text-green-300 whitespace-nowrap uppercase tracking-wider">
-              Reconnu par
+              Développé par
             </p>
-            <div className="flex flex-wrap items-center gap-6 sm:gap-10">
-              {["FAO", "ANADER", "CNRA", "Rainforest Alliance", "BCC", "World Bank"].map((p) => (
-                <span key={p} className="text-sm font-bold text-green-200 opacity-60">
-                  {p}
-                </span>
-              ))}
+            <div className="flex items-center gap-3">
+              <Image src="/logo.png" alt="IBIG Soft" width={28} height={28} className="rounded-md opacity-80" />
+              <span className="text-sm font-bold text-green-200 opacity-80">IBIG Soft — Solutions numériques africaines</span>
             </div>
           </div>
         </div>
@@ -354,8 +393,8 @@ export default function LandingPage() {
                     desc: "Interface disponible en français, anglais et bientôt en langues locales africaines.",
                   },
                   {
-                    title: "Certifications intégrées",
-                    desc: "Rainforest Alliance, GlobalG.A.P., ISO 9001, UTZ — toutes gérées depuis un seul endroit.",
+                    title: "Gestion documentaire",
+                    desc: "Factures, bons de commande, rapports — tous vos documents en un seul endroit.",
                   },
                   {
                     title: "Paiements locaux",
@@ -430,48 +469,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                plan: "Starter",
-                price: "11 900 XOF",
-                period: "/ mois",
-                trial: "30 jours d'essai gratuit",
-                target: "Petite exploitation individuelle",
-                features: ["10 modules ERP", "2 utilisateurs", "1 exploitation", "Support email", "Rapports de base"],
-                cta: "Essayer gratuitement",
-                featured: false,
-              },
-              {
-                plan: "Pro",
-                price: "24 900 XOF",
-                period: "/ mois",
-                trial: "30 jours d'essai gratuit",
-                target: "Exploitation familiale / PME agricole",
-                features: ["25 modules ERP", "10 utilisateurs", "3 exploitations", "Support prioritaire", "Analytics avancés"],
-                cta: "Essayer gratuitement",
-                featured: false,
-              },
-              {
-                plan: "Business",
-                price: "39 900 XOF",
-                period: "/ mois",
-                trial: "30 jours d'essai gratuit",
-                target: "Coopérative / Groupement",
-                features: ["40 modules ERP", "30 utilisateurs", "10 exploitations", "Support 24h/7j", "IA agronomique incluse"],
-                cta: "Essayer gratuitement",
-                featured: true,
-              },
-              {
-                plan: "Entreprise",
-                price: "99 900 XOF",
-                period: "/ mois",
-                trial: "30 jours d'essai gratuit",
-                target: "Grande exploitation / Exportateur",
-                features: ["50+ modules ERP", "Utilisateurs illimités", "Exploitations illimitées", "Manager dédié", "Déploiement cloud privé"],
-                cta: "Essayer gratuitement",
-                featured: false,
-              },
-            ].map(({ plan, price, period, trial, target, features, cta, featured }) => (
+            {PLANS.map(({ plan, price, period, trial, target, features, cta, featured }) => (
               <div
                 key={plan}
                 className={`rounded-2xl p-6 flex flex-col ${featured ? "text-white shadow-xl scale-105" : "bg-white border border-gray-100"}`}
@@ -553,9 +551,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#2E7D32" }}>
-                  <Leaf size={16} color="white" />
-                </div>
+                <Image src="/logo.png" alt="AGRIFRIK" width={32} height={32} className="rounded-lg" />
                 <div>
                   <div className="text-white font-bold">AGRIFRIK</div>
                   <div className="text-xs" style={{ color: "#E65100" }}>ERP</div>
