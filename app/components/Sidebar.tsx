@@ -263,6 +263,7 @@ export default function Sidebar() {
         }}
       >
         <div className="flex items-center gap-2 overflow-hidden">
+          {/* Icône réduite quand sidebar collapsed */}
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: "#2E7D32" }}
@@ -270,9 +271,14 @@ export default function Sidebar() {
             <Leaf size={16} color="white" strokeWidth={2.5} />
           </div>
           {(!isCollapsed || mobile) && (
-            <span className="font-bold text-sm whitespace-nowrap" style={{ color: "#A5D6A7" }}>
-              AGRIFRIK
-            </span>
+            <div className="flex flex-col leading-none">
+              <span className="font-bold text-sm whitespace-nowrap tracking-widest" style={{ color: "#A5D6A7" }}>
+                AGRIFRIK
+              </span>
+              <span className="text-xs tracking-widest" style={{ color: "#E65100", fontSize: 9 }}>
+                ERP
+              </span>
+            </div>
           )}
         </div>
         {!mobile && (

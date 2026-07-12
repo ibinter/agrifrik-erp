@@ -19,7 +19,7 @@ function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Laisser passer les routes publiques
@@ -56,14 +56,10 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+export default proxy;
+
 export const config = {
   matcher: [
-    /*
-     * Appliquer sur toutes les routes sauf :
-     * - _next/static (fichiers statiques)
-     * - _next/image (images optimisées)
-     * - favicon.ico
-     */
     "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };

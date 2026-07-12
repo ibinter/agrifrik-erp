@@ -1,0 +1,13 @@
+<svg viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AGRIFRIK ERP">
+  <!-- Icône feuille + engrenage simplifié -->
+  <circle cx="25" cy="25" r="20" fill="#1B5E20"/>
+  <path d="M25 10 Q35 15 32 25 Q29 35 20 38 Q14 32 16 22 Q18 12 25 10Z" fill="#4CAF50"/>
+  <path d="M25 18 Q29 20 28 25 Q27 30 22 31 Q19 28 20 23 Q21 18 25 18Z" fill="#81C784"/>
+  <circle cx="25" cy="25" r="4" fill="#E65100"/>
+  <!-- Texte AGRIFRIK -->
+  <text x="50" y="22" font-family="Poppins,Arial,sans-serif" font-weight="700" font-size="16" fill="#1B5E20" letter-spacing="1">AGRIFRIK</text>
+  <!-- Texte ERP -->
+  <text x="50" y="36" font-family="Poppins,Arial,sans-serif" font-weight="400" font-size="9" fill="#E65100" letter-spacing="3">ERP</text>
+  <!-- Ligne décorative -->
+  <line x1="50" y1="26" x2="185" y2="26" stroke="#4CAF50" stroke-width="0.5" opacity="0.4"/>
+</svg>
