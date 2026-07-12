@@ -1,36 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const DEMO_USERS = [
-  {
-    id: "1",
-    email: "admin@agrifrik.com",
-    password: "agrifrik2025",
-    nom: "Jean-Baptiste Koffi",
-    role: "Administrateur",
-    exploitation: "Exploitation KOFFI & Fils",
-    avatar: "JK",
-  },
-];
+import { createServerClient } from "../../../../lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json();
 
-  const match = DEMO_USERS.find(
-    (u) => u.email === email && u.password === password
-  );
+  if (!email || !password) {
+    return NextResponse.json(
+      { success: false, message: "Email et mot de passe requis" },
+      { status: 400 }
+    );
+  }
 
-  if (!match) {
+  const supabase = createServerClient();
+
+  // Authentification via Supabase Auth
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error || !data.user) {
     return NextResponse.json(
       { success: false, message: "Email ou mot de passe incorrect" },
       { status: 401 }
     );
   }
 
-  const { password: _pw, ...user } = match;
+  // Récupérer le profil
+  const { data: profil } = await supabase
+    .from("profils")
+    .select("id, nom, prenom, email, role, avatar_url, organisation_id")
+    .eq("id", data.user.id)
+    .single();
 
   return NextResponse.json({
     success: true,
-    user,
-    token: `demo-token-${user.id}-${Date.now()}`,
+    user: profil ?? {
+      id: data.user.id,
+      email: data.user.email,
+      nom: "",
+      prenom: "",
+      role: "operateur",
+      avatar_url: null,
+      organisation_id: null,
+    },
+    access_token: data.session?.access_token,
+    refresh_token: data.session?.refresh_token,
   });
 }

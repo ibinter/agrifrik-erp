@@ -240,7 +240,7 @@ export default function Topbar({ title, breadcrumb }: TopbarProps) {
               className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
               style={{ backgroundColor: "#2E7D32" }}
             >
-              {user?.avatar ?? "JK"}
+              {user ? `${user.prenom?.[0] ?? ""}${user.nom?.[0] ?? ""}`.toUpperCase() || "JK" : "JK"}
             </div>
             <ChevronDown
               size={14}
@@ -256,7 +256,7 @@ export default function Topbar({ title, breadcrumb }: TopbarProps) {
                   className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
                   style={{ backgroundColor: "#2E7D32" }}
                 >
-                  {user?.avatar ?? "JK"}
+                  {user ? `${user.prenom?.[0] ?? ""}${user.nom?.[0] ?? ""}`.toUpperCase() || "JK" : "JK"}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-gray-900 truncate">{user?.nom ?? "Jean-Baptiste Koffi"}</p>
