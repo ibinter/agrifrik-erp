@@ -1,696 +1,329 @@
 "use client";
 
 import { useState } from "react";
+import { TrendingUp, ShoppingBag, Package, Clock, Plus, Download, Search } from "lucide-react";
 import Topbar from "../../components/Topbar";
-import {
-  TrendingUp,
-  ShoppingCart,
-  Users,
-  Package,
-  Target,
-  CheckCircle,
-  Clock,
-  Truck,
-  Star,
-  ChevronRight,
-  Send,
-  MessageSquare,
-} from "lucide-react";
 
-// ─── KPIs ──────────────────────────────────────────────────────────────────────
-const kpis = [
-  {
-    label: "CA 2025 YTD",
-    value: "145,2 M",
-    unit: "XOF",
-    sub: "Objectif annuel : 280 M XOF",
-    progress: 51.9,
-    icon: TrendingUp,
-    color: "#2E7D32",
-    bg: "#E8F5E9",
-  },
-  {
-    label: "Commandes en cours",
-    value: "3",
-    unit: "",
-    sub: "Valeur : 114,7 M XOF",
-    progress: null,
-    icon: ShoppingCart,
-    color: "#1565C0",
-    bg: "#E3F2FD",
-  },
-  {
-    label: "Nouveaux clients 2025",
-    value: "2",
-    unit: "",
-    sub: "JDE + Maison Jacques-Vabre",
-    progress: null,
-    icon: Users,
-    color: "#6A1B9A",
-    bg: "#F3E5F5",
-  },
-  {
-    label: "Marge brute moyenne",
-    value: "56%",
-    unit: "",
-    sub: "Cible : 55%+ ✅",
-    progress: null,
-    icon: Target,
-    color: "#E65100",
-    bg: "#FFF3E0",
-  },
+/* ─── Types ─────────────────────────────────────────────────────────────────── */
+type Filtre = "Toutes" | "En attente" | "Livrées" | "Réglées";
+
+interface Vente {
+  id: string;
+  date: string;
+  client: string;
+  produit: string;
+  volume: number;
+  prixKg: number;
+  montant: number;
+  statut: "Réglée" | "BL émis" | "En attente";
+}
+
+/* ─── Données ─────────────────────────────────────────────────────────────── */
+const VENTES: Vente[] = [
+  { id: "VNT-2025-001", date: "12/01", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3200, prixKg: 1087, montant: 3478400, statut: "Réglée" },
+  { id: "VNT-2025-002", date: "10/02", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "Réglée" },
+  { id: "VNT-2025-003", date: "12/03", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3200, prixKg: 1087, montant: 3478400, statut: "Réglée" },
+  { id: "VNT-2025-004", date: "15/04", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3600, prixKg: 1087, montant: 3913200, statut: "Réglée" },
+  { id: "VNT-2025-005", date: "13/05", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "Réglée" },
+  { id: "VNT-2025-006", date: "02/06", client: "Cargill CI",          produit: "Anacarde WW240", volume: 1600, prixKg: 1525, montant: 2440000, statut: "Réglée" },
+  { id: "VNT-2025-007", date: "22/06", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 964,  prixKg: 1087, montant: 1047768, statut: "Réglée" },
+  { id: "VNT-2025-008", date: "22/06", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "Réglée" },
+  { id: "VNT-2025-009", date: "11/07", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "BL émis" },
 ];
 
-// ─── Données CA mensuel ─────────────────────────────────────────────────────────
-const caData = [
-  { mois: "Jan", v2024: 38.4, v2025: 42.4 },
-  { mois: "Fév", v2024: 16.2, v2025: 18.2 },
-  { mois: "Mar", v2024: 22.8, v2025: 28.6 },
-  { mois: "Avr", v2024: 26.4, v2025: 28.8 },
-  { mois: "Mai", v2024: 24.2, v2025: 31.6 },
-  { mois: "Jun", v2024: 34.8, v2025: 38.6 }, // dernier mois réalisé 2025
-  { mois: "Jul", v2024: 28.4, v2025: null },
-  { mois: "Aoû", v2024: 32.1, v2025: null },
-  { mois: "Sep", v2024: 38.6, v2025: null },
-  { mois: "Oct", v2024: 44.2, v2025: null },
-  { mois: "Nov", v2024: 52.8, v2025: null },
-  { mois: "Déc", v2024: 48.4, v2025: null },
+/* CA mensuel 2025 vs 2024 — groupé bar chart */
+const CA_DATA = [
+  { mois: "Jan", v2024: 3.2, v2025: 3.5 },
+  { mois: "Fév", v2024: 3.4, v2025: 3.7 },
+  { mois: "Mar", v2024: 3.1, v2025: 3.5 },
+  { mois: "Avr", v2024: 3.5, v2025: 3.9 },
+  { mois: "Mai", v2024: 3.3, v2025: 3.7 },
+  { mois: "Jun", v2024: 3.0, v2025: 3.5 },
+  { mois: "Jul", v2024: 3.2, v2025: 3.7 }, // partiel 2025
 ];
 
-// ─── Top clients S1 2025 ───────────────────────────────────────────────────────
-const topClients = [
-  { client: "Barry Callebaut", pays: "CH/CI", ca: "46,1 M", produits: "Cacao AA", pct: 31.7, trend: "↑ +8%", up: true },
-  { client: "Cargill", pays: "NL", ca: "35,2 M", produits: "Cacao AA", pct: 24.2, trend: "→ stable", up: null },
-  { client: "Olam International", pays: "SG", ca: "33,4 M", produits: "Cacao AA+A", pct: 23.0, trend: "↑ +12%", up: true },
-  { client: "Nestlé CI", pays: "CI", ca: "18,6 M", produits: "Anacarde", pct: 12.8, trend: "↑ +5%", up: true },
-  { client: "Touton SA", pays: "FR", ca: "11,9 M", produits: "Cacao A", pct: 8.2, trend: "↓ -3%", up: false },
+const MAX_CA = 5;
+
+/* Donut data */
+const DONUT_SEGMENTS = [
+  { label: "BC cacao",         pct: 89.2, color: "#2E7D32" },
+  { label: "Cargill anacarde", pct: 8.0,  color: "#E65100" },
+  { label: "Autres",           pct: 2.8,  color: "#BDBDBD" },
 ];
 
-// ─── Performance produits ──────────────────────────────────────────────────────
-const produitsPerf = [
-  { produit: "Cacao Grade AA", volume: "62,4 t", ca: "68,6 M", prix: "1 100 XOF/kg", marge: "61%" },
-  { produit: "Cacao Grade A", volume: "28,6 t", ca: "29,7 M", prix: "1 040 XOF/kg", marge: "54%" },
-  { produit: "Anacarde WW240", volume: "28,4 t", ca: "19,3 M", prix: "680 XOF/kg", marge: "48%" },
-  { produit: "Anacarde RW180", volume: "12,8 t", ca: "7,6 M", prix: "594 XOF/kg", marge: "42%" },
-  { produit: "Vivrières (maïs/riz)", volume: "—", ca: "3,8 M", prix: "Variable", marge: "35%" },
-];
+/* ─── Helpers ─────────────────────────────────────────────────────────────── */
+function formatXOF(n: number) {
+  return n.toLocaleString("fr-FR") + " XOF";
+}
 
-// ─── Opportunités pipeline ─────────────────────────────────────────────────────
-const opportunites = [
-  {
-    id: "OPP-001",
-    title: "Barry Callebaut — Contrat annuel 2025-2026",
-    produit: "Cacao AA — 120 t",
-    valeur: "132 M XOF",
-    proba: 85,
-    ponderee: "112,2 M",
-    contact: "M. Laurent Petit (acheteur senior BC)",
-    etape: "Envoi échantillons + visite site 25/07",
-    stade: "Négociation",
-  },
-  {
-    id: "OPP-002",
-    title: "Jacobs Douwe Egberts (nouveau client)",
-    produit: "Cacao AA premium — 20 t",
-    valeur: "24 M XOF",
-    proba: 60,
-    ponderee: "14,4 M",
-    contact: "Via Rainforest Alliance network",
-    etape: "Validation qualité échantillon DEG-2025-048",
-    stade: "Négociation",
-  },
-  {
-    id: "OPP-003",
-    title: "Ferrero Import",
-    produit: "Cacao bio AA (conversion AB 2026) — 10 t",
-    valeur: "18 M XOF",
-    proba: 40,
-    ponderee: "7,2 M",
-    contact: "En attente certification AB Jan 2026",
-    etape: "Attente certification AB",
-    stade: "Négociation",
-  },
-];
+function statutStyle(s: Vente["statut"]) {
+  if (s === "Réglée")   return { bg: "#E8F5E9", color: "#2E7D32", label: "✅ Réglée" };
+  if (s === "BL émis")  return { bg: "#E3F2FD", color: "#1565C0", label: "🔵 BL émis" };
+  return                       { bg: "#FFF9C4", color: "#F57F17", label: "⏳ En attente" };
+}
 
-// ─── Clients complets ──────────────────────────────────────────────────────────
-const clients = [
-  { client: "Barry Callebaut", pays: "Suisse/CI", categorie: "Chocolatier", depuis: "Jan 2020", ca2025: "46,1 M", ca2024: "42,6 M", evol: "↑ +8%", up: true, incoterm: "FOB San-Pédro", paiement: "30j net" },
-  { client: "Cargill Int.", pays: "Pays-Bas", categorie: "Négociant", depuis: "Mar 2021", ca2025: "35,2 M", ca2024: "35,2 M", evol: "→ 0%", up: null, incoterm: "FOB", paiement: "30j net" },
-  { client: "Olam International", pays: "Singapour", categorie: "Négociant", depuis: "Jun 2021", ca2025: "33,4 M", ca2024: "29,8 M", evol: "↑ +12%", up: true, incoterm: "EXW Soubré", paiement: "21j net" },
-  { client: "Nestlé CI", pays: "Côte d'Ivoire", categorie: "Transformation", depuis: "Jan 2022", ca2025: "18,6 M", ca2024: "17,7 M", evol: "↑ +5%", up: true, incoterm: "EXW", paiement: "Comptant" },
-  { client: "Touton SA", pays: "France", categorie: "Négoce", depuis: "Mar 2022", ca2025: "11,9 M", ca2024: "12,3 M", evol: "↓ -3%", up: false, incoterm: "FOB", paiement: "45j net" },
-  { client: "Olam CI (local)", pays: "Côte d'Ivoire", categorie: "Transformation", depuis: "Jan 2023", ca2025: "8,2 M", ca2024: "4,8 M", evol: "↑ +71%", up: true, incoterm: "EXW", paiement: "Comptant" },
-  { client: "SIPEF Trading", pays: "Belgique", categorie: "Export", depuis: "Avr 2023", ca2025: "5,4 M", ca2024: "3,2 M", evol: "↑ +69%", up: true, incoterm: "FOB", paiement: "30j" },
-  { client: "JDE (Jacobs D.E.)", pays: "Pays-Bas", categorie: "Chocolatier", depuis: "Jan 2025", ca2025: "11,2 M", ca2024: "—", evol: "Nouveau", up: true, incoterm: "FOB", paiement: "30j" },
-  { client: "Coop. Burkina", pays: "Burkina Faso", categorie: "Coopérative", depuis: "Jun 2024", ca2025: "2,4 M", ca2024: "0,8 M", evol: "↑", up: true, incoterm: "EXW", paiement: "Comptant" },
-  { client: "Maison Jacques-Vabre", pays: "France", categorie: "Premium", depuis: "Mar 2025", ca2025: "12,4 M", ca2024: "—", evol: "Nouveau", up: true, incoterm: "CIF Marseille", paiement: "60j" },
-  { client: "Ferrero", pays: "Italie", categorie: "Chocolatier", depuis: "Prospect 2026", ca2025: "—", ca2024: "—", evol: "Prospect", up: null, incoterm: "—", paiement: "—" },
-  { client: "Grand Chocolatier Lyon", pays: "France", categorie: "Artisan", depuis: "Mai 2025", ca2025: "—", ca2024: "—", evol: "Prospect", up: null, incoterm: "—", paiement: "—" },
-];
-
-// ─── Commandes en cours ────────────────────────────────────────────────────────
-const commandesEnCours = [
-  { id: "CMD-2025-018", client: "Cargill Rotterdam", lot: "LOT-045", produit: "Cacao AA", qte: "24,9 t", valeur: "27,4 M", livraison: "05/08 ETA Rotterdam", statut: "En transit", color: "#1565C0", bg: "#E3F2FD" },
-  { id: "CMD-2025-019", client: "Nestlé CI", lot: "LOT-046", produit: "Cacao AA 20t + A 15t", qte: "35 t", valeur: "54,3 M", livraison: "15/07 EXW Soubré", statut: "Conditionnement", color: "#E65100", bg: "#FFF3E0" },
-  { id: "CMD-2025-020", client: "Barry Callebaut", lot: "LOT-048", produit: "Cacao AA 30t (partiel)", qte: "30 t", valeur: "33,0 M", livraison: "30/07 FOB San-Pédro", statut: "Fermentation", color: "#E65100", bg: "#FFF3E0" },
-];
-
-// ─── Historique commandes S1 2025 ─────────────────────────────────────────────
-const historiqueCommandes = [
-  { id: "CMD-2025-001", client: "Barry Callebaut", produit: "Cacao AA", qte: "18 t", valeur: "19,8 M", date: "10/01", statut: "Livré" },
-  { id: "CMD-2025-002", client: "Cargill", produit: "Cacao AA", qte: "22 t", valeur: "24,2 M", date: "18/01", statut: "Livré" },
-  { id: "CMD-2025-003", client: "Olam International", produit: "Cacao A", qte: "14 t", valeur: "14,6 M", date: "05/02", statut: "Livré" },
-  { id: "CMD-2025-004", client: "Nestlé CI", produit: "Anacarde WW240", qte: "10 t", valeur: "6,8 M", date: "12/02", statut: "Livré" },
-  { id: "CMD-2025-005", client: "JDE", produit: "Cacao AA", qte: "20 t", valeur: "22,0 M", date: "03/03", statut: "Livré" },
-  { id: "CMD-2025-006", client: "Barry Callebaut", produit: "Cacao AA", qte: "25 t", valeur: "27,5 M", date: "15/03", statut: "Livré" },
-  { id: "CMD-2025-007", client: "Touton SA", produit: "Cacao A", qte: "12 t", valeur: "12,5 M", date: "02/04", statut: "Livré" },
-  { id: "CMD-2025-008", client: "Maison Jacques-Vabre", produit: "Cacao AA", qte: "8 t", valeur: "8,8 M", date: "18/04", statut: "Livré" },
-  { id: "CMD-2025-009", client: "Olam International", produit: "Cacao AA", qte: "16 t", valeur: "17,6 M", date: "08/05", statut: "Livré" },
-  { id: "CMD-2025-010", client: "SIPEF Trading", produit: "Cacao A", qte: "8 t", valeur: "8,3 M", date: "20/05", statut: "Livré" },
-  { id: "CMD-2025-011", client: "Maison Jacques-Vabre", produit: "Cacao AA premium", qte: "10 t", valeur: "11,0 M", date: "10/06", statut: "Livré" },
-  { id: "CMD-2025-012", client: "Cargill", produit: "Cacao AA", qte: "20 t", valeur: "22,0 M", date: "25/06", statut: "Livré" },
-];
-
-// ─── Produits catalogue ────────────────────────────────────────────────────────
-const catalogue = [
-  {
-    nom: "Cacao Grade AA",
-    badge: "Produit phare",
-    badgeColor: "#2E7D32",
-    badgeBg: "#E8F5E9",
-    norme: "ICCO/BCC Grade AA",
-    carac: ["Humidité ≤ 8%", "Cut test ≥ 95 brunes", "Grains/100g ≤ 100"],
-    certs: ["RA ✅", "GlobalG.A.P. ✅", "AB (2026)"],
-    prix: "1 100 XOF/kg",
-    production: "62,4 t (YTD)",
-    clients: "Barry Callebaut, Cargill, Olam, JDE, Jacobs-Vabre",
-  },
-  {
-    nom: "Cacao Grade A",
-    badge: "Standard",
-    badgeColor: "#1565C0",
-    badgeBg: "#E3F2FD",
-    norme: "ICCO/BCC Grade A",
-    carac: ["Humidité ≤ 8%", "Cut test ≥ 90 brunes"],
-    certs: ["RA ✅", "GlobalG.A.P. ✅"],
-    prix: "1 040 XOF/kg",
-    production: "28,6 t (YTD)",
-    clients: "Touton SA, Nestlé CI, SIPEF",
-  },
-  {
-    nom: "Anacarde WW240",
-    badge: "Export",
-    badgeColor: "#E65100",
-    badgeBg: "#FFF3E0",
-    norme: "SOQC CI — WW240",
-    carac: ["180 noix/livre", "Taux brisures ≤ 5%"],
-    certs: ["SOQC CI ✅"],
-    prix: "680 XOF/kg",
-    production: "28,4 t (YTD)",
-    clients: "Nestlé CI, Olam CI",
-  },
-  {
-    nom: "Anacarde RW180",
-    badge: "Premium",
-    badgeColor: "#6A1B9A",
-    badgeBg: "#F3E5F5",
-    norme: "SOQC CI — RW180",
-    carac: ["Plus gros calibre", "Taux brisures ≤ 3%"],
-    certs: ["SOQC CI ✅"],
-    prix: "594 XOF/kg",
-    production: "12,8 t (YTD)",
-    clients: "Coop. Burkina, local",
-  },
-  {
-    nom: "Maïs grain sec",
-    badge: "Local",
-    badgeColor: "#795548",
-    badgeBg: "#EFEBE9",
-    norme: "Standard marché local",
-    carac: ["Humidité ≤ 13%", "Sans moisissures"],
-    certs: [],
-    prix: "180 XOF/kg",
-    production: "— (vivrier)",
-    clients: "Marchés locaux CI",
-  },
-  {
-    nom: "Riz paddy",
-    badge: "Local",
-    badgeColor: "#795548",
-    badgeBg: "#EFEBE9",
-    norme: "Standard marché local",
-    carac: ["Humidité ≤ 14%"],
-    certs: [],
-    prix: "220 XOF/kg",
-    production: "— (vivrier)",
-    clients: "Marchés locaux CI",
-  },
-];
-
-const TABS = ["Tableau de bord", "Pipeline", "Clients", "Commandes", "Produits"] as const;
-type Tab = typeof TABS[number];
-
-const maxCA = Math.max(...caData.map((d) => Math.max(d.v2024, d.v2025 ?? 0)));
-
+/* ─── Composant principal ─────────────────────────────────────────────────── */
 export default function VentesPage() {
-  const [tab, setTab] = useState<Tab>("Tableau de bord");
+  const [filtre, setFiltre] = useState<Filtre>("Toutes");
+  const [search, setSearch] = useState("");
+
+  const filtrees = VENTES.filter((v) => {
+    if (filtre === "En attente" && v.statut !== "En attente") return false;
+    if (filtre === "Livrées"   && v.statut !== "BL émis")    return false;
+    if (filtre === "Réglées"   && v.statut !== "Réglée")     return false;
+    if (search && !v.client.toLowerCase().includes(search.toLowerCase()) &&
+        !v.id.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  const totalVolume  = VENTES.reduce((s, v) => s + v.volume, 0);
+  const totalMontant = VENTES.reduce((s, v) => s + v.montant, 0);
+  const reglees      = VENTES.filter((v) => v.statut === "Réglée").length;
+
+  /* Donut SVG helper */
+  function donutPath(segments: typeof DONUT_SEGMENTS) {
+    const R = 90; const cx = 140; const cy = 140;
+    let cumul = 0;
+    return segments.map((seg) => {
+      const startAngle = (cumul / 100) * 2 * Math.PI - Math.PI / 2;
+      cumul += seg.pct;
+      const endAngle = (cumul / 100) * 2 * Math.PI - Math.PI / 2;
+      const x1 = cx + R * Math.cos(startAngle);
+      const y1 = cy + R * Math.sin(startAngle);
+      const x2 = cx + R * Math.cos(endAngle);
+      const y2 = cy + R * Math.sin(endAngle);
+      const large = seg.pct > 50 ? 1 : 0;
+      const innerR = 52;
+      const ix1 = cx + innerR * Math.cos(startAngle);
+      const iy1 = cy + innerR * Math.sin(startAngle);
+      const ix2 = cx + innerR * Math.cos(endAngle);
+      const iy2 = cy + innerR * Math.sin(endAngle);
+      return (
+        <path
+          key={seg.label}
+          d={`M ${x1} ${y1} A ${R} ${R} 0 ${large} 1 ${x2} ${y2} L ${ix2} ${iy2} A ${innerR} ${innerR} 0 ${large} 0 ${ix1} ${iy1} Z`}
+          fill={seg.color}
+        />
+      );
+    });
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar title="Ventes & CRM" breadcrumb={["Commerce", "Ventes"]} />
+      <Topbar title="Ventes" breadcrumb={["Commerce", "Ventes"]} />
 
-      <main className="flex-1 p-4 md:p-6 space-y-6 max-w-[1400px] mx-auto w-full">
+      <main className="flex-1 p-6 space-y-5 max-w-[1400px] mx-auto w-full">
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {kpis.map((kpi) => {
-            const Icon = kpi.icon;
-            return (
-              <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-500">{kpi.label}</span>
-                  <span className="rounded-xl p-2" style={{ background: kpi.bg }}>
-                    <Icon size={18} style={{ color: kpi.color }} />
-                  </span>
-                </div>
-                <div className="flex items-end gap-1">
-                  <span className="text-2xl font-bold text-gray-900">{kpi.value}</span>
-                  {kpi.unit && <span className="text-xs text-gray-400 mb-1 ml-1">{kpi.unit}</span>}
-                </div>
-                {kpi.progress !== null && (
-                  <div>
-                    <div className="flex justify-between text-xs text-gray-400 mb-1">
-                      <span>Progression</span>
-                      <span className="font-semibold" style={{ color: kpi.color }}>{kpi.progress}%</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-gray-100">
-                      <div className="h-1.5 rounded-full" style={{ width: `${kpi.progress}%`, background: kpi.color }} />
-                    </div>
-                  </div>
-                )}
-                <span className="text-xs text-gray-400">{kpi.sub}</span>
-              </div>
-            );
-          })}
+        {/* ── En-tête ── */}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h1 className="text-xl font-bold text-gray-900">Ventes</h1>
+          <button className="inline-flex items-center gap-2 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors">
+            <Plus size={14} />
+            Nouvelle vente
+          </button>
         </div>
 
-        {/* Onglets */}
-        <div className="border-b border-gray-200 overflow-x-auto">
-          <nav className="flex gap-0 whitespace-nowrap">
-            {TABS.map((t) => (
+        {/* ── KPIs ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { icon: TrendingUp,  label: "CA 2025 YTD",              value: "30,4 M XOF", sub: "9 ventes réalisées",      color: "#2E7D32", bg: "#E8F5E9" },
+            { icon: ShoppingBag, label: "Nombre de ventes",          value: "9",          sub: "dont 8 réglées",          color: "#1565C0", bg: "#E3F2FD" },
+            { icon: Package,     label: "Volume total",              value: "30,3 t",     sub: "Cacao AA + Anacarde",     color: "#E65100", bg: "#FFF3E0" },
+            { icon: Clock,       label: "Délai moyen règlement",     value: "13 j",       sub: "vs 18j cible",            color: "#6A1B9A", bg: "#F3E5F5" },
+          ].map(({ icon: Icon, label, value, sub, color, bg }) => (
+            <div key={label} className="rounded-2xl border border-gray-100 bg-white p-5 flex items-start gap-3">
+              <div className="rounded-xl p-2.5 shrink-0 mt-0.5" style={{ background: bg }}>
+                <Icon size={18} style={{ color }} />
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-0.5">{label}</div>
+                <div className="text-xl font-bold text-gray-900">{value}</div>
+                <div className="text-xs text-gray-400 mt-0.5">{sub}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Filtres + recherche ── */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1">
+            {(["Toutes", "En attente", "Livrées", "Réglées"] as Filtre[]).map((f) => (
               <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  tab === t
-                    ? "border-[#2E7D32] text-[#2E7D32]"
-                    : "border-transparent text-gray-500 hover:text-gray-800"
+                key={f}
+                onClick={() => setFiltre(f)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  filtre === f ? "bg-[#2E7D32] text-white" : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                {t}
+                {f}
               </button>
             ))}
-          </nav>
+          </div>
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Rechercher client..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 pr-4 py-2 text-xs border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 w-48"
+            />
+          </div>
         </div>
 
-        {/* ══════════ ONGLET TABLEAU DE BORD ══════════ */}
-        {tab === "Tableau de bord" && (
-          <div className="space-y-6">
-
-            {/* Bar chart CA mensuel */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                <div>
-                  <h2 className="text-base font-semibold text-gray-900">CA mensuel 2025 vs 2024</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">Juillet–Décembre 2025 : données 2024 seulement (prévision 2025 en pointillés)</p>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-gray-300" /> 2024</span>
-                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[#4CAF50]" /> 2025 réalisé</span>
-                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm border border-dashed border-[#4CAF50]" /> 2025 prév.</span>
-                </div>
-              </div>
-              <svg viewBox="0 0 700 180" className="w-full" aria-label="CA mensuel 2025 vs 2024">
-                {/* grille */}
-                {[0, 20, 40, 60].map((v) => {
-                  const y = 155 - (v / 60) * 130;
+        {/* ── Tableau des ventes ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs min-w-[780px]">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  {["N°", "Date", "Client", "Produit", "Volume (kg)", "Prix/kg", "Montant", "Statut"].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtrees.map((v) => {
+                  const st = statutStyle(v.statut);
+                  const isHighlighted = v.id === "VNT-2025-008";
                   return (
-                    <g key={v}>
-                      <line x1={40} y1={y} x2={695} y2={y} stroke="#F0F0F0" strokeWidth={1} />
-                      <text x={36} y={y + 4} textAnchor="end" fontSize={9} fill="#BDBDBD">{v}M</text>
-                    </g>
-                  );
-                })}
-                {caData.map((d, i) => {
-                  const slotW = 54;
-                  const x0 = 42 + i * slotW;
-                  const barW = 20;
-                  const gap = 3;
-                  const h24 = (d.v2024 / 60) * 130;
-                  const h25 = d.v2025 ? (d.v2025 / 60) * 130 : 0;
-                  const isProjected = d.v2025 === null;
-                  const projH = isProjected ? (d.v2024 * 1.06 / 60) * 130 : 0;
-                  return (
-                    <g key={d.mois}>
-                      {/* 2024 bar */}
-                      <rect x={x0} y={155 - h24} width={barW} height={h24} rx={2} fill="#D0D0D0" />
-                      {/* 2025 bar ou prévision en pointillés */}
-                      {!isProjected && h25 > 0 && (
-                        <rect x={x0 + barW + gap} y={155 - h25} width={barW} height={h25} rx={2} fill="#4CAF50" />
-                      )}
-                      {isProjected && (
-                        <rect
-                          x={x0 + barW + gap} y={155 - projH} width={barW} height={projH}
-                          rx={2} fill="none" stroke="#4CAF50" strokeWidth={1.5} strokeDasharray="3,2"
-                        />
-                      )}
-                      <text x={x0 + barW + 1.5} y={168} textAnchor="middle" fontSize={8} fill="#9E9E9E">{d.mois}</text>
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-
-            {/* Top 5 clients S1 */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-base font-semibold text-gray-900 mb-4">Top 5 clients S1 2025</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr style={{ background: "#F8FBF8" }}>
-                      {["Client", "Pays", "CA S1 (XOF)", "Produits", "Part (%)", "Tendance"].map((h) => (
-                        <th key={h} className="text-left text-gray-500 font-semibold px-4 py-2.5 whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {topClients.map((c) => (
-                      <tr key={c.client} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">{c.client}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{c.pays}</td>
-                        <td className="px-4 py-3 font-semibold text-[#2E7D32] whitespace-nowrap">{c.ca} M</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.produits}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-gray-800">{c.pct}%</span>
-                            <div className="w-16 h-1.5 rounded-full bg-gray-100">
-                              <div className="h-1.5 rounded-full bg-[#4CAF50]" style={{ width: `${c.pct / 35 * 100}%` }} />
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span
-                            className="font-semibold text-xs"
-                            style={{ color: c.up === true ? "#2E7D32" : c.up === false ? "#E53935" : "#757575" }}
-                          >
-                            {c.trend}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Performance par produit */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-base font-semibold text-gray-900 mb-4">Performance par produit — S1 2025</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr style={{ background: "#F8FBF8" }}>
-                      {["Produit", "Volume S1", "CA S1 (M XOF)", "Prix moyen", "Marge brute"].map((h) => (
-                        <th key={h} className="text-left text-gray-500 font-semibold px-4 py-2.5 whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {produitsPerf.map((p) => (
-                      <tr key={p.produit} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">{p.produit}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{p.volume}</td>
-                        <td className="px-4 py-3 font-semibold text-[#2E7D32] whitespace-nowrap">{p.ca}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{p.prix}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 rounded-full bg-gray-100">
-                              <div className="h-1.5 rounded-full bg-[#4CAF50]" style={{ width: p.marge }} />
-                            </div>
-                            <span className="font-semibold text-gray-800">{p.marge}</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ══════════ ONGLET PIPELINE ══════════ */}
-        {tab === "Pipeline" && (
-          <div className="space-y-6">
-
-            {/* Funnel SVG */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-base font-semibold text-gray-900 mb-5">Entonnoir de vente</h2>
-              <div className="overflow-x-auto">
-                <svg viewBox="0 0 600 120" className="w-full max-w-2xl mx-auto" aria-label="Entonnoir de vente">
-                  {[
-                    { label: "Qualification", count: 52, w: 600, x: 0 },
-                    { label: "Devis envoyé", count: 12, w: 480, x: 60 },
-                    { label: "Négociation", count: 4, w: 340, x: 130 },
-                    { label: "Contrat signé", count: 3, w: 200, x: 200 },
-                    { label: "Livraison", count: 1, w: 100, x: 250 },
-                  ].map((s, i) => {
-                    const h = 18;
-                    const y = i * 22 + 4;
-                    const opacity = 1 - i * 0.12;
-                    return (
-                      <g key={s.label}>
-                        <rect x={s.x} y={y} width={s.w} height={h} rx={4} fill="#2E7D32" fillOpacity={opacity} />
-                        <text x={s.x + 8} y={y + 12} fontSize={9} fill="white" fontWeight="600">{s.label}</text>
-                        <text x={s.x + s.w - 6} y={y + 12} fontSize={10} fill="white" fontWeight="700" textAnchor="end">{s.count}</text>
-                      </g>
-                    );
-                  })}
-                </svg>
-              </div>
-            </div>
-
-            {/* Opportunités en négociation */}
-            <div className="space-y-4">
-              <h2 className="text-base font-semibold text-gray-900">Opportunités en cours de négociation</h2>
-              {opportunites.map((opp) => (
-                <div key={opp.id} className="rounded-2xl border border-gray-100 bg-white p-5 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-xs font-mono text-gray-400">{opp.id}</span>
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">{opp.stade}</span>
-                      </div>
-                      <p className="text-sm font-bold text-gray-900">{opp.title}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{opp.produit}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-lg font-bold text-gray-900">{opp.valeur}</p>
-                      <p className="text-xs text-gray-500">Pondérée : <span className="font-semibold text-[#2E7D32]">{opp.ponderee} M</span></p>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-xs text-gray-400 mb-1">
-                      <span>Probabilité</span>
-                      <span className="font-semibold text-gray-700">{opp.proba}%</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-gray-100">
-                      <div className="h-2 rounded-full" style={{ width: `${opp.proba}%`, background: opp.proba >= 80 ? "#2E7D32" : opp.proba >= 60 ? "#F9A825" : "#E65100" }} />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="rounded-xl bg-gray-50 px-3 py-2">
-                      <p className="text-gray-400 mb-0.5">Contact</p>
-                      <p className="font-medium text-gray-700">{opp.contact}</p>
-                    </div>
-                    <div className="rounded-xl bg-green-50 px-3 py-2">
-                      <p className="text-green-600 mb-0.5">Prochaine étape</p>
-                      <p className="font-medium text-green-800 flex items-center gap-1"><ChevronRight size={12} />{opp.etape}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ══════════ ONGLET CLIENTS ══════════ */}
-        {tab === "Clients" && (
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-gray-900">Carnet de clients — 12 actifs & prospects</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr style={{ background: "#F8FBF8" }}>
-                    {["Client", "Pays", "Catégorie", "Depuis", "CA 2025", "CA 2024", "Évol.", "Incoterm", "Paiement"].map((h) => (
-                      <th key={h} className="text-left text-gray-500 font-semibold px-3 py-2.5 whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {clients.map((c) => (
-                    <tr key={c.client} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-3 py-2.5 font-semibold text-gray-900 whitespace-nowrap">{c.client}</td>
-                      <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{c.pays}</td>
-                      <td className="px-3 py-2.5 whitespace-nowrap">
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{c.categorie}</span>
+                    <tr
+                      key={v.id}
+                      className={`hover:bg-gray-50 transition-colors ${isHighlighted ? "font-semibold" : ""}`}
+                    >
+                      <td className="px-4 py-3 font-mono text-gray-600 whitespace-nowrap">{v.id}</td>
+                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{v.date}/2025</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{v.client}</td>
+                      <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{v.produit}</td>
+                      <td className="px-4 py-3 text-gray-900 font-medium whitespace-nowrap">
+                        {v.volume.toLocaleString("fr-FR")}
                       </td>
-                      <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{c.depuis}</td>
-                      <td className="px-3 py-2.5 font-semibold text-[#2E7D32] whitespace-nowrap">{c.ca2025 !== "—" ? `${c.ca2025} M` : "—"}</td>
-                      <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{c.ca2024 !== "—" ? `${c.ca2024} M` : "—"}</td>
-                      <td className="px-3 py-2.5 whitespace-nowrap">
+                      <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                        {v.prixKg.toLocaleString("fr-FR")} XOF
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-[#2E7D32] whitespace-nowrap">
+                        {formatXOF(v.montant)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span
-                          className="font-semibold"
-                          style={{ color: c.up === true ? "#2E7D32" : c.up === false ? "#E53935" : "#9E9E9E" }}
+                          className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                          style={{ background: st.bg, color: st.color }}
                         >
-                          {c.evol}
+                          {st.label}
                         </span>
                       </td>
-                      <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{c.incoterm}</td>
-                      <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{c.paiement}</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  );
+                })}
+              </tbody>
+              {/* Ligne total */}
+              <tfoot>
+                <tr className="bg-[#F8FBF8] font-bold text-gray-800 border-t-2 border-gray-200">
+                  <td colSpan={4} className="px-4 py-3 text-right text-xs uppercase tracking-wide text-gray-500">Total</td>
+                  <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{totalVolume.toLocaleString("fr-FR")} kg</td>
+                  <td className="px-4 py-3 text-gray-400">—</td>
+                  <td className="px-4 py-3 text-[#2E7D32] whitespace-nowrap">{formatXOF(totalMontant)}</td>
+                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">✅ {reglees}/{VENTES.length} réglées</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
-        )}
+        </div>
 
-        {/* ══════════ ONGLET COMMANDES ══════════ */}
-        {tab === "Commandes" && (
-          <div className="space-y-6">
+        {/* ── Analyse des ventes ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
-            {/* En cours */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-base font-semibold text-gray-900 mb-4">Commandes en cours (3)</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr style={{ background: "#F8FBF8" }}>
-                      {["Commande", "Client", "Lot", "Produit", "Qté", "Valeur", "Livraison prévue", "Statut"].map((h) => (
-                        <th key={h} className="text-left text-gray-500 font-semibold px-4 py-2.5 whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {commandesEnCours.map((c) => (
-                      <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-mono font-semibold text-[#2E7D32] whitespace-nowrap">{c.id}</td>
-                        <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{c.client}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{c.lot}</td>
-                        <td className="px-4 py-3 text-gray-700">{c.produit}</td>
-                        <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">{c.qte}</td>
-                        <td className="px-4 py-3 font-semibold text-[#2E7D32] whitespace-nowrap">{c.valeur} M XOF</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.livraison}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-medium text-xs" style={{ background: c.bg, color: c.color }}>
-                            <Truck size={10} />
-                            {c.statut}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {/* Bar chart CA mensuel — 3/5 */}
+          <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-gray-900">CA mensuel 2025 vs 2024</h2>
+              <div className="flex items-center gap-3 text-xs text-gray-500">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block w-3 h-3 rounded-sm bg-gray-300" /> 2024
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block w-3 h-3 rounded-sm bg-[#4CAF50]" /> 2025
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block w-3 h-3 rounded-sm border border-dashed border-[#4CAF50]" /> 2025 partiel
+                </span>
               </div>
             </div>
+            <svg viewBox="0 0 640 220" className="w-full" aria-label="CA mensuel 2025 vs 2024">
+              {/* Grille */}
+              {[0, 1, 2, 3, 4, 5].map((v) => {
+                const y = 185 - (v / MAX_CA) * 155;
+                return (
+                  <g key={v}>
+                    <line x1={44} y1={y} x2={630} y2={y} stroke="#F0F0F0" strokeWidth={1} />
+                    <text x={40} y={y + 4} textAnchor="end" fontSize={9} fill="#BDBDBD">{v}M</text>
+                  </g>
+                );
+              })}
+              {/* Barres */}
+              {CA_DATA.map((d, i) => {
+                const slotW = 76;
+                const x0 = 48 + i * slotW;
+                const bW = 26;
+                const gap = 4;
+                const h24 = (d.v2024 / MAX_CA) * 155;
+                const h25 = (d.v2025 / MAX_CA) * 155;
+                const isPartial = i === CA_DATA.length - 1;
+                return (
+                  <g key={d.mois}>
+                    {/* 2024 */}
+                    <rect x={x0} y={185 - h24} width={bW} height={h24} rx={3} fill="#D0D0D0" />
+                    {/* 2025 */}
+                    {isPartial ? (
+                      <rect x={x0 + bW + gap} y={185 - h25} width={bW} height={h25} rx={3}
+                        fill="none" stroke="#4CAF50" strokeWidth={1.5} strokeDasharray="4,3" />
+                    ) : (
+                      <rect x={x0 + bW + gap} y={185 - h25} width={bW} height={h25} rx={3} fill="#4CAF50" />
+                    )}
+                    {/* Label */}
+                    <text x={x0 + bW + 1} y={200} textAnchor="middle" fontSize={9} fill="#9E9E9E">{d.mois}</text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
 
-            {/* Historique S1 */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-base font-semibold text-gray-900 mb-4">Historique commandes livrées — S1 2025 (12 lignes)</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr style={{ background: "#F8FBF8" }}>
-                      {["Commande", "Client", "Produit", "Qté", "Valeur", "Date livraison", "Statut"].map((h) => (
-                        <th key={h} className="text-left text-gray-500 font-semibold px-4 py-2.5 whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {historiqueCommandes.map((c) => (
-                      <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-2.5 font-mono font-semibold text-gray-600 whitespace-nowrap">{c.id}</td>
-                        <td className="px-4 py-2.5 font-medium text-gray-800 whitespace-nowrap">{c.client}</td>
-                        <td className="px-4 py-2.5 text-gray-600 whitespace-nowrap">{c.produit}</td>
-                        <td className="px-4 py-2.5 text-gray-700 whitespace-nowrap">{c.qte}</td>
-                        <td className="px-4 py-2.5 font-semibold text-[#2E7D32] whitespace-nowrap">{c.valeur} M XOF</td>
-                        <td className="px-4 py-2.5 text-gray-500 whitespace-nowrap">{c.date}/2025</td>
-                        <td className="px-4 py-2.5 whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E8F5E9] text-[#2E7D32]">
-                            <CheckCircle size={10} />
-                            {c.statut}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {/* Donut répartition — 2/5 */}
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h2 className="text-sm font-semibold text-gray-900 mb-4">Répartition par client et produit</h2>
+            <div className="flex flex-col items-center gap-4">
+              <svg viewBox="0 0 280 280" className="w-full max-w-[220px]" aria-label="Répartition ventes par client">
+                {donutPath(DONUT_SEGMENTS)}
+                {/* Centre */}
+                <text x={140} y={134} textAnchor="middle" fontSize={13} fontWeight="700" fill="#212121">30,4 M</text>
+                <text x={140} y={150} textAnchor="middle" fontSize={9} fill="#9E9E9E">XOF CA</text>
+              </svg>
+              {/* Légende */}
+              <div className="w-full space-y-2">
+                {DONUT_SEGMENTS.map((seg) => (
+                  <div key={seg.label} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full shrink-0" style={{ background: seg.color }} />
+                      <span className="text-gray-700">{seg.label}</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">{seg.pct}%</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* ══════════ ONGLET PRODUITS ══════════ */}
-        {tab === "Produits" && (
-          <div className="space-y-4">
-            <h2 className="text-base font-semibold text-gray-900">Catalogue produits AGRIFRIK</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {catalogue.map((p) => (
-                <div key={p.nom} className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-bold text-gray-900">{p.nom}</p>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ background: p.badgeBg, color: p.badgeColor }}>
-                      {p.badge}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-400">Norme : {p.norme}</p>
-                  <div className="space-y-1">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Caractéristiques</p>
-                    {p.carac.map((c) => (
-                      <div key={c} className="flex items-center gap-1.5 text-xs text-gray-700">
-                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: p.badgeColor }} />
-                        {c}
-                      </div>
-                    ))}
-                  </div>
-                  {p.certs.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {p.certs.map((cert) => (
-                        <span key={cert} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">{cert}</span>
-                      ))}
-                    </div>
-                  )}
-                  <div className="border-t border-gray-50 pt-3 grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <p className="text-gray-400">Prix de référence</p>
-                      <p className="font-bold text-gray-900">{p.prix}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400">Production YTD</p>
-                      <p className="font-semibold text-[#2E7D32]">{p.production}</p>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500 rounded-xl bg-gray-50 px-3 py-2">
-                    <span className="font-semibold text-gray-600">Clients : </span>{p.clients}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* ── Actions bas de page ── */}
+        <div className="flex items-center gap-3 justify-end pb-2">
+          <button className="inline-flex items-center gap-2 border border-gray-200 bg-white text-gray-700 rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-gray-50 transition-colors">
+            Voir toutes les ventes
+          </button>
+          <button className="inline-flex items-center gap-2 border border-[#2E7D32] text-[#2E7D32] bg-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#E8F5E9] transition-colors">
+            <Download size={13} />
+            Exporter Excel
+          </button>
+        </div>
 
       </main>
     </div>

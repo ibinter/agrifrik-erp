@@ -3,392 +3,338 @@
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
 
-const ACTIVITE = [
-  { time: "11/07 11:42", user: "Ibrahim Sawadogo", icon: "✏️", action: "Modifié lot LOT-2025-048 (fermentation J5)", module: "Transformation", moduleColor: "bg-amber-100 text-amber-700" },
-  { time: "11/07 11:38", user: "Adjoua Messou", icon: "📄", action: "Créé rapport CQ-LOT-047", module: "Qualité", moduleColor: "bg-blue-100 text-blue-700" },
-  { time: "11/07 11:15", user: "Admin", icon: "🔐", action: "Connexion réussie — IP: 41.204.65.22 (Soubré)", module: "Auth", moduleColor: "bg-green-100 text-green-700" },
-  { time: "11/07 10:52", user: "Konan Yao", icon: "📍", action: "Mise à jour cartographie PAR-A1 (GPS)", module: "Cartographie", moduleColor: "bg-purple-100 text-purple-700" },
-  { time: "11/07 10:44", user: "Ibrahim Sawadogo", icon: "➕", action: 'Créé tâche "Traitement Ridomil PAR-B1"', module: "Tâches", moduleColor: "bg-indigo-100 text-indigo-700" },
-  { time: "11/07 10:31", user: "Bamba Oumar", icon: "📦", action: "BC ACH-2025-091 émis (335 120 XOF)", module: "Achats", moduleColor: "bg-orange-100 text-orange-700" },
-  { time: "11/07 10:18", user: "Admin", icon: "👤", action: 'Utilisateur "Fanta Koné" réactivé', module: "Admin", moduleColor: "bg-gray-100 text-gray-700" },
-  { time: "11/07 09:55", user: "Adjoua Messou", icon: "📊", action: 'Rapport "KPI Qualité Juillet" généré', module: "Rapports", moduleColor: "bg-teal-100 text-teal-700" },
-  { time: "11/07 09:42", user: "Ibrahim Sawadogo", icon: "🌡️", action: "Température fermentation J4 enregistrée: 52°C", module: "Transformation", moduleColor: "bg-amber-100 text-amber-700" },
-  { time: "11/07 09:30", user: "Admin", icon: "⚙️", action: "Paramètres SMTP mis à jour", module: "Paramètres", moduleColor: "bg-gray-100 text-gray-700" },
-  { time: "11/07 09:12", user: "Konan Yao", icon: "🌱", action: "Parcelle PAR-C2 : traitement phytosanitaire validé", module: "Cultures", moduleColor: "bg-green-100 text-green-700" },
-  { time: "11/07 08:58", user: "Bamba Oumar", icon: "🚚", action: "Réception livraison LIV-2025-034 (NPK 800 kg)", module: "Stocks", moduleColor: "bg-blue-100 text-blue-700" },
-  { time: "11/07 08:45", user: "Ibrahim Sawadogo", icon: "✏️", action: "Lot LOT-2025-047 : fermentation J3 — pH 5,2", module: "Transformation", moduleColor: "bg-amber-100 text-amber-700" },
-  { time: "11/07 08:30", user: "Admin", icon: "🔐", action: "Connexion réussie — IP: 41.204.65.22 (Soubré)", module: "Auth", moduleColor: "bg-green-100 text-green-700" },
-  { time: "11/07 08:15", user: "Adjoua Messou", icon: "✅", action: "Contrôle qualité LOT-2025-045 : Grade AA validé", module: "Qualité", moduleColor: "bg-blue-100 text-blue-700" },
-  { time: "10/07 17:48", user: "Konan Yao", icon: "📋", action: "Planning cultural Sem 28 soumis pour validation", module: "Planning", moduleColor: "bg-purple-100 text-purple-700" },
-  { time: "10/07 16:30", user: "Bamba Oumar", icon: "💰", action: "Devis DEV-2025-012 envoyé à ECOM Côte d'Ivoire", module: "Commerce", moduleColor: "bg-orange-100 text-orange-700" },
-  { time: "10/07 15:22", user: "Ibrahim Sawadogo", icon: "➕", action: "Nouveau lot LOT-2025-049 créé (12 400 kg cacao)", module: "Transformation", moduleColor: "bg-amber-100 text-amber-700" },
-  { time: "10/07 14:10", user: "Admin", icon: "👥", action: "Formation RH : 8 agents inscrits (Juillet 2025)", module: "RH", moduleColor: "bg-pink-100 text-pink-700" },
-  { time: "10/07 13:05", user: "Adjoua Messou", icon: "🔬", action: "Analyse taux humidité : lot 047 → 7,8% (conforme)", module: "Qualité", moduleColor: "bg-blue-100 text-blue-700" },
-  { time: "10/07 11:58", user: "Konan Yao", icon: "🗺️", action: "Boundary PAR-D1 mis à jour (ajout 2,3 ha)", module: "Cartographie", moduleColor: "bg-purple-100 text-purple-700" },
-  { time: "10/07 10:44", user: "Bamba Oumar", icon: "📦", action: "Sortie stock INT-GAZ : 80 L (machine irrigation)", module: "Stocks", moduleColor: "bg-blue-100 text-blue-700" },
-  { time: "10/07 09:30", user: "Ibrahim Sawadogo", icon: "🌡️", action: "Température fermentation J2 lot 048 : 48°C", module: "Transformation", moduleColor: "bg-amber-100 text-amber-700" },
-  { time: "10/07 08:15", user: "Admin", icon: "📧", action: "Notification alerte météo : pluies prévues 12-13/07", module: "Alertes", moduleColor: "bg-red-100 text-red-700" },
-  { time: "09/07 17:00", user: "Adjoua Messou", icon: "📄", action: "Rapport mensuel Juin 2025 finalisé et archivé", module: "Rapports", moduleColor: "bg-teal-100 text-teal-700" },
-  { time: "09/07 15:30", user: "Konan Yao", icon: "✏️", action: "Fiche parcelle PAR-B3 : densité replantation 1 100 p/ha", module: "Cultures", moduleColor: "bg-green-100 text-green-700" },
-  { time: "09/07 14:00", user: "Bamba Oumar", icon: "🧾", action: "Facture FAC-2025-028 émise (SCOPA — 4 800 kg cacao)", module: "Factures", moduleColor: "bg-orange-100 text-orange-700" },
-  { time: "09/07 12:30", user: "Ibrahim Sawadogo", icon: "➕", action: "Tâche tri manuel cacao créée — lot 046", module: "Tâches", moduleColor: "bg-indigo-100 text-indigo-700" },
-  { time: "09/07 10:00", user: "Admin", icon: "⚙️", action: "Mise à jour système AGRIFRIK v2.4.1 appliquée", module: "Admin", moduleColor: "bg-gray-100 text-gray-700" },
-  { time: "09/07 08:30", user: "Adjoua Messou", icon: "🔐", action: "Connexion réussie — IP: 41.204.65.xx (Soubré)", module: "Auth", moduleColor: "bg-green-100 text-green-700" },
+// ─── Types ────────────────────────────────────────────────────────────────────
+type ActionType = "MESSAGE_SENT" | "DATA_REFRESH" | "LOGIN" | "LOGIN_FAILED" | "ALERT_TRIGGERED" | "RECORD_CREATED" | "ORDER_CREATED" | "TASK_UPDATED" | "RECORD_UPDATED" | "AUTO_RECONCILED" | "ALERT_RESOLVED" | "ALERT_REFRESHED" | "REPORT_SUBMITTED" | "PHOTO_UPLOADED" | "REPORT_SENT" | "EXPORT_DONE" | "STOCK_MOVEMENT" | "CQ_VALIDATED";
+
+interface LogEntry {
+  date: string;
+  user: string;
+  module: string;
+  action: ActionType;
+  objet: string;
+  ip: string;
+  flagged?: boolean;
+}
+
+// ─── Données logs ─────────────────────────────────────────────────────────────
+const LOGS: LogEntry[] = [
+  { date: "11/07 09h14", user: "Ibrahim S.", module: "Messagerie", action: "MESSAGE_SENT", objet: "Équipe EXP-001", ip: "154.0.x.x" },
+  { date: "11/07 08h47", user: "Système", module: "Météo", action: "DATA_REFRESH", objet: "AWS-EXP001 (auto)", ip: "Serveur" },
+  { date: "11/07 08h32", user: "Koffi Amani", module: "Auth", action: "LOGIN", objet: "admin@agrifrik.com", ip: "102.176.x.x" },
+  { date: "11/07 08h15", user: "Koffi Amani", module: "Messagerie", action: "MESSAGE_SENT", objet: "Équipe EXP-001", ip: "102.176.x.x" },
+  { date: "11/07 07h00", user: "Ibrahim S.", module: "Auth", action: "LOGIN", objet: "ibrahim.s@agrifrik.com", ip: "154.0.x.x" },
+  { date: "11/07 06h00", user: "Système", module: "Alertes", action: "ALERT_TRIGGERED", objet: "Cut test LOT-047", ip: "Serveur" },
+  { date: "11/07 06h00", user: "Système", module: "Alertes", action: "ALERT_TRIGGERED", objet: "Stock KCl critique", ip: "Serveur" },
+  { date: "10/07 21h47", user: "Inconnu", module: "Auth", action: "LOGIN_FAILED", objet: "—", ip: "45.32.x.x", flagged: true },
+  { date: "10/07 16h48", user: "Adjoua M.", module: "Auth", action: "LOGIN", objet: "adjoua.m@agrifrik.com", ip: "102.176.x.x" },
+  { date: "10/07 16h22", user: "Adjoua M.", module: "Trésorerie", action: "RECORD_CREATED", objet: "MVT-2025-0921", ip: "102.176.x.x" },
+  { date: "10/07 16h18", user: "Adjoua M.", module: "Comptabilité", action: "RECORD_CREATED", objet: "JNL-2025-0921", ip: "102.176.x.x" },
+  { date: "10/07 14h30", user: "Koffi Amani", module: "Achats", action: "ORDER_CREATED", objet: "ACH-2025-024 KCl", ip: "102.176.x.x" },
+  { date: "10/07 11h22", user: "Ibrahim S.", module: "Planning", action: "TASK_UPDATED", objet: "PCT-2025-034 → Planifié", ip: "154.0.x.x" },
+  { date: "09/07 15h14", user: "Koffi Amani", module: "Devis", action: "RECORD_CREATED", objet: "DEV-2025-003 OLAM", ip: "102.176.x.x" },
+  { date: "08/07 14h23", user: "Système", module: "Trésorerie", action: "AUTO_RECONCILED", objet: "MVT-2025-0921", ip: "Serveur" },
+  { date: "08/07 08h00", user: "Koffi Amani", module: "Stocks", action: "ALERT_RESOLVED", objet: "Super Cupravit livré", ip: "102.176.x.x" },
+  { date: "08/07 08h00", user: "Système", module: "Alertes", action: "ALERT_REFRESHED", objet: "7 alertes vérifiées", ip: "Serveur" },
+  { date: "07/07 10h30", user: "Ibrahim S.", module: "Rapports", action: "REPORT_SUBMITTED", objet: "RT-2025-028", ip: "154.0.x.x" },
+  { date: "07/07 07h00", user: "Ibrahim S.", module: "Auth", action: "LOGIN", objet: "ibrahim.s@agrifrik.com", ip: "154.0.x.x" },
+  { date: "07/07 06h58", user: "Ibrahim S.", module: "Terrain", action: "PHOTO_UPLOADED", objet: "14 photos PAR-A1/A2/B1", ip: "154.0.x.x" },
+  { date: "05/07 18h01", user: "Système", module: "Rapports", action: "REPORT_SENT", objet: "Rapport CA hebdo", ip: "Serveur" },
+  { date: "04/07 09h22", user: "Koffi Amani", module: "Ventes", action: "RECORD_UPDATED", objet: "VNT-2025-008 → Réglée", ip: "102.176.x.x" },
+  { date: "03/07 15h44", user: "Adjoua M.", module: "Finance", action: "EXPORT_DONE", objet: "Grand livre BC Q2 2025", ip: "102.176.x.x" },
+  { date: "02/07 08h12", user: "Ibrahim S.", module: "Stocks", action: "STOCK_MOVEMENT", objet: "Super Cupravit -1,8 kg", ip: "154.0.x.x" },
+  { date: "01/07 14h18", user: "Ibrahim S.", module: "Qualité", action: "CQ_VALIDATED", objet: "CQ-2025-046 Grade AA ✅", ip: "154.0.x.x" },
 ];
 
-const SECURITE_ALERTES = [
-  { date: "10/07 23:14", niveau: "warning", levelLabel: "Attention", event: "Tentative connexion échouée (2×) — admin@agrifrik.com", ip: "185.142.x.x (Paris)", action: "Bloqué après 3e échec" },
-  { date: "08/07 14:22", niveau: "info", levelLabel: "Info", event: "Nouvelle session — Mobile (Android)", ip: "41.204.65.xx (Abidjan)", action: "OK" },
-  { date: "06/07 08:15", niveau: "info", levelLabel: "Info", event: "Connexion depuis IP inconnue — Konan Y.", ip: "154.72.x.x (Yamoussoukro)", action: "Validé par SMS" },
-  { date: "01/07 00:00", niveau: "warning", levelLabel: "Attention", event: "Export base de données (backup automatique)", ip: "Système", action: "OK" },
-  { date: "28/06 16:40", niveau: "info", levelLabel: "Info", event: "Activation 2FA — Adjoua Messou", ip: "Système", action: "Activé ✅" },
-];
+// ─── SVG Bar chart horizontal ─────────────────────────────────────────────────
+function BarChartModules() {
+  const data = [
+    { module: "Finance", value: 428 },
+    { module: "Logistique", value: 312 },
+    { module: "Production", value: 287 },
+    { module: "Commerce", value: 214 },
+    { module: "Rapports", value: 198 },
+    { module: "Qualité", value: 176 },
+    { module: "RH", value: 142 },
+    { module: "Auth", value: 98 },
+    { module: "Admin", value: 64 },
+    { module: "IA", value: 48 },
+  ];
+  const W = 640, H = 260;
+  const padL = 90, padR = 60, padT = 20, padB = 20;
+  const rowH = (H - padT - padB) / data.length;
+  const barH = rowH * 0.55;
+  const maxVal = 450;
+  const availW = W - padL - padR;
 
-const SESSIONS_ACTIVES = [
-  { user: "Ibrahim Sawadogo", device: "Mobile Android", ip: "41.204.x.x", depuis: "09h15", loc: "Soubré" },
-  { user: "Adjoua Messou", device: "Chrome — Desktop", ip: "41.204.x.x", depuis: "09h32", loc: "Soubré" },
-  { user: "Konan Yao", device: "Chrome — Desktop", ip: "41.206.x.x", depuis: "09h48", loc: "Gagnoa" },
-  { user: "Admin (vous)", device: "Chrome — Desktop", ip: "41.204.x.x", depuis: "Actuel", loc: "Soubré" },
-];
-
-const ERREURS = [
-  {
-    date: "11/07 10:04",
-    niveau: "error",
-    module: "Météo API",
-    message: "OpenWeatherMap: Rate limit atteint (1 000/h)",
-    stack: "HTTP 429",
-    statut: "warning",
-    statutLabel: "En cours — Quota reset à 11h00",
-  },
-  {
-    date: "10/07 22:00",
-    niveau: "warning",
-    module: "Backup",
-    message: "Backup nocturne : 4 048 Mo — 98% espace disque Supabase",
-    stack: "—",
-    statut: "warning",
-    statutLabel: "À surveiller",
-  },
-  {
-    date: "09/07 14:22",
-    niveau: "error",
-    module: "Sync BICICI",
-    message: "Timeout connexion API Open Banking (30s)",
-    stack: "NET_ERR_TIMEOUT",
-    statut: "ok",
-    statutLabel: "Résolu auto à 14:24",
-  },
-];
-
-// SVG sparkline for error chart
-function ErrorSparkline() {
-  const data = [0, 1, 0, 0, 2, 1, 0, 0, 1, 0, 3, 1, 0, 0, 0, 1, 2, 0, 0, 1, 0, 0, 1, 0, 2, 0, 1, 1, 0, 0];
-  const W = 360, H = 80, PX = 12, PY = 10;
-  const max = Math.max(...data);
-  const step = (W - PX * 2) / (data.length - 1);
-  const pts = data.map((v, i) => {
-    const x = PX + i * step;
-    const y = PY + (H - PY * 2) * (1 - v / max);
-    return `${x},${y}`;
-  });
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm">
-      <polyline
-        points={pts.join(" ")}
-        fill="none"
-        stroke="#EF4444"
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-      />
-      {data.map((v, i) => v > 0 && (
-        <circle
-          key={i}
-          cx={PX + i * step}
-          cy={PY + (H - PY * 2) * (1 - v / max)}
-          r={3}
-          fill="#EF4444"
-        />
-      ))}
-      <line x1={PX} y1={H - PY} x2={W - PX} y2={H - PY} stroke="#E5E7EB" strokeWidth={1} />
-      <text x={PX} y={H - 2} fontSize={8} fill="#9CA3AF">J-30</text>
-      <text x={W - PX} y={H - 2} textAnchor="end" fontSize={8} fill="#9CA3AF">Aujourd&apos;hui</text>
-    </svg>
+    <div className="overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[640px]">
+        {/* Grid lignes */}
+        {[0, 100, 200, 300, 400].map((v) => {
+          const x = padL + (v / maxVal) * availW;
+          return (
+            <g key={v}>
+              <line x1={x} x2={x} y1={padT} y2={H - padB} stroke="#e5e7eb" strokeWidth="0.5" />
+              <text x={x} y={H - padB + 12} textAnchor="middle" fontSize="9" fill="#9ca3af">{v}</text>
+            </g>
+          );
+        })}
+        {data.map((d, i) => {
+          const y = padT + i * rowH + (rowH - barH) / 2;
+          const bw = (d.value / maxVal) * availW;
+          return (
+            <g key={d.module}>
+              <text x={padL - 6} y={y + barH / 2 + 4} textAnchor="end" fontSize="10" fill="#374151">{d.module}</text>
+              <rect x={padL} y={y} width={bw} height={barH} fill="#2E7D32" rx="3" opacity="0.85" />
+              <text x={padL + bw + 5} y={y + barH / 2 + 4} fontSize="10" fill="#374151" fontWeight="600">{d.value}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
   );
 }
 
-export default function LogsPage() {
-  const [tab, setTab] = useState(0);
-  const [search, setSearch] = useState("");
-  const [filterUser, setFilterUser] = useState("Tous");
-  const [filterModule, setFilterModule] = useState("Tous");
+// ─── SVG Donut utilisateurs ───────────────────────────────────────────────────
+function DonutUsers() {
+  const W = 260, H = 260;
+  const cx = 130, cy = 120, r = 90, strokeW = 36;
 
-  const tabs = ["Activité", "Sécurité", "Erreurs"];
+  const data = [
+    { label: "Koffi Amani", pct: 42, color: "#2E7D32" },
+    { label: "Adjoua Messou", pct: 28, color: "#4CAF50" },
+    { label: "Ibrahim Sawadogo", pct: 24, color: "#E65100" },
+    { label: "Système (auto)", pct: 4, color: "#9ca3af" },
+    { label: "Autres", pct: 2, color: "#d1d5db" },
+  ];
 
-  const users = ["Tous", ...Array.from(new Set(ACTIVITE.map((a) => a.user)))];
-  const modules = ["Tous", ...Array.from(new Set(ACTIVITE.map((a) => a.module)))];
-
-  const filteredActivite = ACTIVITE.filter((a) => {
-    const q = search.toLowerCase();
-    const matchSearch = a.action.toLowerCase().includes(q) || a.user.toLowerCase().includes(q);
-    const matchUser = filterUser === "Tous" || a.user === filterUser;
-    const matchModule = filterModule === "Tous" || a.module === filterModule;
-    return matchSearch && matchUser && matchModule;
-  });
+  const circumference = 2 * Math.PI * r;
+  let cumul = 0;
 
   return (
-    <div className="min-h-screen bg-[#F8FBF8]">
-      <Topbar breadcrumb={["Admin", "Journaux système"]} />
-
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">Journal d&apos;activité et de sécurité</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Traçabilité complète des actions système et utilisateurs</p>
+    <div className="overflow-x-auto flex flex-col items-center">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-[260px] h-[260px]">
+        {data.map((d, i) => {
+          const offset = circumference * (1 - cumul / 100);
+          const dash = circumference * (d.pct / 100);
+          cumul += d.pct;
+          return (
+            <circle
+              key={i}
+              cx={cx}
+              cy={cy}
+              r={r}
+              fill="none"
+              stroke={d.color}
+              strokeWidth={strokeW}
+              strokeDasharray={`${dash} ${circumference - dash}`}
+              strokeDashoffset={offset}
+              transform={`rotate(-90 ${cx} ${cy})`}
+            />
+          );
+        })}
+        <text x={cx} y={cy - 6} textAnchor="middle" fontSize="22" fontWeight="700" fill="#1f2937">2 847</text>
+        <text x={cx} y={cy + 12} textAnchor="middle" fontSize="10" fill="#6b7280">actions / mois</text>
+      </svg>
+      {/* Légende */}
+      <div className="flex flex-col gap-1 w-full px-4">
+        {data.map((d) => (
+          <div key={d.label} className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
+              <span className="text-gray-700">{d.label}</span>
+            </div>
+            <span className="font-semibold text-gray-800">{d.pct}%</span>
           </div>
-          <div className="flex gap-2">
-            <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-3 py-1.5 hover:bg-[#1B5E20] transition-colors">
-              Télécharger les logs (CSV)
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Badge action ─────────────────────────────────────────────────────────────
+function ActionBadge({ action, flagged }: { action: ActionType; flagged?: boolean }) {
+  if (flagged || action === "LOGIN_FAILED") {
+    return <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-100 text-red-700">🔴 {action}</span>;
+  }
+  if (action.includes("CREATED") || action.includes("SUBMITTED") || action.includes("UPLOADED") || action === "CQ_VALIDATED") {
+    return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-green-100 text-green-700">{action}</span>;
+  }
+  if (action.includes("UPDATED") || action.includes("RESOLVED") || action.includes("RECONCILED") || action === "TASK_UPDATED") {
+    return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-100 text-blue-700">{action}</span>;
+  }
+  if (action === "LOGIN") {
+    return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-100 text-purple-700">{action}</span>;
+  }
+  return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-gray-600">{action}</span>;
+}
+
+// ─── Filtres actifs ───────────────────────────────────────────────────────────
+type FilterType = "Tous" | "Créations" | "Modifications" | "Suppressions" | "Connexions";
+const FILTERS: FilterType[] = ["Tous", "Créations", "Modifications", "Suppressions", "Connexions"];
+
+function matchFilter(log: LogEntry, filter: FilterType): boolean {
+  if (filter === "Tous") return true;
+  if (filter === "Créations") return log.action.includes("CREATED") || log.action.includes("SUBMITTED") || log.action.includes("UPLOADED") || log.action === "ORDER_CREATED";
+  if (filter === "Modifications") return log.action.includes("UPDATED") || log.action.includes("RESOLVED") || log.action.includes("RECONCILED") || log.action === "TASK_UPDATED" || log.action === "STOCK_MOVEMENT";
+  if (filter === "Suppressions") return false;
+  if (filter === "Connexions") return log.action === "LOGIN" || log.action === "LOGIN_FAILED";
+  return true;
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+export default function LogsPage() {
+  const [filter, setFilter] = useState<FilterType>("Tous");
+  const [search, setSearch] = useState("");
+  const [visibleCount, setVisibleCount] = useState(25);
+
+  const filtered = LOGS.filter((l) => {
+    const q = search.toLowerCase();
+    const matchSearch =
+      !q ||
+      l.user.toLowerCase().includes(q) ||
+      l.module.toLowerCase().includes(q) ||
+      l.action.toLowerCase().includes(q) ||
+      l.objet.toLowerCase().includes(q);
+    return matchSearch && matchFilter(l, filter);
+  });
+
+  const visible = filtered.slice(0, visibleCount);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Topbar breadcrumbs={["Admin", "Journal des Actions"]} />
+
+      <div className="p-6 max-w-7xl mx-auto space-y-5">
+        {/* En-tête */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-bold text-gray-800">Journal des Actions</h1>
+              <p className="text-sm text-gray-500 mt-0.5">Audit trail complet — Traçabilité de toutes les opérations AGRIFRIK</p>
+            </div>
+            <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
+              Télécharger CSV
             </button>
-            <button className="border border-red-200 text-red-600 rounded-xl text-xs font-medium px-3 py-1.5 hover:bg-red-50 transition-colors">
-              Effacer les logs &gt; 90j
-            </button>
+          </div>
+
+          {/* KPI */}
+          <div className="grid grid-cols-4 gap-3 mt-4">
+            {[
+              { label: "Actions ce mois", value: "2 847", color: "text-[#2E7D32]" },
+              { label: "Utilisateurs actifs", value: "5", color: "text-blue-700" },
+              { label: "Erreurs", value: "0", color: "text-green-600" },
+              { label: "Uptime", value: "99,97%", color: "text-purple-700" },
+            ].map((kpi) => (
+              <div key={kpi.label} className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-center">
+                <p className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</p>
+                <p className="text-[11px] text-gray-500 font-medium mt-0.5">{kpi.label}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-white border border-gray-100 rounded-xl p-1 w-fit">
-          {tabs.map((t, i) => (
-            <button
-              key={t}
-              onClick={() => setTab(i)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                tab === i ? "bg-[#2E7D32] text-white" : "text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+        {/* Filtres */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1">
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+                  filter === f
+                    ? "bg-[#2E7D32] text-white shadow"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text"
+            placeholder="Filtrer par utilisateur, module ou action..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#2E7D32] w-72 bg-white"
+          />
+          <span className="text-xs text-gray-500">{filtered.length} entrée{filtered.length > 1 ? "s" : ""}</span>
         </div>
 
-        {/* TAB 0 — Activité */}
-        {tab === 0 && (
-          <div className="space-y-4">
-            {/* Stats bar */}
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: "Actions aujourd'hui", value: "284", color: "text-[#2E7D32]" },
-                { label: "Modules actifs", value: "5", color: "text-blue-700" },
-                { label: "Utilisateurs connectés", value: "4", color: "text-purple-700" },
-              ].map((s) => (
-                <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4">
-                  <p className="text-xs text-gray-500">{s.label}</p>
-                  <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Filtres */}
-            <div className="flex flex-wrap gap-3 items-center">
-              <input
-                type="text"
-                placeholder="Rechercher..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#2E7D32] w-48"
-              />
-              <select
-                value={filterUser}
-                onChange={(e) => setFilterUser(e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#2E7D32]"
-              >
-                {users.map((u) => <option key={u}>{u}</option>)}
-              </select>
-              <select
-                value={filterModule}
-                onChange={(e) => setFilterModule(e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#2E7D32]"
-              >
-                {modules.map((m) => <option key={m}>{m}</option>)}
-              </select>
-              <span className="text-xs text-gray-500">{filteredActivite.length} entrées</span>
-            </div>
-
-            {/* Timeline */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-0">
-              {filteredActivite.map((a, i) => (
-                <div key={i} className="flex gap-4 group">
-                  <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-sm flex-shrink-0 mt-1">
-                      {a.icon}
-                    </div>
-                    {i < filteredActivite.length - 1 && (
-                      <div className="w-px flex-1 bg-gray-100 my-1" />
-                    )}
-                  </div>
-                  <div className="flex-1 pb-4">
-                    <div className="flex flex-wrap items-start gap-2">
-                      <span className="text-xs text-gray-400 whitespace-nowrap mt-0.5">{a.time}</span>
-                      <span className="text-xs font-semibold text-gray-800">{a.user}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${a.moduleColor}`}>{a.module}</span>
-                    </div>
-                    <p className="text-xs text-gray-600 mt-1">{a.action}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Tableau des logs */}
+        <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  {["Heure", "Utilisateur", "Module", "Action", "Objet", "IP"].map((h) => (
+                    <th key={h} className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-600 whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((log, i) => (
+                  <tr
+                    key={i}
+                    className={`border-t border-gray-50 hover:bg-gray-50/80 transition-colors ${
+                      log.flagged ? "bg-red-50/50" : i % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                    }`}
+                  >
+                    <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap font-mono text-[11px]">{log.date}</td>
+                    <td className="px-3 py-2.5 font-semibold text-gray-800 whitespace-nowrap">{log.user}</td>
+                    <td className="px-3 py-2.5">
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 whitespace-nowrap">
+                        {log.module}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap">
+                      <ActionBadge action={log.action} flagged={log.flagged} />
+                    </td>
+                    <td className="px-3 py-2.5 text-gray-700 max-w-[200px] truncate">{log.objet}</td>
+                    <td className="px-3 py-2.5 text-gray-500 font-mono text-[11px] whitespace-nowrap">
+                      {log.flagged ? (
+                        <span className="text-red-600 font-semibold">{log.ip} 🔴</span>
+                      ) : (
+                        log.ip
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
 
-        {/* TAB 1 — Sécurité */}
-        {tab === 1 && (
-          <div className="space-y-5">
-            {/* Résumé */}
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: "Sessions actives", value: "4", color: "text-[#2E7D32]" },
-                { label: "Dernière activité suspecte", value: "10/07 (bloquée)", color: "text-amber-600" },
-                { label: "2FA activé", value: "12/15 utilisateurs (80%)", color: "text-blue-700" },
-              ].map((s) => (
-                <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4">
-                  <p className="text-xs text-gray-500">{s.label}</p>
-                  <p className={`text-sm font-bold mt-1 ${s.color}`}>{s.value}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Alertes sécurité */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-800 mb-4">Alertes de sécurité récentes</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-[#F8FBF8]">
-                      {["Date", "Niveau", "Événement", "IP", "Action"].map((h) => (
-                        <th key={h} className="py-2.5 px-3 text-left text-gray-500 font-medium whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {SECURITE_ALERTES.map((a, i) => (
-                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50">
-                        <td className="py-2.5 px-3 text-gray-600 whitespace-nowrap">{a.date}</td>
-                        <td className="py-2.5 px-3">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                            a.niveau === "warning" ? "bg-yellow-100 text-yellow-700" : "bg-green-100 text-green-700"
-                          }`}>
-                            {a.niveau === "warning" ? "🟡" : "🟢"} {a.levelLabel}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3 text-gray-800">{a.event}</td>
-                        <td className="py-2.5 px-3 text-gray-500 font-mono">{a.ip}</td>
-                        <td className="py-2.5 px-3 text-gray-600">{a.action}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Sessions actives */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-800 mb-4">Sessions actives</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-[#F8FBF8]">
-                      {["Utilisateur", "Appareil", "IP", "Connecté depuis", "Localisation"].map((h) => (
-                        <th key={h} className="py-2.5 px-3 text-left text-gray-500 font-medium whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {SESSIONS_ACTIVES.map((s, i) => (
-                      <tr key={i} className={`border-t border-gray-50 hover:bg-gray-50 ${s.user.includes("(vous)") ? "bg-green-50" : ""}`}>
-                        <td className="py-2.5 px-3 font-semibold text-gray-800">{s.user}</td>
-                        <td className="py-2.5 px-3 text-gray-600">{s.device}</td>
-                        <td className="py-2.5 px-3 text-gray-500 font-mono">{s.ip}</td>
-                        <td className="py-2.5 px-3 text-gray-600">{s.depuis}</td>
-                        <td className="py-2.5 px-3">
-                          <span className="inline-flex items-center gap-1 text-gray-600">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                            {s.loc}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2 — Erreurs */}
-        {tab === 2 && (
-          <div className="space-y-5">
-            {/* Erreurs actives */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-800 mb-4">
-                Erreurs actives
-                <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs">{ERREURS.length}</span>
-              </h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-[#F8FBF8]">
-                      {["Date", "Niveau", "Module", "Message", "Stack / Code", "Statut"].map((h) => (
-                        <th key={h} className="py-2.5 px-3 text-left text-gray-500 font-medium whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ERREURS.map((e, i) => (
-                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50">
-                        <td className="py-2.5 px-3 text-gray-600 whitespace-nowrap">{e.date}</td>
-                        <td className="py-2.5 px-3">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                            e.niveau === "error" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"
-                          }`}>
-                            {e.niveau === "error" ? "🔴" : "🟡"} {e.niveau === "error" ? "Erreur" : "Warning"}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3 font-medium text-gray-800">{e.module}</td>
-                        <td className="py-2.5 px-3 text-gray-700 max-w-xs">{e.message}</td>
-                        <td className="py-2.5 px-3 font-mono text-gray-500">{e.stack}</td>
-                        <td className="py-2.5 px-3">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                            e.statut === "ok" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                          }`}>
-                            {e.statut === "ok" ? "✅" : "⚠️"} {e.statutLabel}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Sparkline erreurs */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-800 mb-1">Métriques d&apos;erreurs — 30 derniers jours</h2>
-              <p className="text-xs text-gray-500 mb-4">Max 3/jour — Moyenne 0,4 erreurs/jour</p>
-              <ErrorSparkline />
-            </div>
-
-            {/* Boutons d'action */}
-            <div className="flex gap-3">
-              <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
-                Télécharger les logs (CSV)
-              </button>
-              <button className="border border-red-200 text-red-600 rounded-xl text-xs font-medium px-4 py-2 hover:bg-red-50 transition-colors">
-                Effacer les logs &gt; 90j
+          {/* Charger plus */}
+          {visibleCount < filtered.length && (
+            <div className="p-4 border-t border-gray-100 text-center">
+              <button
+                onClick={() => setVisibleCount((c) => c + 25)}
+                className="border border-gray-200 text-gray-600 rounded-xl text-xs font-medium px-6 py-2 hover:bg-gray-50 transition-colors"
+              >
+                Charger 25 suivantes ({filtered.length - visibleCount} restantes)
               </button>
             </div>
+          )}
+        </div>
+
+        {/* Statistiques d'usage */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Bar chart modules */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <h2 className="text-sm font-semibold text-gray-800 mb-1">Actions par module</h2>
+            <p className="text-[11px] text-gray-400 mb-4">30 derniers jours</p>
+            <BarChartModules />
           </div>
-        )}
+
+          {/* Donut utilisateurs */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <h2 className="text-sm font-semibold text-gray-800 mb-1">Activité par utilisateur</h2>
+            <p className="text-[11px] text-gray-400 mb-4">30 derniers jours</p>
+            <DonutUsers />
+          </div>
+        </div>
       </div>
     </div>
   );

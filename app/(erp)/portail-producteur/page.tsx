@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 
 // ─── types ───────────────────────────────────────────────────────────────────
-type Tab = "Tableau de bord" | "Mes parcelles" | "Prix & Marché" | "Messagerie";
-const TABS: Tab[] = ["Tableau de bord", "Mes parcelles", "Prix & Marché", "Messagerie"];
+type Tab = "Tableau de bord" | "Mes parcelles" | "Prix & Marché" | "Messagerie" | "Certifications";
+const TABS: Tab[] = ["Tableau de bord", "Mes parcelles", "Prix & Marché", "Messagerie", "Certifications"];
 
 // ─── données prix cacao ──────────────────────────────────────────────────────
 const prixCacao = [
@@ -440,6 +440,144 @@ export default function PortailProducteurPage() {
                 >
                   <Send size={16} color="white" />
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Certifications ──────────────────────────────────────────── */}
+        {tab === "Certifications" && (
+          <div className="space-y-5">
+
+            {/* Carte principale certification RA */}
+            <div className="rounded-2xl border-2 border-green-200 bg-white shadow-sm overflow-hidden">
+              <div className="px-5 py-4 flex items-center justify-between gap-3 flex-wrap" style={{ background: "linear-gradient(135deg,#1B5E20,#2E7D32)" }}>
+                <div>
+                  <p className="text-white font-bold text-base">Rainforest Alliance — RA-CI-2025-EFA001</p>
+                  <p className="text-green-200 text-xs mt-0.5">Certificat de conformité agricole durable</p>
+                </div>
+                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-green-400 text-white">✅ Valide</span>
+              </div>
+              <div className="px-5 py-4 space-y-4">
+                {/* Dates */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Date d&apos;obtention</p>
+                    <p className="font-semibold text-gray-800">28/02/2025</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Date d&apos;expiration</p>
+                    <p className="font-semibold text-gray-800">28/02/2026</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Score obtenu</p>
+                    <p className="font-semibold text-[#2E7D32]">94/100</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Auditeur</p>
+                    <p className="font-semibold text-gray-800">Bureau Veritas</p>
+                  </div>
+                </div>
+
+                {/* Barre de progression annuelle */}
+                <div>
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
+                    <span>Progression annuelle — 8 mois écoulés sur 12</span>
+                    <span className="font-semibold text-[#2E7D32]">Renouvellement dans 7 mois</span>
+                  </div>
+                  <div className="w-full h-3 rounded-full bg-gray-100 relative overflow-hidden">
+                    <div className="h-3 rounded-full bg-[#2E7D32] transition-all" style={{ width: "66.7%" }} />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                    <span>Fév 2025</span>
+                    <span>Fév 2026</span>
+                  </div>
+                </div>
+
+                {/* NC et prochain audit */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="rounded-xl bg-green-50 border border-green-100 px-4 py-3 flex items-center gap-3">
+                    <CheckCircle2 size={20} className="text-green-600 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs font-semibold text-green-800">0 non-conformité ouverte</p>
+                      <p className="text-xs text-green-600 mt-0.5">Aucune action corrective en attente ✅</p>
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-yellow-50 border border-yellow-100 px-4 py-3 flex items-center gap-3">
+                    <Calendar size={20} className="text-yellow-600 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs font-semibold text-yellow-800">Prochain pré-audit interne</p>
+                      <p className="text-xs text-yellow-700 mt-0.5">Août 2025 — préparation renouvellement RA</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bouton téléchargement */}
+                <div className="pt-2 border-t border-gray-100">
+                  <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-[#2E7D32] hover:bg-[#1B5E20] transition-colors">
+                    <FileText size={15} /> Télécharger mon certificat RA (PDF)
+                  </button>
+                  <p className="text-xs text-gray-400 mt-1.5">Certificat officiel Bureau Veritas — Audit 18-19/02/2025</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Historique certifications */}
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100">
+                <h2 className="text-sm font-semibold text-gray-700">Historique des certifications</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#F8FBF8] border-b border-gray-100">
+                      {["Année", "Score", "NC majeures", "NC mineures", "Statut"].map((h) => (
+                        <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {[
+                      { annee: "2021", score: "82/100", ncMaj: 2, ncMin: 5 },
+                      { annee: "2022", score: "87/100", ncMaj: 1, ncMin: 4 },
+                      { annee: "2023", score: "91/100", ncMaj: 0, ncMin: 4 },
+                      { annee: "2024", score: "92/100", ncMaj: 0, ncMin: 3 },
+                      { annee: "2025", score: "94/100", ncMaj: 0, ncMin: 3 },
+                    ].map((r) => (
+                      <tr key={r.annee} className="hover:bg-gray-50">
+                        <td className="px-4 py-2.5 font-semibold text-gray-800">{r.annee}</td>
+                        <td className="px-4 py-2.5 font-bold text-[#2E7D32]">{r.score}</td>
+                        <td className="px-4 py-2.5">
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${r.ncMaj > 0 ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"}`}>
+                            {r.ncMaj}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">{r.ncMin}</span>
+                        </td>
+                        <td className="px-4 py-2.5 text-xs font-semibold text-green-700">✅ Certifié</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Calendrier prochaines étapes */}
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+              <h2 className="text-sm font-semibold text-blue-800 mb-3">Prochaines étapes — Renouvellement RA 2026</h2>
+              <div className="space-y-2">
+                {[
+                  { date: "Août 2025", action: "Pré-audit interne de préparation", statut: "🟡 À venir" },
+                  { date: "Nov 2025", action: "Correction éventuelles non-conformités", statut: "🔵 Planifié" },
+                  { date: "Fév 2026", action: "Audit de renouvellement officiel Bureau Veritas", statut: "🔵 Planifié" },
+                ].map((e) => (
+                  <div key={e.action} className="flex items-center gap-3 bg-white/70 rounded-xl px-4 py-2.5">
+                    <span className="text-xs font-mono font-semibold text-blue-700 w-20 flex-shrink-0">{e.date}</span>
+                    <span className="text-xs text-gray-700 flex-1">{e.action}</span>
+                    <span className="text-xs">{e.statut}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

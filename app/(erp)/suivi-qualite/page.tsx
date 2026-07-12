@@ -1,515 +1,300 @@
 "use client";
 
-import { useState } from "react";
 import Topbar from "../../components/Topbar";
+import { useState } from "react";
+import { CheckCircle, Clock, AlertTriangle, Award, Droplets, Thermometer, ShieldCheck } from "lucide-react";
 
-const TABS = ["Tableau de bord", "Contrôles", "Non-conformités", "Indicateurs"] as const;
-type Tab = (typeof TABS)[number];
+// ── Data ──────────────────────────────────────────────────────────────────────
 
-// ── SVG: Line chart évolution score qualité 12 mois ──────────────────────────
-const scores = [
-  { m: "Jul 24", v: 94.2 },
-  { m: "Aoû", v: 93.8 },
-  { m: "Sep", v: 95.1 },
-  { m: "Oct", v: 96.4 },
-  { m: "Nov", v: 97.2 },
-  { m: "Déc", v: 96.8 },
-  { m: "Jan 25", v: 95.4 },
-  { m: "Fév", v: 96.1 },
-  { m: "Mar", v: 96.8 },
-  { m: "Avr", v: 97.0 },
-  { m: "Mai", v: 96.4 },
-  { m: "Jun", v: 96.2 },
+const lots = [
+  { cq: "CQ-2025-038", date: "12/01", lot: "LOT-038", cutTest: 92, humidite: 7.6, score: 91, auditeur: "Interne" },
+  { cq: "CQ-2025-039", date: "10/02", lot: "LOT-039", cutTest: 91, humidite: 7.8, score: 90, auditeur: "Interne" },
+  { cq: "CQ-2025-040", date: "14/03", lot: "LOT-040", cutTest: 93, humidite: 7.4, score: 93, auditeur: "Interne" },
+  { cq: "CQ-2025-041", date: "16/04", lot: "LOT-041", cutTest: 95, humidite: 7.2, score: 95, auditeur: "BV Soubré" },
+  { cq: "CQ-2025-042", date: "13/05", lot: "LOT-042", cutTest: 94, humidite: 7.5, score: 94, auditeur: "Interne" },
+  { cq: "CQ-2025-043", date: "02/06", lot: "LOT-043", cutTest: 96, humidite: 7.1, score: 96, auditeur: "BV Soubré" },
+  { cq: "CQ-2025-044", date: "22/06", lot: "LOT-044", cutTest: 95, humidite: 7.4, score: 95, auditeur: "Interne" },
+  { cq: "CQ-2025-045", date: "22/06", lot: "LOT-045", cutTest: 94, humidite: 7.3, score: 94, auditeur: "Interne" },
+  { cq: "CQ-2025-046", date: "01/07", lot: "LOT-046", cutTest: 97, humidite: 7.2, score: 96, auditeur: "BV Soubré" },
 ];
 
-function ScoreLineChart() {
-  const W = 700, H = 220, PL = 48, PR = 20, PT = 16, PB = 36;
-  const cW = W - PL - PR, cH = H - PT - PB;
-  const minV = 92, maxV = 98;
-  const xOf = (i: number) => PL + (i / (scores.length - 1)) * cW;
-  const yOf = (v: number) => PT + ((maxV - v) / (maxV - minV)) * cH;
+// ── SVG Line Chart ─────────────────────────────────────────────────────────────
 
-  const area =
-    "M" + xOf(0) + "," + yOf(scores[0].v) + " " +
-    scores.map((s, i) => "L" + xOf(i) + "," + yOf(s.v)).join(" ") +
-    " L" + xOf(scores.length - 1) + "," + (PT + cH) +
-    " L" + xOf(0) + "," + (PT + cH) + " Z";
+const gradeValues = [92, 91, 93, 95, 94, 96, 95, 94, 97];
+const lotLabels = ["LOT-038", "039", "040", "041", "042", "043", "044", "045", "046"];
 
-  const pts = scores.map((s, i) => xOf(i) + "," + yOf(s.v)).join(" ");
-  const thY = yOf(95);
+const CW = 640, CH = 200, PL = 44, PR = 20, PT = 22, PB = 38;
+const plotW = CW - PL - PR;
+const plotH = CH - PT - PB;
+const minV = 88, maxV = 100;
 
-  return (
-    <svg viewBox={"0 0 " + W + " " + H} className="w-full" style={{ maxWidth: W }}>
-      <path d={area} fill="#dcfce7" opacity="0.6" />
-      {[92, 94, 95, 96, 97, 98].map((v) => (
-        <g key={v}>
-          <line x1={PL} y1={yOf(v)} x2={PL + cW} y2={yOf(v)} stroke="#e5e7eb" strokeWidth="1" />
-          <text x={PL - 6} y={yOf(v) + 4} fontSize="10" fill="#9ca3af" textAnchor="end">{v}</text>
-        </g>
-      ))}
-      <line x1={PL} y1={thY} x2={PL + cW} y2={thY} stroke="#ef4444" strokeWidth="1.2" strokeDasharray="5 4" />
-      <text x={PL + cW - 2} y={thY - 4} fontSize="10" fill="#ef4444" textAnchor="end">Seuil Grade A min (95)</text>
-      <polyline points={pts} fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinejoin="round" />
-      {scores.map((s, i) => (
-        <circle key={i} cx={xOf(i)} cy={yOf(s.v)} r="3.5" fill="#2E7D32" />
-      ))}
-      {scores.map((s, i) => (
-        <text key={i} x={xOf(i)} y={H - 4} fontSize="9" fill="#6b7280" textAnchor="middle">{s.m}</text>
-      ))}
-      <text x={xOf(11)} y={yOf(96.2) - 12} fontSize="11" fill="#166534" fontWeight="600">+2,0 pts vs Jul 2024</text>
-    </svg>
-  );
-}
+function xOf(i: number) { return PL + (i / (gradeValues.length - 1)) * plotW; }
+function yOf(v: number) { return PT + plotH - ((v - minV) / (maxV - minV)) * plotH; }
 
-// ── SVG: Donut répartition grades ─────────────────────────────────────────────
-function GradeDonut() {
-  const cx = 140, cy = 140, R = 100, r = 60;
-  const grades = [
-    { label: "Grade AA", pct: 62, color: "#1B5E20" },
-    { label: "Grade A", pct: 34, color: "#4CAF50" },
-    { label: "Grade B", pct: 4, color: "#f59e0b" },
-    { label: "Rejet", pct: 0, color: "#ef4444" },
-  ];
-  let cum = 0;
-  const slices = grades.map((g) => {
-    const start = cum;
-    cum += g.pct;
-    return { ...g, start, end: cum };
-  });
-  function arc(start: number, end: number) {
-    if (end - start === 0) return "";
-    const s = (start / 100) * 2 * Math.PI - Math.PI / 2;
-    const e = (end / 100) * 2 * Math.PI - Math.PI / 2;
-    const x1 = cx + R * Math.cos(s), y1 = cy + R * Math.sin(s);
-    const x2 = cx + R * Math.cos(e), y2 = cy + R * Math.sin(e);
-    const ix1 = cx + r * Math.cos(s), iy1 = cy + r * Math.sin(s);
-    const ix2 = cx + r * Math.cos(e), iy2 = cy + r * Math.sin(e);
-    const lg = end - start > 50 ? 1 : 0;
-    return `M${x1},${y1} A${R},${R} 0 ${lg} 1 ${x2},${y2} L${ix2},${iy2} A${r},${r} 0 ${lg} 0 ${ix1},${iy1} Z`;
-  }
-  return (
-    <div className="flex items-center gap-8">
-      <svg viewBox="0 0 280 280" style={{ width: 180 }}>
-        {slices.map((s) => s.pct > 0 && (
-          <path key={s.label} d={arc(s.start, s.end)} fill={s.color} />
-        ))}
-        <circle cx={cx} cy={cy} r={r - 2} fill="white" />
-        <text x={cx} y={cy - 6} textAnchor="middle" fontSize="22" fontWeight="700" fill="#1B5E20">96,2</text>
-        <text x={cx} y={cy + 14} textAnchor="middle" fontSize="11" fill="#6b7280">Score moyen</text>
-      </svg>
-      <div className="space-y-3">
-        {grades.map((g) => (
-          <div key={g.label} className="flex items-center gap-2 text-sm">
-            <span className="w-3 h-3 rounded-full inline-block" style={{ background: g.color }} />
-            <span className="text-gray-700 w-20">{g.label}</span>
-            <span className="font-semibold text-gray-900">{g.pct}%</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+const polyline = gradeValues.map((v, i) => `${xOf(i)},${yOf(v)}`).join(" ");
+const areaPath =
+  `M ${xOf(0)},${yOf(gradeValues[0])} ` +
+  gradeValues.map((v, i) => `L ${xOf(i)},${yOf(v)}`).join(" ") +
+  ` L ${xOf(gradeValues.length - 1)},${PT + plotH} L ${xOf(0)},${PT + plotH} Z`;
 
-// ── SVG: Pareto NC ────────────────────────────────────────────────────────────
-const paretoData = [
-  { label: "Certif./doc", count: 8, pct: 42 },
-  { label: "Fermentation", count: 5, pct: 26 },
-  { label: "Maintenance", count: 3, pct: 16 },
-  { label: "Qualité eau", count: 2, pct: 11 },
-  { label: "Autres", count: 1, pct: 5 },
+// ── Heatmap ────────────────────────────────────────────────────────────────────
+
+type CellQ = "excellent" | "ok";
+// columns: Cut test AA% | Humidité | Moisissures | Fermentation | Score global
+const heatmapData: CellQ[][] = [
+  ["ok",        "ok", "excellent", "ok", "ok"],
+  ["ok",        "ok", "excellent", "ok", "ok"],
+  ["ok",        "ok", "excellent", "ok", "ok"],
+  ["excellent", "ok", "excellent", "ok", "excellent"],
+  ["ok",        "ok", "excellent", "ok", "ok"],
+  ["excellent", "ok", "excellent", "ok", "excellent"],
+  ["excellent", "ok", "excellent", "ok", "excellent"],
+  ["ok",        "ok", "excellent", "ok", "ok"],
+  ["excellent", "ok", "excellent", "ok", "excellent"],
 ];
-
-function ParetoChart() {
-  const W = 560, H = 220, PL = 44, PR = 50, PT = 16, PB = 40;
-  const cW = W - PL - PR, cH = H - PT - PB;
-  const maxCount = 8;
-  const bW = cW / paretoData.length;
-  let cum = 0;
-  const cumPcts = paretoData.map((d) => { cum += d.pct; return cum; });
-  const xOf = (i: number) => PL + i * bW + bW / 2;
-  const yCountOf = (c: number) => PT + ((maxCount - c) / maxCount) * cH;
-  const yCumOf = (p: number) => PT + ((100 - p) / 100) * cH;
-  const linePts = paretoData.map((_, i) => xOf(i) + "," + yCumOf(cumPcts[i])).join(" ");
-  return (
-    <svg viewBox={"0 0 " + W + " " + H} className="w-full" style={{ maxWidth: W }}>
-      {[0, 2, 4, 6, 8].map((v) => (
-        <g key={v}>
-          <line x1={PL} y1={yCountOf(v)} x2={PL + cW} y2={yCountOf(v)} stroke="#e5e7eb" strokeWidth="1" />
-          <text x={PL - 4} y={yCountOf(v) + 4} fontSize="10" fill="#9ca3af" textAnchor="end">{v}</text>
-        </g>
-      ))}
-      {[0, 25, 50, 75, 100].map((p) => (
-        <text key={p} x={PL + cW + PR - 2} y={yCumOf(p) + 4} fontSize="10" fill="#6b7280" textAnchor="end">{p}%</text>
-      ))}
-      {paretoData.map((d, i) => (
-        <rect key={i} x={PL + i * bW + 4} y={yCountOf(d.count)} width={bW - 8}
-          height={yCountOf(0) - yCountOf(d.count)} fill="#4CAF50" rx="3" />
-      ))}
-      {paretoData.map((d, i) => (
-        <text key={i} x={xOf(i)} y={H - 6} fontSize="9" fill="#6b7280" textAnchor="middle">{d.label}</text>
-      ))}
-      <polyline points={linePts} fill="none" stroke="#E65100" strokeWidth="2" />
-      {paretoData.map((_, i) => (
-        <circle key={i} cx={xOf(i)} cy={yCumOf(cumPcts[i])} r="3.5" fill="#E65100" />
-      ))}
-    </svg>
-  );
-}
-
-// ── Static data ───────────────────────────────────────────────────────────────
-const cutTests = [
-  { lot: "LOT-2025-048", date: "11/07 J5", feveTotal: 85, brunes: "89%", violettes: "8%", ardoisees: "3%", moisies: "0%", score: "89/100", grade: "En cours", ok: false },
-  { lot: "LOT-2025-047", date: "02/07", feveTotal: 100, brunes: "94%", violettes: "4%", ardoisees: "2%", moisies: "0%", score: "94/100", grade: "A", ok: true },
-  { lot: "LOT-2025-046", date: "01/07", feveTotal: 100, brunes: "97%", violettes: "2%", ardoisees: "1%", moisies: "0%", score: "97/100", grade: "AA", ok: true },
-  { lot: "LOT-2025-045", date: "30/06", feveTotal: 100, brunes: "96%", violettes: "3%", ardoisees: "1%", moisies: "0%", score: "96/100", grade: "AA", ok: true },
-  { lot: "LOT-2025-044", date: "22/06", feveTotal: 100, brunes: "95%", violettes: "4%", ardoisees: "1%", moisies: "0%", score: "95/100", grade: "AA", ok: true },
-  { lot: "LOT-2025-043", date: "15/06", feveTotal: 100, brunes: "93%", violettes: "5%", ardoisees: "2%", moisies: "0%", score: "93/100", grade: "A", ok: true },
+const heatmapCols = ["Cut test AA%", "Humidité", "Moisissures", "Fermentation", "Score global"];
+const heatmapValues: (string | number)[][] = [
+  [92, "7,6%", "0%", "50,2°C", "91/100"],
+  [91, "7,8%", "0%", "50,6°C", "90/100"],
+  [93, "7,4%", "0%", "50,8°C", "93/100"],
+  [95, "7,2%", "0%", "51,0°C", "95/100"],
+  [94, "7,5%", "0%", "50,9°C", "94/100"],
+  [96, "7,1%", "0%", "51,2°C", "96/100"],
+  [95, "7,4%", "0%", "51,0°C", "95/100"],
+  [94, "7,3%", "0%", "50,8°C", "94/100"],
+  [97, "7,2%", "0%", "51,4°C", "96/100"],
 ];
+const heatmapRows = ["LOT-038", "LOT-039", "LOT-040", "LOT-041", "LOT-042", "LOT-043", "LOT-044", "LOT-045", "LOT-046"];
 
-const controlesPlanifies = [
-  { lot: "LOT-2025-048", stade: "J6 final", date: "12/07", controleur: "Adjoua M.", statut: "⏳ Demain" },
-  { lot: "LOT-2025-047", stade: "Avant expédition", date: "14/07", controleur: "Adjoua M.", statut: "📅 Planifié" },
-];
+// ── Component ──────────────────────────────────────────────────────────────────
 
-const nonConformites = [
-  { id: "NC-2025-003", date: "08/07", type: "Certificat eau", desc: "Analyse CIAPOL expirée", crit: "Critique", critColor: "#ef4444", assigne: "Adjoua M.", deadline: "18/07", statut: "En cours" },
-  { id: "NC-2025-004", date: "09/07", type: "Maintenance", desc: "MAT-001 non disponible", crit: "Important", critColor: "#f59e0b", assigne: "Bamba O.", deadline: "15/07", statut: "Pièces commandées" },
-  { id: "NC-2025-005", date: "02/07", type: "Fermentation", desc: "LOT-047 score J6=89% (seuil 90%) → Grade A", crit: "Info", critColor: "#22c55e", assigne: "Ibrahim S.", deadline: "—", statut: "Classée" },
-  { id: "NC-2025-006", date: "01/07", type: "Documentation", desc: "Registre épandage non à jour — 3 interventions mai", crit: "Important", critColor: "#f59e0b", assigne: "Konan Y.", deadline: "15/07", statut: "En cours" },
-];
-
-const indicateurs = [
-  { ind: "Score qualité moyen", y2023: "93,8", y2024: "95,4", cible2025: "≥96", ytd2025: "96,2", trend: "✅ Atteint" },
-  { ind: "% Grade AA", y2023: "48%", y2024: "58%", cible2025: "≥60%", ytd2025: "62%", trend: "✅ Atteint" },
-  { ind: "Taux rejet", y2023: "0,8%", y2024: "0,2%", cible2025: "0%", ytd2025: "0%", trend: "✅" },
-  { ind: "NC pour 100 lots", y2023: "4,2", y2024: "3,1", cible2025: "≤3", ytd2025: "2,4", trend: "✅ En bonne voie" },
-  { ind: "Délai résolution NC", y2023: "18j", y2024: "12j", cible2025: "≤10j", ytd2025: "9,4j", trend: "✅" },
-  { ind: "Taux first-pass quality", y2023: "82%", y2024: "89%", cible2025: "≥90%", ytd2025: "91%", trend: "✅" },
-];
-
-const processSteps = [
-  { n: 1, label: "Récolte" },
-  { n: 2, label: "Pré-fermentation" },
-  { n: 3, label: "Suivi J2/J4/J6" },
-  { n: 4, label: "Cut test fermentation" },
-  { n: 5, label: "Contrôle séchage" },
-  { n: 6, label: "Cut test final" },
-  { n: 7, label: "Conditionnement" },
-  { n: 8, label: "Certification" },
-];
-
-// ── Main component ────────────────────────────────────────────────────────────
 export default function SuiviQualitePage() {
-  const [activeTab, setActiveTab] = useState<Tab>("Tableau de bord");
-  const [form, setForm] = useState({
-    lot: "", stade: "", controleur: "", dateHeure: "", brunes: "", violettes: "",
-    ardoisees: "", moisies: "", humidite: "", temperature: "", observations: "", conformite: "conforme",
-  });
-
-  const kpis = [
-    { label: "Score qualité moyen", value: "96,2/100", badge: "✅" },
-    { label: "Lots contrôlés YTD", value: "48", sub: "95,8% Grade AA/A" },
-    { label: "Taux rejet", value: "0%", badge: "✅" },
-    { label: "NC ouvertes", value: "4", sub: "dont 1 critique" },
-    { label: "Prochaine dégustation", value: "22/07", sub: "Barry Callebaut" },
-  ];
+  const [tab, setTab] = useState<"liste" | "heatmap">("liste");
+  const threshY = yOf(95);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar breadcrumb={["Commerce", "Suivi Qualité"]} />
+      <Topbar />
 
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Suivi Qualité</h1>
-          <p className="text-sm text-gray-500 mt-1">Système de gestion de la qualité cacao</p>
+      <div className="flex-1 p-6 space-y-6 max-w-7xl mx-auto w-full">
+
+        {/* ── En-tête ── */}
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Suivi Qualité</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Contrôles qualité des lots cacao — Exploitation EXP-001
+            </p>
+          </div>
+          <button className="mt-2 sm:mt-0 self-start bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
+            + Nouveau contrôle qualité
+          </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-white rounded-xl border border-gray-100 p-1 w-fit">
-          {TABS.map((t) => (
-            <button
-              key={t}
-              onClick={() => setActiveTab(t)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === t ? "bg-[#2E7D32] text-white" : "text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {t}
-            </button>
+        {/* ── KPIs ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { icon: <ShieldCheck size={18} className="text-[#2E7D32]" />, bg: "bg-green-50", label: "Contrôles 2025", value: "9", sub: "lots contrôlés" },
+            { icon: <CheckCircle size={18} className="text-[#2E7D32]" />, bg: "bg-green-50", label: "Conformité", value: "100%", sub: "tous lots conformes" },
+            { icon: <Award size={18} className="text-amber-600" />, bg: "bg-amber-50", label: "Grade AA", value: "94,4%", sub: "cut test moyen" },
+            { icon: <CheckCircle size={18} className="text-blue-600" />, bg: "bg-blue-50", label: "Lots rejetés", value: "0", sub: "aucun rejet 2025" },
+          ].map((k, i) => (
+            <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5 flex items-start gap-3">
+              <div className={`${k.bg} rounded-xl p-2 shrink-0`}>{k.icon}</div>
+              <div>
+                <div className="text-xs text-gray-500">{k.label}</div>
+                <div className="text-xl font-bold text-gray-900">{k.value}</div>
+                <div className="text-xs text-gray-400">{k.sub}</div>
+              </div>
+            </div>
           ))}
         </div>
 
-        {/* ── Tableau de bord ───────────────────────────────────────────── */}
-        {activeTab === "Tableau de bord" && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {kpis.map((k) => (
-                <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-5">
-                  <p className="text-xs text-gray-500 mb-1">{k.label}</p>
-                  <p className="text-xl font-bold text-gray-900">
-                    {k.value} {k.badge && <span className="text-base">{k.badge}</span>}
-                  </p>
-                  {k.sub && <p className="text-xs text-gray-400 mt-0.5">{k.sub}</p>}
-                </div>
+        {/* ── Tableau de bord qualité ── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-sm font-semibold text-gray-800 mb-1">Tableau de bord qualité</h2>
+          <p className="text-xs text-gray-400 mb-4">Évolution Grade AA% — Lot par lot 2025 · Points verts foncés = au-dessus du seuil RA 95%</p>
+
+          {/* Line chart SVG */}
+          <div className="overflow-x-auto">
+            <svg width={CW} height={CH} viewBox={`0 0 ${CW} ${CH}`} className="max-w-full">
+              {/* Grid */}
+              {[90, 92, 94, 96, 98, 100].map((v) => (
+                <g key={v}>
+                  <line x1={PL} y1={yOf(v)} x2={PL + plotW} y2={yOf(v)} stroke="#f0f0f0" strokeWidth={1} />
+                  <text x={PL - 5} y={yOf(v) + 4} textAnchor="end" fontSize={10} fill="#9ca3af">{v}</text>
+                </g>
               ))}
-            </div>
+              {/* Area */}
+              <path d={areaPath} fill="#4CAF50" fillOpacity={0.08} />
+              {/* Threshold RA 95% */}
+              <line x1={PL} y1={threshY} x2={PL + plotW} y2={threshY} stroke="#ef4444" strokeWidth={1.5} strokeDasharray="6,4" />
+              <text x={PL + plotW - 2} y={threshY - 5} textAnchor="end" fontSize={9} fill="#ef4444" fontWeight="600">Seuil RA 95%</text>
+              {/* Line */}
+              <polyline points={polyline} fill="none" stroke="#2E7D32" strokeWidth={2} strokeLinejoin="round" />
+              {/* Points */}
+              {gradeValues.map((v, i) => {
+                const cx = xOf(i), cy = yOf(v), above = v >= 95;
+                return (
+                  <g key={i}>
+                    <circle cx={cx} cy={cy} r={5} fill={above ? "#1B5E20" : "#4CAF50"} stroke="white" strokeWidth={1.5} />
+                    <text x={cx} y={cy - 9} textAnchor="middle" fontSize={9} fill={above ? "#1B5E20" : "#6b7280"} fontWeight={above ? "700" : "400"}>{v}%</text>
+                  </g>
+                );
+              })}
+              {/* X axis labels */}
+              {lotLabels.map((l, i) => (
+                <text key={i} x={xOf(i)} y={CH - 6} textAnchor="middle" fontSize={9} fill="#6b7280">{l}</text>
+              ))}
+            </svg>
+          </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-700 mb-4">Évolution score qualité — 12 mois</h2>
-              <ScoreLineChart />
-            </div>
+          {/* Mini stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+            {[
+              { icon: <Droplets size={14} className="text-blue-500" />, label: "Humidité moyenne", value: "7,3%", note: "tous lots ≤ 8% ✅" },
+              { icon: <Thermometer size={14} className="text-orange-500" />, label: "Fermentation moy. (T° pic)", value: "50,8°C", note: "dans la norme ✅" },
+              { icon: <ShieldCheck size={14} className="text-green-600" />, label: "Moisissures", value: "0%", note: "aucun lot rejeté ✅" },
+            ].map((s, i) => (
+              <div key={i} className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3">
+                <div className="bg-white rounded-lg p-1.5 shadow-sm shrink-0">{s.icon}</div>
+                <div>
+                  <div className="text-[11px] text-gray-500">{s.label}</div>
+                  <div className="text-sm font-bold text-gray-800">{s.value}</div>
+                  <div className="text-[10px] text-gray-400">{s.note}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-700 mb-4">Répartition grades YTD 2025</h2>
-              <GradeDonut />
-            </div>
+        {/* ── Tabs : Liste / Heatmap ── */}
+        <div className="rounded-2xl border border-gray-100 bg-white">
+          <div className="flex border-b border-gray-100">
+            {(["liste", "heatmap"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-5 py-3 text-xs font-medium transition-colors ${tab === t ? "border-b-2 border-[#2E7D32] text-[#2E7D32]" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                {t === "liste" ? "Liste des contrôles 2025" : "Comparatif performances qualité"}
+              </button>
+            ))}
+          </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-700 mb-4">Cut test — 6 derniers lots</h2>
+          {/* ── Liste des contrôles ── */}
+          {tab === "liste" && (
+            <div className="p-5">
+              {/* Alerte LOT-047 */}
+              <div className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
+                <AlertTriangle size={16} className="text-red-500 mt-0.5 shrink-0" />
+                <p className="text-xs text-red-700">
+                  <span className="font-semibold">⚠️ Le cut test de LOT-2025-047 est dû aujourd&apos;hui.</span>{" "}
+                  Ibrahim Sawadogo doit effectuer ce contrôle avant 12h00.
+                </p>
+              </div>
+
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-[#F8FBF8]">
-                      {["Lot", "Date", "Fèves", "Brunes", "Violettes", "Ardoisées", "Moisies", "Score", "Grade"].map((h) => (
-                        <th key={h} className="px-3 py-2 text-left text-xs font-medium text-gray-500">{h}</th>
+                      {["N° CQ", "Date", "Lot", "Grade", "Cut test", "Humidité", "Score", "Auditeur", "Statut"].map((h) => (
+                        <th key={h} className="px-3 py-2.5 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {cutTests.map((r) => (
-                      <tr key={r.lot} className="border-t border-gray-50 hover:bg-gray-50">
-                        <td className="px-3 py-2 font-medium text-gray-900">{r.lot}</td>
-                        <td className="px-3 py-2 text-gray-600">{r.date}</td>
-                        <td className="px-3 py-2 text-gray-600">{r.feveTotal}</td>
-                        <td className="px-3 py-2 text-gray-600">{r.brunes}</td>
-                        <td className="px-3 py-2 text-gray-600">{r.violettes}</td>
-                        <td className="px-3 py-2 text-gray-600">{r.ardoisees}</td>
-                        <td className="px-3 py-2 text-gray-600">{r.moisies}</td>
-                        <td className="px-3 py-2 font-semibold text-gray-800">{r.score}</td>
-                        <td className="px-3 py-2">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                            r.ok ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
-                          }`}>
-                            {r.grade} {r.ok ? "✅" : "⚠️"}
+                    {lots.map((row, i) => (
+                      <tr key={i} className={`border-t border-gray-50 ${row.cq === "CQ-2025-046" ? "bg-green-50/40 font-medium" : "hover:bg-gray-50"}`}>
+                        <td className="px-3 py-2.5 font-mono text-gray-700">{row.cq}</td>
+                        <td className="px-3 py-2.5 text-gray-600">{row.date}</td>
+                        <td className="px-3 py-2.5 font-medium text-gray-800">{row.lot}</td>
+                        <td className="px-3 py-2.5">
+                          <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-[10px] font-semibold">AA ✅</span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className={`font-semibold ${row.cutTest >= 95 ? "text-[#2E7D32]" : "text-gray-700"}`}>{row.cutTest}%</span>
+                        </td>
+                        <td className="px-3 py-2.5 text-gray-700">{row.humidite.toFixed(1)}%</td>
+                        <td className="px-3 py-2.5">
+                          <span className={`font-semibold ${row.score >= 95 ? "text-[#2E7D32]" : "text-gray-700"}`}>{row.score}/100</span>
+                        </td>
+                        <td className="px-3 py-2.5 text-gray-600">{row.auditeur}</td>
+                        <td className="px-3 py-2.5">
+                          <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 rounded-full px-2 py-0.5 text-[10px] font-medium">
+                            <CheckCircle size={10} /> Approuvé
                           </span>
                         </td>
                       </tr>
                     ))}
+                    {/* LOT-047 en attente */}
+                    <tr className="border-t-2 border-red-200 bg-red-50/40">
+                      <td className="px-3 py-2.5 text-gray-400 italic text-[11px]">—</td>
+                      <td className="px-3 py-2.5">
+                        <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 rounded-full px-2 py-0.5 text-[10px] font-bold">🔴 AUJOURD&apos;HUI</span>
+                      </td>
+                      <td className="px-3 py-2.5 font-semibold text-gray-800">LOT-047</td>
+                      <td className="px-3 py-2.5 text-gray-400 text-[11px] italic">En attente</td>
+                      <td className="px-3 py-2.5 text-gray-400">—</td>
+                      <td className="px-3 py-2.5 text-gray-400">—</td>
+                      <td className="px-3 py-2.5 text-gray-400">—</td>
+                      <td className="px-3 py-2.5 text-gray-600">Interne</td>
+                      <td className="px-3 py-2.5">
+                        <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 rounded-full px-2 py-0.5 text-[10px] font-medium">
+                          <Clock size={10} /> À effectuer
+                        </span>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ── Contrôles ─────────────────────────────────────────────────── */}
-        {activeTab === "Contrôles" && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-700 mb-5">Process qualité cacao — 8 étapes</h2>
-              <div className="flex items-center overflow-x-auto pb-2">
-                {processSteps.map((s, i) => (
-                  <div key={s.n} className="flex items-center">
-                    <div className="flex flex-col items-center min-w-[90px]">
-                      <div className="w-9 h-9 rounded-full bg-[#2E7D32] text-white flex items-center justify-center text-sm font-bold shadow">
-                        {s.n}
-                      </div>
-                      <p className="text-xs text-center text-gray-600 mt-1.5 leading-tight">{s.label}</p>
-                    </div>
-                    {i < processSteps.length - 1 && (
-                      <div className="w-8 h-0.5 bg-[#4CAF50] flex-shrink-0 -mt-4" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-700 mb-4">Saisie d&apos;un contrôle</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  { label: "N° lot", key: "lot", placeholder: "LOT-2025-049" },
-                  { label: "Stade", key: "stade", placeholder: "J2 / J4 / J6 / Final" },
-                  { label: "Contrôleur", key: "controleur", placeholder: "Nom du contrôleur" },
-                  { label: "Date / heure", key: "dateHeure", placeholder: "", type: "datetime-local" },
-                  { label: "% Brunes", key: "brunes", placeholder: "ex: 94" },
-                  { label: "% Violettes", key: "violettes", placeholder: "ex: 4" },
-                  { label: "% Ardoisées", key: "ardoisees", placeholder: "ex: 2" },
-                  { label: "% Moisies", key: "moisies", placeholder: "ex: 0" },
-                  { label: "Humidité %", key: "humidite", placeholder: "ex: 7.5" },
-                  { label: "Température bac °C", key: "temperature", placeholder: "ex: 45" },
-                ].map((f) => (
-                  <div key={f.key}>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{f.label}</label>
-                    <input
-                      type={f.type ?? "text"}
-                      placeholder={f.placeholder}
-                      value={(form as Record<string, string>)[f.key]}
-                      onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2E7D32]"
-                    />
-                  </div>
-                ))}
-                <div className="md:col-span-3">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Observations</label>
-                  <textarea
-                    rows={2}
-                    placeholder="Observations particulières..."
-                    value={form.observations}
-                    onChange={(e) => setForm({ ...form, observations: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2E7D32]"
-                  />
-                </div>
-                <div className="md:col-span-3">
-                  <label className="block text-xs font-medium text-gray-600 mb-2">Conformité</label>
-                  <div className="flex gap-6">
-                    {["conforme", "non-conforme"].map((v) => (
-                      <label key={v} className="flex items-center gap-2 text-sm cursor-pointer">
-                        <input
-                          type="radio"
-                          name="conformite"
-                          value={v}
-                          checked={form.conformite === v}
-                          onChange={() => setForm({ ...form, conformite: v })}
-                          className="accent-[#2E7D32]"
-                        />
-                        <span className="capitalize">{v}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-5">
-                <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-5 py-2.5 hover:bg-[#1B5E20] transition-colors">
-                  Enregistrer le contrôle
-                </button>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-700 mb-4">Contrôles planifiés cette semaine</h2>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-[#F8FBF8]">
-                    {["Lot", "Stade", "Date", "Contrôleur", "Statut"].map((h) => (
-                      <th key={h} className="px-3 py-2 text-left text-xs font-medium text-gray-500">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {controlesPlanifies.map((c) => (
-                    <tr key={c.lot + c.stade} className="border-t border-gray-50">
-                      <td className="px-3 py-2 font-medium text-gray-900">{c.lot}</td>
-                      <td className="px-3 py-2 text-gray-600">{c.stade}</td>
-                      <td className="px-3 py-2 text-gray-600">{c.date}</td>
-                      <td className="px-3 py-2 text-gray-600">{c.controleur}</td>
-                      <td className="px-3 py-2 text-gray-600">{c.statut}</td>
-                    </tr>
+          {/* ── Heatmap ── */}
+          {tab === "heatmap" && (
+            <div className="p-5">
+              <h3 className="text-xs font-semibold text-gray-700 mb-4">Heatmap paramètres qualité — 9 lots 2025</h3>
+              <div className="overflow-x-auto">
+                <svg width={680} height={268} viewBox="0 0 680 268" className="max-w-full">
+                  {/* Column headers */}
+                  {heatmapCols.map((col, ci) => (
+                    <text key={ci} x={148 + ci * 106 + 53} y={16} textAnchor="middle" fontSize={10} fontWeight="600" fill="#374151">{col}</text>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* ── Non-conformités ───────────────────────────────────────────── */}
-        {activeTab === "Non-conformités" && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-gray-700">Non-conformités — 4 ouvertes</h2>
-                <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2">
-                  + Nouvelle NC
-                </button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-[#F8FBF8]">
-                      {["N°", "Date", "Type", "Description", "Criticité", "Assigné", "Deadline", "Statut"].map((h) => (
-                        <th key={h} className="px-3 py-2 text-left text-xs font-medium text-gray-500">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {nonConformites.map((nc) => (
-                      <tr key={nc.id} className="border-t border-gray-50 hover:bg-gray-50">
-                        <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">{nc.id}</td>
-                        <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{nc.date}</td>
-                        <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{nc.type}</td>
-                        <td className="px-3 py-2 text-gray-600 max-w-xs">{nc.desc}</td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-                            style={{ background: nc.critColor + "22", color: nc.critColor }}
-                          >
-                            {nc.crit}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{nc.assigne}</td>
-                        <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{nc.deadline}</td>
-                        <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{nc.statut}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  {heatmapData.map((row, ri) => (
+                    <g key={ri}>
+                      {/* Row label */}
+                      <text x={138} y={30 + ri * 24 + 13} textAnchor="end" fontSize={10} fill="#374151" fontWeight="500">{heatmapRows[ri]}</text>
+                      {row.map((quality, ci) => {
+                        const x = 148 + ci * 106;
+                        const y = 22 + ri * 24;
+                        const fill = quality === "excellent" ? "#dcfce7" : "#fef9c3";
+                        const color = quality === "excellent" ? "#166534" : "#92400e";
+                        return (
+                          <g key={ci}>
+                            <rect x={x + 2} y={y} width={102} height={22} rx={4} fill={fill} />
+                            <text x={x + 53} y={y + 14} textAnchor="middle" fontSize={10} fill={color} fontWeight="600">
+                              {String(heatmapValues[ri][ci])}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </g>
+                  ))}
+                  {/* Legend */}
+                  <rect x={148} y={250} width={12} height={10} rx={2} fill="#dcfce7" />
+                  <text x={164} y={259} fontSize={9} fill="#374151">Excellent (≥ seuil RA)</text>
+                  <rect x={290} y={250} width={12} height={10} rx={2} fill="#fef9c3" />
+                  <text x={306} y={259} fontSize={9} fill="#374151">Dans la norme</text>
+                  <rect x={410} y={250} width={12} height={10} rx={2} fill="#fee2e2" />
+                  <text x={426} y={259} fontSize={9} fill="#374151">Hors norme — 0 lot cette année</text>
+                </svg>
               </div>
             </div>
+          )}
+        </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-700 mb-4">Pareto — Types de NC 2024-2025</h2>
-              <ParetoChart />
-              <p className="text-xs text-gray-400 mt-2">Barres vertes = nombre de NC | Courbe orange = % cumulé</p>
-            </div>
-          </div>
-        )}
-
-        {/* ── Indicateurs ───────────────────────────────────────────────── */}
-        {activeTab === "Indicateurs" && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <h2 className="text-sm font-semibold text-gray-700 mb-4">KPIs qualité — vue pluriannuelle</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-[#F8FBF8]">
-                      {["Indicateur", "2023", "2024", "Cible 2025", "YTD 2025", "Tendance"].map((h) => (
-                        <th key={h} className="px-3 py-2 text-left text-xs font-medium text-gray-500">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {indicateurs.map((row) => (
-                      <tr key={row.ind} className="border-t border-gray-50 hover:bg-gray-50">
-                        <td className="px-3 py-2 font-medium text-gray-900">{row.ind}</td>
-                        <td className="px-3 py-2 text-gray-500">{row.y2023}</td>
-                        <td className="px-3 py-2 text-gray-600">{row.y2024}</td>
-                        <td className="px-3 py-2 text-gray-500 font-medium">{row.cible2025}</td>
-                        <td className="px-3 py-2 font-bold text-[#2E7D32]">{row.ytd2025}</td>
-                        <td className="px-3 py-2 text-sm">{row.trend}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { title: "Qualité produit", value: "6/6", sub: "Tous indicateurs atteints", color: "text-green-700", bg: "bg-green-50 border-green-100" },
-                { title: "Performance NC", value: "2,4 / 100 lots", sub: "Cible ≤3 atteinte", color: "text-green-700", bg: "bg-green-50 border-green-100" },
-                { title: "Délai résolution", value: "9,4 jours", sub: "Cible ≤10j atteinte", color: "text-green-700", bg: "bg-green-50 border-green-100" },
-              ].map((c) => (
-                <div key={c.title} className={"rounded-2xl border p-5 " + c.bg}>
-                  <p className="text-xs text-gray-500 mb-1">{c.title}</p>
-                  <p className={"text-2xl font-bold " + c.color}>{c.value}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{c.sub}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </main>
+      </div>
     </div>
   );
 }

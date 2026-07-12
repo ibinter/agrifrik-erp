@@ -196,16 +196,235 @@ function RapportAudit() {
   );
 }
 
+// ─── Données historiques RA 2021-2025 ────────────────────────────────────────
+
+const auditsHistoriques = [
+  { ref: "AUD-2021-001", dates: "20-21/02/2021", type: "RA Renouvellement", auditeur: "SGS CI", score: "82/100", ncCrit: 0, ncMaj: 2, ncMin: 5, resultat: "✅ Certifié" },
+  { ref: "AUD-2022-001", dates: "18/02/2022",     type: "RA Renouvellement", auditeur: "SGS CI", score: "87/100", ncCrit: 0, ncMaj: 1, ncMin: 4, resultat: "✅ Certifié" },
+  { ref: "AUD-2023-001", dates: "20/02/2023",     type: "RA Renouvellement", auditeur: "Bureau Veritas", score: "91/100", ncCrit: 0, ncMaj: 0, ncMin: 4, resultat: "✅ Certifié" },
+  { ref: "AUD-2024-001", dates: "19/02/2024",     type: "RA Renouvellement", auditeur: "Bureau Veritas", score: "92/100", ncCrit: 0, ncMaj: 0, ncMin: 3, resultat: "✅ Certifié" },
+  { ref: "AUD-2025-001", dates: "18-19/02/2025",  type: "RA Renouvellement", auditeur: "Bureau Veritas", score: "94/100", ncCrit: 0, ncMaj: 0, ncMin: "3 (closes)", resultat: "✅ Certifié", bold: true },
+  { ref: "AUD-2025-PRE", dates: "Août 2025 (prévu)", type: "Pré-audit interne", auditeur: "AGRIFRIK", score: "—", ncCrit: null, ncMaj: null, ncMin: null, resultat: "⏳ Planifier", pending: true },
+];
+
+const ncHistoriques = [
+  { audit: "AUD-2021", code: "NC-2021-01", chapitre: "S3", gravite: "Majeure", description: "Pas de contrat écrit pour saisonniers", cloture: "✅ Juil 2021" },
+  { audit: "AUD-2021", code: "NC-2021-02", chapitre: "S2", gravite: "Majeure", description: "Zone tampon rivière partielle (20m/30m requis)", cloture: "✅ Août 2021" },
+  { audit: "AUD-2021", code: "NC-2021-03 à 07", chapitre: "Divers", gravite: "Mineures", description: "5 NC mineures documentées", cloture: "✅ Toutes closes" },
+  { audit: "AUD-2022", code: "NC-2022-01", chapitre: "S4", gravite: "Majeure", description: "Absence registre formation ouvriers", cloture: "✅ Mar 2022" },
+  { audit: "AUD-2022", code: "NC-2022-02 à 05", chapitre: "Divers", gravite: "Mineures", description: "4 NC mineures documentées", cloture: "✅ Toutes closes" },
+  { audit: "AUD-2023 à 2025", code: "NC mineures", chapitre: "Divers", gravite: "Mineures", description: "11 NC mineures au total", cloture: "✅ 100% closes" },
+];
+
+const echeances = [
+  { action: "Pré-audit interne RA (préparation renouvellement)", date: "Août 2025", responsable: "Ibrahim S. + BV", priorite: "🟡 Haute" },
+  { action: "Audit de renouvellement RA 2026", date: "Fév 2026", responsable: "Bureau Veritas", priorite: "🟢 Prévu" },
+  { action: "Audit traçabilité CNRA annuel", date: "Nov 2025", responsable: "CNRA CI", priorite: "🟢 Prévu" },
+];
+
+// ─── Composant historique ─────────────────────────────────────────────────────
+
+function HistoriqueRA() {
+  // données SVG area chart scores RA
+  const scores = [82, 87, 91, 92, 94];
+  const annees = ["2021", "2022", "2023", "2024", "2025"];
+  const svgW = 640, svgH = 200;
+  const padL = 40, padR = 20, padT = 24, padB = 32;
+  const chartW = svgW - padL - padR;
+  const chartH = svgH - padT - padB;
+  const minV = 70, maxV = 100;
+
+  const pts = scores.map((s, i) => ({
+    x: padL + (i / (scores.length - 1)) * chartW,
+    y: padT + (1 - (s - minV) / (maxV - minV)) * chartH,
+    s,
+    a: annees[i],
+  }));
+  const area = [
+    ...pts.map((p) => `${p.x},${p.y}`),
+    `${pts[pts.length - 1].x},${padT + chartH}`,
+    `${pts[0].x},${padT + chartH}`,
+  ].join(" ");
+  const poly = pts.map((p) => `${p.x},${p.y}`).join(" ");
+  const seuilY = padT + (1 - (75 - minV) / (maxV - minV)) * chartH;
+
+  return (
+    <div className="space-y-6">
+      {/* KPI en-tête */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: "Audits RA 2021-2025", value: "5", color: "#2E7D32", bg: "#E8F5E9" },
+          { label: "Score moyen", value: "91,2/100", color: "#1565C0", bg: "#E3F2FD" },
+          { label: "NC critiques (5 ans)", value: "0", color: "#2E7D32", bg: "#E8F5E9" },
+          { label: "Prochain audit", value: "Août 2025", color: "#E65100", bg: "#FFF3E0" },
+        ].map((k) => (
+          <div key={k.label} className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
+            <p className="text-2xl font-bold" style={{ color: k.color }}>{k.value}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{k.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* SVG Area chart progression */}
+      <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
+        <h2 className="font-semibold text-sm text-gray-900 dark:text-white mb-4">Progression scores RA 2021-2025</h2>
+        <div className="overflow-x-auto">
+          <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full min-w-[320px]" aria-label="Progression scores RA">
+            {/* grille horizontale */}
+            {[75, 80, 85, 90, 95, 100].map((v) => {
+              const y = padT + (1 - (v - minV) / (maxV - minV)) * chartH;
+              return (
+                <g key={v}>
+                  <line x1={padL} y1={y} x2={svgW - padR} y2={y} stroke="#F0F0F0" strokeWidth={1} />
+                  <text x={padL - 5} y={y + 3} textAnchor="end" fontSize={9} fill="#BDBDBD">{v}</text>
+                </g>
+              );
+            })}
+            {/* seuil minimal 75 — pointillé rouge */}
+            <line x1={padL} y1={seuilY} x2={svgW - padR} y2={seuilY} stroke="#E53935" strokeWidth={1.5} strokeDasharray="5,4" />
+            <text x={svgW - padR + 2} y={seuilY + 4} fontSize={9} fill="#E53935">min 75</text>
+            {/* area verte */}
+            <polygon points={area} fill="#4CAF50" fillOpacity={0.15} />
+            <polyline points={poly} fill="none" stroke="#2E7D32" strokeWidth={2.5} strokeLinejoin="round" />
+            {/* points + labels */}
+            {pts.map((p, i) => (
+              <g key={p.a}>
+                <circle cx={p.x} cy={p.y} r={5} fill={i === pts.length - 1 ? "#2E7D32" : "#A5D6A7"} stroke="white" strokeWidth={2} />
+                <text x={p.x} y={p.y - 10} textAnchor="middle" fontSize={10} fill="#2E7D32" fontWeight="700">{p.s}</text>
+                <text x={p.x} y={padT + chartH + 16} textAnchor="middle" fontSize={9} fill="#9E9E9E">{p.a}</text>
+              </g>
+            ))}
+          </svg>
+        </div>
+        {/* mini KPI ligne */}
+        <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+          {[
+            { label: "Tendance", value: "+3 pts/an en moyenne", ok: true },
+            { label: "NC critiques totales (5 ans)", value: "0 — Excellent", ok: true },
+            { label: "Taux clôture NC mineures", value: "100%", ok: true },
+          ].map((k) => (
+            <div key={k.label} className="text-center">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{k.label}</p>
+              <p className="text-sm font-bold text-[#2E7D32]">{k.value} ✅</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Liste des audits historiques */}
+      <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="font-semibold text-sm text-gray-900 dark:text-white">Liste des audits RA 2021-2025</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-left text-xs text-gray-500 dark:text-gray-400">
+                {["N° Audit", "Date", "Type", "Auditeur", "Score", "NC crit.", "NC maj.", "NC min.", "Résultat"].map((h) => (
+                  <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {auditsHistoriques.map((a) => (
+                <tr key={a.ref} className={`border-t border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${a.bold ? "font-semibold" : ""}`}>
+                  <td className={`px-4 py-3 font-mono text-xs whitespace-nowrap ${a.bold ? "text-[#2E7D32] font-bold" : "text-gray-700 dark:text-gray-300"}`}>{a.ref}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">{a.dates}</td>
+                  <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">{a.type}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">{a.auditeur}</td>
+                  <td className="px-4 py-3 text-xs font-semibold text-[#2E7D32] whitespace-nowrap">{a.score}</td>
+                  <td className="px-4 py-3 text-center text-xs text-gray-400">{a.ncCrit !== null ? a.ncCrit : "—"}</td>
+                  <td className="px-4 py-3 text-center text-xs text-gray-400">{a.ncMaj !== null ? a.ncMaj : "—"}</td>
+                  <td className="px-4 py-3 text-center text-xs text-gray-400">{a.ncMin !== null ? a.ncMin : "—"}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">{a.resultat}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Non-conformités historiques */}
+      <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="font-semibold text-sm text-gray-900 dark:text-white">Non-conformités historiques (toutes résolues)</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-left text-xs text-gray-500 dark:text-gray-400">
+                {["Audit", "Code", "Chapitre", "Gravité", "Description résumée", "Clôturée"].map((h) => (
+                  <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {ncHistoriques.map((nc) => (
+                <tr key={nc.code} className="border-t border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                  <td className="px-4 py-3 font-mono text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{nc.audit}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-[#2E7D32] whitespace-nowrap">{nc.code}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">{nc.chapitre}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${nc.gravite === "Majeure" ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"}`}>
+                      {nc.gravite}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300 max-w-xs">{nc.description}</td>
+                  <td className="px-4 py-3 text-xs font-semibold text-green-700 dark:text-green-400 whitespace-nowrap">{nc.cloture}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="px-5 py-3 bg-green-50 dark:bg-green-900/20 border-t border-green-100 dark:border-green-900">
+          <p className="text-xs font-medium text-green-800 dark:text-green-300">
+            ✅ Aucune non-conformité critique ou majeure depuis l&apos;audit 2023. Progression constante.
+          </p>
+        </div>
+      </div>
+
+      {/* Prochaines échéances */}
+      <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="font-semibold text-sm text-gray-900 dark:text-white">Prochaines échéances</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-left text-xs text-gray-500 dark:text-gray-400">
+                {["Action", "Date", "Responsable", "Priorité"].map((h) => (
+                  <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {echeances.map((e) => (
+                <tr key={e.action} className="border-t border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                  <td className="px-4 py-3 text-xs text-gray-800 dark:text-gray-200">{e.action}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">{e.date}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">{e.responsable}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">{e.priorite}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function AuditPage() {
-  const [onglet, setOnglet] = useState<"audits" | "nc" | "rapport" | "plan">("audits");
+  const [onglet, setOnglet] = useState<"audits" | "nc" | "rapport" | "plan" | "historique">("audits");
 
   const onglets = [
     { key: "audits" as const, label: "Audits" },
     { key: "nc" as const, label: "Non-conformités" },
     { key: "rapport" as const, label: "Rapport d'audit" },
     { key: "plan" as const, label: "Plan d'action" },
+    { key: "historique" as const, label: "Historique RA 2021-2025" },
   ];
 
   return (
@@ -213,6 +432,16 @@ export default function AuditPage() {
       <Topbar title="Audit & Conformité" breadcrumb={["Commerce", "Audit"]} />
 
       <div className="p-6 space-y-6">
+        {/* En-tête + bouton */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Audits &amp; Conformité</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Historique des audits Rainforest Alliance, CNRA et internes</p>
+          </div>
+          <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white bg-[#2E7D32] hover:bg-[#1B5E20] transition-colors self-start sm:self-auto">
+            <Calendar size={14} /> + Planifier un audit
+          </button>
+        </div>
         {/* KPI */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {kpis.map((k) => {
@@ -413,6 +642,9 @@ export default function AuditPage() {
 
         {/* ── Onglet Rapport d'audit ── */}
         {onglet === "rapport" && <RapportAudit />}
+
+        {/* ── Onglet Historique RA 2021-2025 ── */}
+        {onglet === "historique" && <HistoriqueRA />}
 
         {/* ── Onglet Plan d'action ── */}
         {onglet === "plan" && (
