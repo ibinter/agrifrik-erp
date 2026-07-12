@@ -7,346 +7,270 @@ export default async function ActifDetailPage({
 }) {
   const { id } = await params;
 
-  const amortissementData = [
-    { exercice: "2021 (9 mois)", vncDebut: 14800000, dotation: 1110000, vncFin: 13690000, amortCumul: 1110000, current: false },
-    { exercice: "2022", vncDebut: 13690000, dotation: 1480000, vncFin: 12210000, amortCumul: 2590000, current: false },
-    { exercice: "2023", vncDebut: 12210000, dotation: 1480000, vncFin: 10730000, amortCumul: 4070000, current: false },
-    { exercice: "2024", vncDebut: 10730000, dotation: 1480000, vncFin: 9250000, amortCumul: 5550000, current: false },
-    { exercice: "2025", vncDebut: 9250000, dotation: 1480000, vncFin: 7770000, amortCumul: 7030000, current: true },
-    { exercice: "2026", vncDebut: 7770000, dotation: 1480000, vncFin: 6290000, amortCumul: 8510000, current: false },
-    { exercice: "2027", vncDebut: 6290000, dotation: 1480000, vncFin: 4810000, amortCumul: 9990000, current: false },
-    { exercice: "2028", vncDebut: 4810000, dotation: 1480000, vncFin: 3330000, amortCumul: 11470000, current: false },
-    { exercice: "2029", vncDebut: 3330000, dotation: 1480000, vncFin: 1850000, amortCumul: 12950000, current: false },
-    { exercice: "2030", vncDebut: 1850000, dotation: 1480000, vncFin: 370000, amortCumul: 14430000, current: false },
-    { exercice: "2031 (3 mois)", vncDebut: 370000, dotation: 370000, vncFin: 0, amortCumul: 14800000, current: false },
+  // Données plan d'amortissement
+  const amortData = [
+    { exercice: "2021 (10 mois)", dotation: "622 222 XOF", cumul: "622 222 XOF", vnc: "21 777 778 XOF", current: false },
+    { exercice: "2022", dotation: "746 667 XOF", cumul: "1 368 889 XOF", vnc: "21 031 111 XOF", current: false },
+    { exercice: "2023", dotation: "746 667 XOF", cumul: "2 115 556 XOF", vnc: "20 284 444 XOF", current: false },
+    { exercice: "2024", dotation: "746 667 XOF", cumul: "2 862 223 XOF", vnc: "19 537 777 XOF", current: false },
+    { exercice: "2025", dotation: "746 667 XOF", cumul: "3 608 890 XOF", vnc: "18 791 110 XOF", current: true },
+    { exercice: "2030 (projection)", dotation: "746 667 XOF", cumul: "7 466 667 XOF", vnc: "14 933 333 XOF", current: false },
+    { exercice: "2051 (fin)", dotation: "—", cumul: "22 400 000 XOF", vnc: "0 XOF", current: false },
   ];
 
-  const maintenanceData = [
-    { date: "01/2025", type: "Entretien 400h", nature: "Vidange 10L + filtre air + filtre gasoil + courroie", prestataire: "John Deere CI", cout: 68000, heures: "400h", statut: "ok" },
-    { date: "07/2024", type: "Révision majeure 300h", nature: "Réglage soupapes + filtre à huile + durites", prestataire: "Tractafric", cout: 124000, heures: "300h", statut: "ok" },
-    { date: "03/2024", type: "Panne", nature: "Remplacement alternateur défaillant", prestataire: "Tractafric", cout: 89000, heures: "272h", statut: "warn" },
-    { date: "01/2024", type: "Entretien 200h", nature: "Vidange + filtres + graissage", prestataire: "John Deere CI", cout: 52000, heures: "200h", statut: "ok" },
-    { date: "09/2023", type: "Entretien 100h", nature: "Vidange + filtre gasoil", prestataire: "John Deere CI", cout: 34000, heures: "100h", statut: "ok" },
-    { date: "07/2022", type: "Panne", nature: "Pneu avant gauche éclaté (terrain pierreux)", prestataire: "Pneu Service Soubré", cout: 48000, heures: "62h", statut: "warn" },
-  ];
-
-  const documents = [
-    { nom: "Facture John Deere CI", date: "15/03/2021", statut: "Archivée", ok: true },
-    { nom: "Carte grise CI-1247-BW", date: "10/04/2021", statut: "Valide", ok: true },
-    { nom: "Assurance responsabilité (police Axa CI)", date: "01/01/2025", statut: "Valide jusqu'au 31/12/2025", ok: true },
-    { nom: "Visite technique", date: "28/02/2025", statut: "Valide jusqu'au 28/02/2026", ok: true },
-    { nom: "Manuel d'entretien John Deere 5055E", date: "—", statut: "Disponible en salle archives", ok: null },
-  ];
-
-  const fmt = (n: number) => n.toLocaleString("fr-FR") + " XOF";
-
-  // SVG area chart data
-  const years = [2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031];
-  const vncs = [14800000, 13690000, 12210000, 10730000, 9250000, 7770000, 6290000, 4810000, 3330000, 1850000, 0];
+  // SVG line chart VNC décroissant 2021→2051
+  // Points clés : 2021=22400000, 2025=18791110, 2030=14933333, 2051=0
   const svgW = 640;
-  const svgH = 220;
-  const padL = 80;
-  const padR = 20;
-  const padT = 20;
-  const padB = 40;
+  const svgH = 200;
+  const padL = 75;
+  const padR = 30;
+  const padT = 24;
+  const padB = 36;
   const chartW = svgW - padL - padR;
   const chartH = svgH - padT - padB;
-  const maxVal = 14800000;
-  const xStep = chartW / (years.length - 1);
-  const points = vncs.map((v, i) => ({
-    x: padL + i * xStep,
-    y: padT + chartH - (v / maxVal) * chartH,
-  }));
-  const polyline = points.map((p) => `${p.x},${p.y}`).join(" ");
-  const areaPath = `M${points[0].x},${points[0].y} ` +
-    points.slice(1).map((p) => `L${p.x},${p.y}`).join(" ") +
-    ` L${points[points.length - 1].x},${padT + chartH} L${points[0].x},${padT + chartH} Z`;
+  const maxVal = 22400000;
 
-  // current point (2025 = index 4)
-  const currentPt = points[4];
+  // Années de 2021 à 2051 (31 points)
+  const totalYears = 30; // 2021 à 2051
+  const keyPoints: { year: number; vnc: number }[] = [];
+  for (let y = 0; y <= totalYears; y++) {
+    const yr = 2021 + y;
+    // Amortissement linéaire : 22400000 / 30 = 746 667 par an, sauf 2021 = 10 mois
+    let vnc: number;
+    if (y === 0) vnc = 22400000;
+    else if (y === 1) vnc = 22400000 - 622222; // 10 mois en 2021
+    else vnc = Math.max(0, 22400000 - 622222 - (y - 1) * 746667);
+    keyPoints.push({ year: yr, vnc });
+  }
+
+  const toX = (year: number) => padL + ((year - 2021) / totalYears) * chartW;
+  const toY = (vnc: number) => padT + chartH - (vnc / maxVal) * chartH;
+
+  const polylinePoints = keyPoints.map((p) => `${toX(p.year)},${toY(p.vnc)}`).join(" ");
+  const areaPath = `M${toX(2021)},${toY(22400000)} ` +
+    keyPoints.slice(1).map((p) => `L${toX(p.year)},${toY(p.vnc)}`).join(" ") +
+    ` L${toX(2051)},${padT + chartH} L${toX(2021)},${padT + chartH} Z`;
+
+  // Marqueur "Aujourd'hui" 2025
+  const nowX = toX(2025);
+  const nowY = toY(18791110);
+  // Marqueur "Fin de vie" 2051
+  const endX = toX(2051);
+  const endY = toY(0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Topbar />
+    <div className="flex-1 flex flex-col min-h-screen bg-gray-50">
+      <Topbar breadcrumb={["Finance", "Actifs", `Immobilisation ${id}`]} />
 
-      {/* Breadcrumb */}
-      <div className="px-6 pt-4 pb-2">
-        <nav className="text-xs text-gray-500 flex items-center gap-1">
-          <span>Finance</span>
-          <span>/</span>
-          <span>Actifs immobilisés</span>
-          <span>/</span>
-          <span className="text-[#2E7D32] font-medium">Actif {id}</span>
-        </nav>
-      </div>
+      <div className="p-6 space-y-6">
 
-      {/* Header */}
-      <div className="mx-6 mt-2 rounded-2xl overflow-hidden">
-        <div className="bg-[#1B5E20] text-white px-6 py-5">
+        {/* En-tête bandeau vert */}
+        <div className="rounded-2xl bg-[#1B5E20] text-white p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-xl font-bold">Tracteur agricole John Deere DT55 (55 CV)</h1>
-              <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-green-200">
-                <span>Code actif : <strong className="text-white">ACT-2021-004</strong></span>
-                <span>|</span>
-                <span>N° série : <strong className="text-white">JD55-CI-2021-08847</strong></span>
-              </div>
-              <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-green-200">
-                <span>Catégorie SYSCOHADA : <strong className="text-white">Matériels et outillages (Compte 245)</strong></span>
-              </div>
-              <div className="mt-1 text-sm text-green-200">
-                Service utilisateur : <strong className="text-white">Production & Terrain</strong>
+            <div className="space-y-1">
+              <h1 className="text-xl font-bold">Fiche Immobilisation — IMM-2021-012</h1>
+              <p className="text-sm text-white/80">Entrepôt de stockage ENT-001</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1 text-sm text-white/90 mt-3">
+                <div><span className="text-white/60">Immobilisation :</span> IMM-2021-012 — Entrepôt de stockage cacao</div>
+                <div><span className="text-white/60">Désignation :</span> ENT-001 — 480 m² béton armé + toiture zinc</div>
+                <div><span className="text-white/60">Localisation :</span> EXP-001, Zone logistique (Lot C)</div>
+                <div><span className="text-white/60">Date mise en service :</span> 01/02/2021 | Durée de vie : 30 ans</div>
+                <div><span className="text-white/60">Fournisseur :</span> Construction Nawa SARL</div>
+                <div><span className="text-white/60">Coût d'acquisition :</span> 22 400 000 XOF</div>
+                <div><span className="text-white/60">Amortissement :</span> Linéaire — Compte SYSCOHADA 2313</div>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <span className="inline-flex items-center gap-1 bg-green-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+            <div className="flex flex-col gap-2">
+              <span className="inline-flex items-center gap-1 bg-green-500/30 border border-green-400/40 text-white text-xs font-medium rounded-full px-3 py-1">
                 ✅ En service
               </span>
-              <span className="text-sm text-green-200">
-                📍 Soubré Nord — Zone stockage
-              </span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* KPIs */}
-      <div className="mx-6 mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
-        {[
-          { label: "Valeur brute", value: "14 800 000 XOF", sub: "Coût d'entrée SYSCOHADA" },
-          { label: "Valeur nette comptable", value: "9 104 000 XOF", sub: "Janvier 2025" },
-          { label: "Dotation annuelle", value: "1 480 000 XOF", sub: "10% linéaire" },
-          { label: "Heures machines 2025", value: "487h", sub: "Objectif annuel : 900h" },
-          { label: "Prochain entretien", value: "15/08/2025", sub: "À 500h" },
-        ].map((kpi) => (
-          <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5">
-            <p className="text-xs text-gray-500">{kpi.label}</p>
-            <p className="mt-1 text-base font-bold text-[#1B5E20]">{kpi.value}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{kpi.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Informations générales */}
-      <div className="mx-6 mt-6 rounded-2xl border border-gray-100 bg-white p-5">
-        <h2 className="text-sm font-semibold text-gray-800 mb-4">Informations générales</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Col 1 */}
-          <div>
-            <h3 className="text-xs font-semibold text-[#2E7D32] uppercase tracking-wide mb-3">Identification</h3>
-            <table className="w-full text-xs">
-              <tbody className="divide-y divide-gray-50">
-                {[
-                  ["Fournisseur", "John Deere Côte d'Ivoire (Tractafric)"],
-                  ["Date d'acquisition", "15/03/2021"],
-                  ["Bon de commande", "ACH-2021-012"],
-                  ["Facture", "JD-CI-2021-03-448 (15/03/2021)"],
-                  ["Montage/installation", "0 XOF (livré prêt à l'emploi)"],
-                  ["Mise en service", "22/03/2021"],
-                  ["Puissance", "55 CV / 40,4 kW"],
-                  ["Carburant", "Diesel (consommation moy. 5,2 L/h)"],
-                  ["Transmission", "Synchro 12 avant / 4 arrière"],
-                  ["Immatriculation", "CI-1247-BW (carte grise au nom AGRIFRIK SAS)"],
-                ].map(([k, v]) => (
-                  <tr key={k}>
-                    <td className="py-1.5 text-gray-500 pr-3 whitespace-nowrap">{k}</td>
-                    <td className="py-1.5 text-gray-800 font-medium">{v}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Col 2 */}
-          <div>
-            <h3 className="text-xs font-semibold text-[#2E7D32] uppercase tracking-wide mb-3">Valeurs comptables</h3>
-            <table className="w-full text-xs">
-              <tbody className="divide-y divide-gray-50">
-                {[
-                  ["Valeur d'achat HT", "12 500 000 XOF"],
-                  ["Frais accessoires", "2 300 000 XOF (transport + assurance CI)"],
-                  ["Coût d'entrée SYSCOHADA", "14 800 000 XOF (C/245)"],
-                  ["Mode d'amortissement", "Linéaire (constant)"],
-                  ["Taux", "10%/an (durée d'utilité 10 ans)"],
-                  ["Début amortissement", "01/04/2021 (1er mois complet après mise en service)"],
-                ].map(([k, v]) => (
-                  <tr key={k}>
-                    <td className="py-1.5 text-gray-500 pr-3 whitespace-nowrap">{k}</td>
-                    <td className={`py-1.5 font-medium ${k === "Coût d'entrée SYSCOHADA" ? "text-[#1B5E20] font-bold" : "text-gray-800"}`}>{v}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/* 4 KPI */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Valeur brute", value: "22 400 000 XOF", sub: "Coût d'entrée SYSCOHADA 2313" },
+            { label: "Amortissements cumulés (4 ans)", value: "2 986 667 XOF", sub: "2021–2024" },
+            { label: "Valeur nette comptable", value: "19 413 333 XOF", sub: "Au 31/12/2024" },
+            { label: "Valeur vénale estimée 2025", value: "~24 000 000 XOF", sub: "+7% terrain/construction" },
+          ].map((kpi) => (
+            <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5">
+              <p className="text-xs text-gray-500 mb-1">{kpi.label}</p>
+              <p className="text-base font-bold text-[#1B5E20]">{kpi.value}</p>
+              {kpi.sub && <p className="text-xs text-gray-400 mt-1">{kpi.sub}</p>}
+            </div>
+          ))}
         </div>
-      </div>
 
-      {/* Plan d'amortissement */}
-      <div className="mx-6 mt-6 rounded-2xl border border-gray-100 bg-white p-5">
-        <h2 className="text-sm font-semibold text-gray-800 mb-4">Plan d'amortissement</h2>
+        {/* Plan d'amortissement */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-6">
+          <h2 className="text-base font-semibold text-gray-800 mb-1">Plan d'amortissement SYSCOHADA</h2>
+          <div className="flex flex-wrap gap-4 text-xs text-gray-500 mb-5">
+            <span>Compte SYSCOHADA : <strong className="text-gray-700">2313 — Construction sur sol d'autrui</strong></span>
+            <span>Taux linéaire : <strong className="text-gray-700">100%/30 ans = 3,333%/an</strong></span>
+            <span>Dotation annuelle : <strong className="text-gray-700">746 667 XOF/an</strong></span>
+          </div>
 
-        {/* SVG Chart */}
-        <div className="overflow-x-auto mb-6">
-          <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} className="max-w-full">
-            {/* Area */}
-            <path d={areaPath} fill="#E8F5E9" />
-            {/* Grid lines */}
-            {[0, 0.25, 0.5, 0.75, 1].map((t) => {
-              const y = padT + chartH * t;
-              const val = Math.round(maxVal * (1 - t));
-              return (
-                <g key={t}>
-                  <line x1={padL} y1={y} x2={svgW - padR} y2={y} stroke="#e5e7eb" strokeWidth={1} strokeDasharray="4 2" />
-                  <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={9} fill="#9ca3af">
-                    {(val / 1000000).toFixed(1)}M
-                  </text>
-                </g>
-              );
-            })}
-            {/* Axes */}
-            <line x1={padL} y1={padT} x2={padL} y2={padT + chartH} stroke="#d1d5db" strokeWidth={1} />
-            <line x1={padL} y1={padT + chartH} x2={svgW - padR} y2={padT + chartH} stroke="#d1d5db" strokeWidth={1} />
-            {/* X labels */}
-            {years.map((yr, i) => (
-              <text key={yr} x={padL + i * xStep} y={svgH - 4} textAnchor="middle" fontSize={9} fill="#9ca3af">
-                {yr}
+          {/* SVG Line Chart */}
+          <div className="overflow-x-auto mb-6">
+            <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} className="max-w-full">
+              {/* Area */}
+              <path d={areaPath} fill="#E8F5E9" />
+              {/* Grid lines */}
+              {[0, 0.25, 0.5, 0.75, 1].map((t) => {
+                const y = padT + chartH * t;
+                const val = Math.round(maxVal * (1 - t));
+                return (
+                  <g key={t}>
+                    <line x1={padL} y1={y} x2={svgW - padR} y2={y} stroke="#e5e7eb" strokeWidth={1} strokeDasharray="4 2" />
+                    <text x={padL - 5} y={y + 4} textAnchor="end" fontSize={9} fill="#9ca3af">
+                      {(val / 1000000).toFixed(0)}M
+                    </text>
+                  </g>
+                );
+              })}
+              {/* Axes */}
+              <line x1={padL} y1={padT} x2={padL} y2={padT + chartH} stroke="#d1d5db" strokeWidth={1} />
+              <line x1={padL} y1={padT + chartH} x2={svgW - padR} y2={padT + chartH} stroke="#d1d5db" strokeWidth={1} />
+              {/* X labels */}
+              {[2021, 2025, 2030, 2035, 2040, 2045, 2051].map((yr) => (
+                <text key={yr} x={toX(yr)} y={svgH - 4} textAnchor="middle" fontSize={9} fill="#9ca3af">
+                  {yr}
+                </text>
+              ))}
+              {/* Polyline */}
+              <polyline points={polylinePoints} fill="none" stroke="#2E7D32" strokeWidth={2.5} strokeLinejoin="round" />
+              {/* Marqueur Aujourd'hui */}
+              <circle cx={nowX} cy={nowY} r={5} fill="#2E7D32" />
+              <line x1={nowX} y1={nowY} x2={nowX} y2={padT + chartH} stroke="#2E7D32" strokeWidth={1} strokeDasharray="3 2" />
+              <rect x={nowX - 72} y={nowY - 34} width={144} height={26} rx={4} fill="#1B5E20" />
+              <text x={nowX} y={nowY - 24} textAnchor="middle" fontSize={9} fill="white" fontWeight="bold">
+                Aujourd'hui — VNC 18 791 110 XOF
               </text>
-            ))}
-            {/* Polyline */}
-            <polyline points={polyline} fill="none" stroke="#2E7D32" strokeWidth={2.5} strokeLinejoin="round" />
-            {/* Current point annotation */}
-            <circle cx={currentPt.x} cy={currentPt.y} r={5} fill="#2E7D32" />
-            <rect x={currentPt.x - 80} y={currentPt.y - 32} width={160} height={24} rx={4} fill="#1B5E20" />
-            <text x={currentPt.x} y={currentPt.y - 16} textAnchor="middle" fontSize={9} fill="white" fontWeight="bold">
-              Valeur actuelle 9 104 000 XOF (Jan 2025)
-            </text>
-            {/* Y axis label */}
-            <text x={12} y={padT + chartH / 2} transform={`rotate(-90, 12, ${padT + chartH / 2})`} textAnchor="middle" fontSize={9} fill="#6b7280">
-              Valeur nette comptable (XOF)
-            </text>
-          </svg>
-        </div>
+              <text x={nowX} y={nowY - 13} textAnchor="middle" fontSize={8} fill="#A5D6A7">
+                2025
+              </text>
+              {/* Marqueur Fin de vie */}
+              <circle cx={endX} cy={endY} r={4} fill="#E65100" />
+              <rect x={endX - 44} y={endY - 28} width={88} height={22} rx={4} fill="#E65100" />
+              <text x={endX} y={endY - 14} textAnchor="middle" fontSize={9} fill="white" fontWeight="bold">
+                Fin de vie 2051
+              </text>
+            </svg>
+          </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-[#F8FBF8]">
-                <th className="text-left px-3 py-2 text-gray-600 font-semibold">Exercice</th>
-                <th className="text-right px-3 py-2 text-gray-600 font-semibold">VNC début</th>
-                <th className="text-right px-3 py-2 text-gray-600 font-semibold">Dotation</th>
-                <th className="text-right px-3 py-2 text-gray-600 font-semibold">VNC fin</th>
-                <th className="text-right px-3 py-2 text-gray-600 font-semibold">Amort. cumulé</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {amortissementData.map((row) => (
-                <tr key={row.exercice} className={row.current ? "bg-green-50 font-bold" : "hover:bg-gray-50"}>
-                  <td className="px-3 py-2 text-gray-800">
-                    {row.exercice}
-                    {row.current && <span className="ml-2 text-[#2E7D32] text-xs">← exercice en cours</span>}
-                    {row.vncFin === 0 && <span className="ml-2">✅</span>}
-                  </td>
-                  <td className="px-3 py-2 text-right text-gray-700">{fmt(row.vncDebut)}</td>
-                  <td className="px-3 py-2 text-right text-gray-700">{fmt(row.dotation)}</td>
-                  <td className="px-3 py-2 text-right text-gray-700">{fmt(row.vncFin)}</td>
-                  <td className="px-3 py-2 text-right text-gray-700">{fmt(row.amortCumul)}</td>
+          {/* Tableau */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tl-xl">Exercice</th>
+                  <th className="text-right px-4 py-3 text-gray-600 font-medium">Dotation (D)</th>
+                  <th className="text-right px-4 py-3 text-gray-600 font-medium">Amort. cumulés</th>
+                  <th className="text-right px-4 py-3 text-gray-600 font-medium rounded-tr-xl">VNC fin d'exercice</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Maintenance */}
-      <div className="mx-6 mt-6 rounded-2xl border border-gray-100 bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h2 className="text-sm font-semibold text-gray-800">Maintenance et pannes</h2>
-          <div className="flex items-center gap-4 text-xs text-gray-500">
-            <span>Coût total 2021-2025 : <strong className="text-[#1B5E20]">415 000 XOF</strong> (2,8% val. achat — excellent ✅)</span>
-            <span>Budget 2025 : <strong className="text-[#2E7D32]">150 000 XOF</strong></span>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {amortData.map((row) => (
+                  <tr key={row.exercice} className={row.current ? "bg-green-50 font-semibold" : "hover:bg-gray-50/60"}>
+                    <td className="px-4 py-3 text-gray-800">
+                      {row.exercice}
+                      {row.current && <span className="ml-2 text-[#2E7D32] text-xs font-normal">← exercice en cours</span>}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-700">{row.dotation}</td>
+                    <td className="px-4 py-3 text-right text-gray-700">{row.cumul}</td>
+                    <td className={`px-4 py-3 text-right font-medium ${row.vnc === "0 XOF" ? "text-orange-600" : "text-gray-800"}`}>
+                      {row.vnc}
+                      {row.vnc === "0 XOF" && " ✅"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-[#F8FBF8]">
-                <th className="text-left px-3 py-2 text-gray-600 font-semibold">Date</th>
-                <th className="text-left px-3 py-2 text-gray-600 font-semibold">Type</th>
-                <th className="text-left px-3 py-2 text-gray-600 font-semibold">Nature</th>
-                <th className="text-left px-3 py-2 text-gray-600 font-semibold">Prestataire</th>
-                <th className="text-right px-3 py-2 text-gray-600 font-semibold">Coût (XOF)</th>
-                <th className="text-center px-3 py-2 text-gray-600 font-semibold">Heures</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {maintenanceData.map((row, i) => (
-                <tr key={i} className="hover:bg-gray-50">
-                  <td className="px-3 py-2 text-gray-700 whitespace-nowrap">{row.date}</td>
-                  <td className="px-3 py-2 text-gray-800 font-medium whitespace-nowrap">{row.type}</td>
-                  <td className="px-3 py-2 text-gray-600">{row.nature}</td>
-                  <td className="px-3 py-2 text-gray-700 whitespace-nowrap">{row.prestataire}</td>
-                  <td className="px-3 py-2 text-right text-gray-800 font-medium">{row.cout.toLocaleString("fr-FR")}</td>
-                  <td className="px-3 py-2 text-center">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                      row.statut === "ok" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
-                    }`}>
-                      {row.statut === "ok" ? "✅" : "⚠️"} {row.heures}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      {/* Documents */}
-      <div className="mx-6 mt-6 rounded-2xl border border-gray-100 bg-white p-5">
-        <h2 className="text-sm font-semibold text-gray-800 mb-4">Documents</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-[#F8FBF8]">
-                <th className="text-left px-3 py-2 text-gray-600 font-semibold">Document</th>
-                <th className="text-left px-3 py-2 text-gray-600 font-semibold">Date</th>
-                <th className="text-left px-3 py-2 text-gray-600 font-semibold">Statut</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {documents.map((doc, i) => (
-                <tr key={i} className="hover:bg-gray-50">
-                  <td className="px-3 py-2 text-gray-800 font-medium">{doc.nom}</td>
-                  <td className="px-3 py-2 text-gray-600">{doc.date}</td>
-                  <td className="px-3 py-2">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                      doc.ok === true ? "bg-green-100 text-green-700" :
-                      doc.ok === null ? "bg-blue-50 text-blue-700" : "bg-red-100 text-red-700"
-                    }`}>
-                      {doc.ok === true ? "✅" : "📋"} {doc.statut}
-                    </span>
-                  </td>
+        {/* État et maintenance */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-6">
+          <h2 className="text-base font-semibold text-gray-800 mb-4">État et maintenance</h2>
+          <div className="overflow-x-auto mb-4">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tl-xl">Inspection</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Date</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Résultat</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tr-xl">Intervenant</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[
+                  ["Inspection annuelle structure", "15/01/2025", "✅ Bon état — pas de fissure", "Construction Nawa SARL"],
+                  ["Vérification toiture zinc", "15/01/2025", "✅ Étanche — 1 tôle remplacée", "Maçon local (42 000 XOF)"],
+                  ["Contrôle installation électrique", "20/03/2025", "✅ Conforme CI (ANASUR)", "Électricien agréé SOPIE"],
+                ].map((row) => (
+                  <tr key={row[0]} className="hover:bg-gray-50/60">
+                    {row.map((cell, i) => (
+                      <td key={i} className="px-4 py-3 text-gray-700">{cell}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex flex-wrap gap-4 text-xs text-gray-600">
+            <span>Charges de maintenance 2025 YTD : <strong className="text-gray-800">42 000 XOF</strong> (tôle) + <strong className="text-gray-800">18 000 XOF</strong> (divers) = <strong className="text-[#1B5E20]">60 000 XOF</strong></span>
+            <span>Budget maintenance annuel : <strong className="text-gray-800">200 000 XOF</strong> (0,89% valeur brute — conforme norme ✅)</span>
+          </div>
         </div>
-      </div>
 
-      {/* Actions */}
-      <div className="mx-6 mt-6 mb-8 flex flex-wrap gap-3">
-        <a
-          href="/actifs"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50"
-        >
-          ← Retour aux actifs
-        </a>
-        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2E7D32] text-white text-xs font-medium hover:bg-[#1B5E20]">
-          Créer un ordre de maintenance
-        </button>
-        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50">
-          Imprimer fiche actif
-        </button>
+        {/* Assurance */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-6">
+          <h2 className="text-base font-semibold text-gray-800 mb-4">Assurance</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tl-xl">Aspect</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tr-xl">Détail</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[
+                  ["Assureur", "NSIA Assurances CI — Police multirisque professionnelle"],
+                  ["N° police", "NSIA-MPR-CI-2025-EXP001"],
+                  ["Valeur assurée", "24 000 000 XOF (valeur de reconstruction 2025)"],
+                  ["Prime annuelle", "96 000 XOF/an (0,40% valeur assurée)"],
+                  ["Validité", "01/01/2025 – 31/12/2025 ✅"],
+                ].map((row) => (
+                  <tr key={row[0]} className="hover:bg-gray-50/60">
+                    <td className="px-4 py-3 text-gray-500 font-medium w-48">{row[0]}</td>
+                    <td className="px-4 py-3 text-gray-800">{row[1]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-wrap gap-3 pb-4">
+          <a
+            href="/actifs"
+            className="bg-gray-100 text-gray-700 rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-gray-200 transition-colors"
+          >
+            ← Retour aux actifs
+          </a>
+          <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors">
+            Modifier
+          </button>
+          <button className="border border-[#2E7D32] text-[#2E7D32] rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#F8FBF8] transition-colors">
+            Voir l'assurance
+          </button>
+        </div>
+
       </div>
     </div>
   );

@@ -7,64 +7,49 @@ export default async function FormationDetailPage({
 }) {
   const { id } = await params;
 
-  const breadcrumb = ["RH", "Formations", `Formation ${id}`];
-
-  const participants = [
-    { nom: "Ibrahim Sawadogo", fonction: "Resp. Terrain", presenceJ1: true, score: 38, total: 40, certif: true },
-    { nom: "Konan Yao", fonction: "Technicien", presenceJ1: true, score: 37, total: 40, certif: true },
-    { nom: "Yao Gnalé", fonction: "Technicien élevage", presenceJ1: true, score: 34, total: 40, certif: true },
-    { nom: "Adjoua Messou", fonction: "Chef projet", presenceJ1: true, score: 40, total: 40, certif: true },
-    { nom: "Fatou Diallo", fonction: "Saisonnière", presenceJ1: true, score: 29, total: 40, certif: true },
-    { nom: "Moussa Coulibaly", fonction: "Saisonnier", presenceJ1: false, score: null, total: 40, certif: false },
-    { nom: "Bamba Koné", fonction: "Producteur COOP", presenceJ1: true, score: 31, total: 40, certif: true },
-    { nom: "Youssouf Bamba", fonction: "Producteur COOP", presenceJ1: true, score: 28, total: 40, certif: true },
-    { nom: "Adama Traoré", fonction: "Producteur COOP", presenceJ1: true, score: 26, total: 40, certif: false },
-    { nom: "Brahima Ouattara", fonction: "Permanent", presenceJ1: true, score: 33, total: 40, certif: true },
-    { nom: "Koffi Amoussou", fonction: "Permanent", presenceJ1: true, score: 34, total: 40, certif: true },
-    { nom: "Sékou Diomandé", fonction: "Permanent", presenceJ1: true, score: 32, total: 40, certif: true },
-  ];
-
-  // Pour le bar chart — uniquement les présents avec score
-  const scoredParticipants = participants.filter((p) => p.score !== null) as typeof participants & { score: number }[];
-  const maxBarWidth = 240;
-
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-[#F8FBF8]">
-      <Topbar breadcrumb={breadcrumb} />
+      <Topbar breadcrumb={["RH", "Formations", `Formation ${id}`]} />
 
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
         {/* En-tête bandeau vert */}
-        <div className="rounded-2xl p-6" style={{ backgroundColor: "#1B5E20" }}>
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+        <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#1B5E20" }}>
+          <div className="p-6 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-xs font-semibold uppercase tracking-widest text-green-300">
-                  RH — Formations
+                <span className="font-mono text-xs bg-white/20 text-white px-2 py-0.5 rounded">
+                  FORM-2025-003
                 </span>
-                <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                  🔵 En cours
-                </span>
-                <span className="bg-green-800 text-green-200 text-xs px-2 py-1 rounded-full">
-                  Formation obligatoire RA
+                <span className="bg-green-400/30 text-green-100 text-xs font-medium px-3 py-0.5 rounded-full border border-green-300/40">
+                  ✅ Terminée
                 </span>
               </div>
-              <h1 className="text-xl font-bold text-white leading-snug">
-                Bonnes Pratiques Agricoles — Référentiel Rainforest Alliance 2020
+              <h1 className="text-xl font-bold text-white">
+                Bonnes Pratiques Agricoles (BPA) Cacao
               </h1>
-              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-green-200">
-                <span>Code : <span className="text-white font-medium">FOR-2025-007</span></span>
-                <span>Organisme : <span className="text-white font-medium">ANADER (Agence Nationale d'Appui au Développement Rural)</span></span>
-              </div>
-              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-green-200">
-                <span>Formateur : <span className="text-white font-medium">Konan Brice (Technicien ANADER, certifié RA)</span></span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 text-sm text-green-200">
+                <div>
+                  <span className="text-white font-semibold">Organisme :</span>{" "}
+                  ANADER CI (Agence Nationale d&apos;Appui au Développement Rural)
+                </div>
+                <div>
+                  <span className="text-white font-semibold">Formateur :</span>{" "}
+                  M. Dognon Sylvain — Technicien ANADER Région Nawa
+                </div>
+                <div>
+                  <span className="text-white font-semibold">Date :</span>{" "}
+                  08–10/01/2025 (3 jours)
+                </div>
+                <div>
+                  <span className="text-white font-semibold">Lieu :</span>{" "}
+                  Soubré, Centre ANADER
+                </div>
               </div>
             </div>
-            <div className="bg-green-900/50 rounded-xl px-5 py-4 text-center min-w-[200px]">
-              <div className="text-green-300 text-xs font-medium mb-1">Dates de formation</div>
-              <div className="text-white font-bold text-sm">J1 : 12/07/2025</div>
-              <div className="text-white font-bold text-sm">J2 : 19/07/2025</div>
-              <div className="text-green-200 text-xs mt-1">16h totales</div>
+            <div className="flex-shrink-0 bg-green-900/50 rounded-xl px-5 py-4 text-center">
+              <div className="text-2xl font-bold text-white">2/2</div>
+              <div className="text-xs text-green-200 mt-1">Participants ✅</div>
             </div>
           </div>
         </div>
@@ -72,253 +57,286 @@ export default async function FormationDetailPage({
         {/* 4 KPI */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Participants inscrits", value: "12", sub: "8 permanents + 4 coopérative", color: "text-blue-700" },
-            { label: "Présence J1", value: "11/12", sub: "91,7% de taux de présence", color: "text-green-700" },
-            { label: "Coût total", value: "384 000 XOF", sub: "32 000 XOF/personne", color: "text-orange-600" },
-            { label: "Certifications visées", value: "RA BPA 2025", sub: "Délivrée par ANADER/RA", color: "text-green-700" },
+            { label: "Durée", value: "3 jours", sub: "21 heures" },
+            { label: "Participants EXP-001", value: "2", sub: "Ibrahim Sawadogo + Akissi Kouamé" },
+            { label: "Score moyen QCM", value: "87%", sub: "✅ Objectif atteint", green: true },
+            { label: "Coût total", value: "120 000 XOF", sub: "Pris en charge FDFP CI" },
           ].map((kpi) => (
             <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5">
               <div className="text-xs text-gray-500 mb-1">{kpi.label}</div>
-              <div className={`text-xl font-bold ${kpi.color}`}>{kpi.value}</div>
+              <div className={`text-xl font-bold ${kpi.green ? "text-[#2E7D32]" : "text-gray-800"}`}>
+                {kpi.value}
+              </div>
               <div className="text-xs text-gray-400 mt-1">{kpi.sub}</div>
             </div>
           ))}
         </div>
 
-        {/* Programme J1 */}
+        {/* Programme de formation */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-800 mb-1">Programme de la formation</h2>
-          <p className="text-xs text-gray-500 mb-4">Deux journées de 8h chacune — théorie + pratique terrain</p>
-
-          <div className="mb-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-              <span className="text-xs font-semibold text-gray-700">Jour 1 — 12/07/2025 (08h00-17h00) — Partie théorique</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-[#F8FBF8]">
-                    {["Horaire", "Module", "Contenu", "Durée"].map((h) => (
-                      <th key={h} className="text-left px-4 py-2 text-gray-500 font-medium">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {[
-                    { horaire: "08h00-09h00", module: "Accueil et introduction", contenu: "Enjeux RA 2020, certifications CI", duree: "1h", pause: false },
-                    { horaire: "09h00-11h00", module: "S1 — Gestion exploitation", contenu: "SGA, registres, traçabilité", duree: "2h", pause: false },
-                    { horaire: "11h00-11h15", module: "Pause", contenu: "—", duree: "15 min", pause: true },
-                    { horaire: "11h15-13h00", module: "S2 — Pratiques culturales", contenu: "Taille, fertilisation, phénologie cacao", duree: "1h45", pause: false },
-                    { horaire: "13h00-14h00", module: "Déjeuner", contenu: "—", duree: "1h", pause: true },
-                    { horaire: "14h00-16h00", module: "S5 — Produits chimiques", contenu: "EPI, stockage, DRE/DAR, FDS", duree: "2h", pause: false },
-                    { horaire: "16h00-17h00", module: "S3 — Conditions travail", contenu: "Droits, registres, salaires", duree: "1h", pause: false },
-                  ].map((row) => (
-                    <tr key={row.horaire} className={row.pause ? "bg-gray-50/40" : "hover:bg-gray-50/50"}>
-                      <td className="px-4 py-2 font-mono text-gray-600">{row.horaire}</td>
-                      <td className={`px-4 py-2 font-medium ${row.pause ? "text-gray-400 italic" : "text-gray-700"}`}>{row.module}</td>
-                      <td className={`px-4 py-2 ${row.pause ? "text-gray-400" : "text-gray-600"}`}>{row.contenu}</td>
-                      <td className="px-4 py-2 text-gray-500">{row.duree}</td>
-                    </tr>
+          <h2 className="text-sm font-semibold text-gray-800 mb-4">Programme de formation</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  {["Jour", "Thèmes abordés", "Durée", "Supports"].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left px-3 py-2 text-xs font-medium text-gray-500 first:rounded-l-lg last:rounded-r-lg"
+                    >
+                      {h}
+                    </th>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Programme J2 */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-xs font-semibold text-gray-700">Jour 2 — 19/07/2025 (08h00-17h00) — Pratique terrain</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-[#F8FBF8]">
-                    {["Horaire", "Module", "Lieu / Contenu", "Durée"].map((h) => (
-                      <th key={h} className="text-left px-4 py-2 text-gray-500 font-medium">{h}</th>
-                    ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[
+                  {
+                    jour: "Jour 1 — 08/01",
+                    themes:
+                      "Introduction BPA cacao, profil agroécologique CI, diagnostic parcellaire, itinéraire technique optimal",
+                    duree: "7h",
+                    supports: "Supports ANADER + CNRA CI",
+                  },
+                  {
+                    jour: "Jour 2 — 09/01",
+                    themes:
+                      "Gestion des bioagresseurs (mirides, Phytophthora), liste produits homologués CI, application Cypercal/Cupravit, DAR",
+                    duree: "7h",
+                    supports: "Fiches MINAGRI, démonstration terrain parcelle école",
+                  },
+                  {
+                    jour: "Jour 3 — 10/01",
+                    themes:
+                      "Post-récolte cacao : fermentation 5–7j, séchage (humidité <8%), tri grades AA/A/B, registres CNRA, certification RA",
+                    duree: "7h",
+                    supports: "CNRA CI protocoles + exigences RA Critères 2020",
+                  },
+                ].map((row) => (
+                  <tr key={row.jour} className="hover:bg-gray-50/50">
+                    <td className="px-3 py-3 font-medium text-[#2E7D32] whitespace-nowrap">{row.jour}</td>
+                    <td className="px-3 py-3 text-gray-700">{row.themes}</td>
+                    <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{row.duree}</td>
+                    <td className="px-3 py-3 text-xs text-gray-500">{row.supports}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {[
-                    { horaire: "08h00-10h00", module: "Visite PAR-A1", lieu: "Observation pratiques BPA terrain", duree: "2h", pause: false },
-                    { horaire: "10h00-12h00", module: "Exercice traçabilité", lieu: "Remplissage registres in-situ", duree: "2h", pause: false },
-                    { horaire: "12h00-13h00", module: "Déjeuner sur site", lieu: "—", duree: "1h", pause: true },
-                    { horaire: "13h00-15h00", module: "Atelier cut test", lieu: "Test coupe fèves + classement qualité", duree: "2h", pause: false },
-                    { horaire: "15h00-16h30", module: "QCM d'évaluation", lieu: "40 questions RA (seuil 70% = certifié)", duree: "1h30", pause: false },
-                    { horaire: "16h30-17h00", module: "Remise attestations", lieu: "Cérémonie + photo de groupe", duree: "30min", pause: false },
-                  ].map((row) => (
-                    <tr key={row.horaire} className={row.pause ? "bg-gray-50/40" : "hover:bg-gray-50/50"}>
-                      <td className="px-4 py-2 font-mono text-gray-600">{row.horaire}</td>
-                      <td className={`px-4 py-2 font-medium ${row.pause ? "text-gray-400 italic" : "text-gray-700"}`}>{row.module}</td>
-                      <td className={`px-4 py-2 ${row.pause ? "text-gray-400" : "text-gray-600"}`}>{row.lieu}</td>
-                      <td className="px-4 py-2 text-gray-500">{row.duree}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Participants + Bar chart */}
+        {/* Résultats des participants */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-800 mb-4">Liste des participants</h2>
-          <div className="flex flex-col xl:flex-row gap-6">
+          <h2 className="text-sm font-semibold text-gray-800 mb-4">Résultats des participants</h2>
 
-            {/* Tableau participants */}
-            <div className="flex-1 min-w-0 overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-[#F8FBF8]">
-                    {["Nom", "Fonction", "Présence J1", "Score QCM", "Certif. RA"].map((h) => (
-                      <th key={h} className="text-left px-3 py-2 text-gray-500 font-medium">{h}</th>
-                    ))}
+          {/* Tableau */}
+          <div className="overflow-x-auto mb-6">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  {["Participant", "Poste", "Présence", "QCM Score", "Attestation"].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left px-3 py-2 text-xs font-medium text-gray-500 first:rounded-l-lg last:rounded-r-lg"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[
+                  {
+                    nom: "Ibrahim Sawadogo",
+                    poste: "Technicien terrain",
+                    presence: "3/3j (21h) ✅",
+                    score: "91%",
+                    attestation: "✅ Attestation ANADER n°2025-0142",
+                  },
+                  {
+                    nom: "Akissi Kouamé",
+                    poste: "Saisonnière",
+                    presence: "3/3j (21h) ✅",
+                    score: "82%",
+                    attestation: "✅ Attestation ANADER n°2025-0143",
+                  },
+                ].map((p) => (
+                  <tr key={p.nom} className="hover:bg-gray-50/50">
+                    <td className="px-3 py-3 font-medium text-gray-800">{p.nom}</td>
+                    <td className="px-3 py-3 text-gray-600">{p.poste}</td>
+                    <td className="px-3 py-3 text-gray-700">{p.presence}</td>
+                    <td className="px-3 py-3 font-bold text-[#2E7D32]">{p.score}</td>
+                    <td className="px-3 py-3 text-xs text-gray-600">{p.attestation}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {participants.map((p) => {
-                    const pct = p.score !== null ? Math.round((p.score / p.total) * 1000) / 10 : null;
-                    const isAbsent = !p.presenceJ1;
-                    const isEchec = p.presenceJ1 && p.score !== null && pct! < 70;
-                    const isJuste = pct !== null && pct >= 70 && pct < 75;
-                    return (
-                      <tr key={p.nom} className={isAbsent ? "bg-red-50/40" : isEchec ? "bg-red-50/40" : "hover:bg-gray-50/50"}>
-                        <td className="px-3 py-2 font-medium text-gray-700">{p.nom}</td>
-                        <td className="px-3 py-2 text-gray-500">{p.fonction}</td>
-                        <td className="px-3 py-2">
-                          {p.presenceJ1
-                            ? <span className="text-green-600">✅</span>
-                            : <span className="text-red-500">❌ Absent</span>}
-                        </td>
-                        <td className="px-3 py-2">
-                          {p.score !== null
-                            ? <span className={pct! < 70 ? "text-red-600 font-medium" : "text-gray-700"}>
-                                {p.score}/40 ({pct}%)
-                              </span>
-                            : <span className="text-gray-400">—</span>}
-                        </td>
-                        <td className="px-3 py-2">
-                          {isAbsent
-                            ? <span className="text-gray-400">❌ À reprogrammer</span>
-                            : isEchec
-                            ? <span className="text-red-600">❌ Échec — Rattrapage 09/08</span>
-                            : <span className="text-green-700">✅ Obtenu{isJuste ? " (juste)" : ""}</span>}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-            {/* SVG Bar chart horizontal scores QCM */}
-            <div className="flex-shrink-0">
-              <div className="text-xs font-semibold text-gray-700 mb-3">Scores QCM participants</div>
-              <svg
-                viewBox={`0 0 320 ${scoredParticipants.length * 28 + 30}`}
-                width="320"
-                height={scoredParticipants.length * 28 + 30}
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* Ligne seuil 70% */}
-                {(() => {
-                  const seuilX = 60 + (70 / 100) * maxBarWidth;
-                  const chartH = scoredParticipants.length * 28 + 20;
-                  return (
-                    <>
-                      <line
-                        x1={seuilX} y1={0}
-                        x2={seuilX} y2={chartH}
-                        stroke="#EF4444"
-                        strokeWidth="1.5"
-                        strokeDasharray="4 3"
-                      />
-                      <text x={seuilX + 2} y={10} fontSize="8" fill="#EF4444">70%</text>
-                    </>
-                  );
-                })()}
+          {/* SVG Bar chart horizontal — Scores QCM par module */}
+          <h3 className="text-xs font-semibold text-gray-600 mb-3">Scores QCM par module</h3>
+          <svg
+            viewBox="0 0 580 200"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full max-w-[580px]"
+          >
+            {/* Légende */}
+            <rect x="10" y="6" width="10" height="10" rx="2" fill="#2E7D32" />
+            <text x="24" y="16" fontSize="10" fill="#555">Ibrahim Sawadogo</text>
+            <rect x="170" y="6" width="10" height="10" rx="2" fill="#4CAF50" />
+            <text x="184" y="16" fontSize="10" fill="#555">Akissi Kouamé</text>
 
-                {scoredParticipants.map((p, i) => {
-                  const pct = p.score / p.total;
-                  const barW = pct * maxBarWidth;
-                  const y = i * 28 + 18;
-                  const isOk = pct >= 0.7;
-                  const firstName = p.nom.split(" ")[0];
-                  return (
-                    <g key={p.nom}>
-                      <text x={0} y={y + 9} fontSize="9" fill="#6B7280" textAnchor="start">
-                        {firstName}
-                      </text>
-                      <rect
-                        x={60}
-                        y={y}
-                        width={barW}
-                        height={16}
-                        rx={4}
-                        fill={isOk ? "#4CAF50" : "#EF4444"}
-                        fillOpacity="0.85"
-                      />
-                      <text
-                        x={60 + barW + 4}
-                        y={y + 11}
-                        fontSize="9"
-                        fill={isOk ? "#2E7D32" : "#DC2626"}
-                        fontWeight="bold"
-                      >
-                        {Math.round(pct * 1000) / 10}%
-                      </text>
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
+            {[
+              { label: "Profil agroécol.", ibra: 95, akissi: 88, y: 30 },
+              { label: "Bioagresseurs", ibra: 90, akissi: 80, y: 65 },
+              { label: "Produits phyto", ibra: 92, akissi: 84, y: 100 },
+              { label: "Post-récolte", ibra: 88, akissi: 78, y: 135 },
+              { label: "Réglementation RA", ibra: 90, akissi: 82, y: 170 },
+            ].map((m) => {
+              const maxW = 310;
+              const wI = (m.ibra / 100) * maxW;
+              const wA = (m.akissi / 100) * maxW;
+              return (
+                <g key={m.label}>
+                  <text x="128" y={m.y + 11} fontSize="10" fill="#555" textAnchor="end">
+                    {m.label}
+                  </text>
+                  {/* Ibrahim */}
+                  <rect x="136" y={m.y} width={wI} height="12" rx="3" fill="#2E7D32" />
+                  <text x={136 + wI + 4} y={m.y + 10} fontSize="10" fill="#2E7D32" fontWeight="600">
+                    {m.ibra}%
+                  </text>
+                  {/* Akissi */}
+                  <rect x="136" y={m.y + 14} width={wA} height="12" rx="3" fill="#4CAF50" />
+                  <text x={136 + wA + 4} y={m.y + 24} fontSize="10" fill="#4CAF50">
+                    {m.akissi}%
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
 
+        {/* Impact sur EXP-001 */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-sm font-semibold text-gray-800 mb-4">Impact sur EXP-001</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  {["Compétence acquise", "Impact attendu", "Indicateur"].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left px-3 py-2 text-xs font-medium text-gray-500 first:rounded-l-lg last:rounded-r-lg"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[
+                  {
+                    competence: "Gestion optimisée bioagresseurs",
+                    impact: "-15% utilisation intrants phyto",
+                    indicateur: "Coût phyto 2025 vs 2024",
+                  },
+                  {
+                    competence: "Application correcte Cupravit",
+                    impact: "0 cabosse noire Phytophthora",
+                    indicateur: "Résultat LOT-046 : 0% infection ✅",
+                  },
+                  {
+                    competence: "Tri grades amélioré",
+                    impact: "+5% Grade AA sur lots suivants",
+                    indicateur: "Grade AA H1 2025 : 87% ✅",
+                  },
+                  {
+                    competence: "Registres conformes CNRA",
+                    impact: "Score traçabilité 98/100 CNRA",
+                    indicateur: "CNRA-NW-2025-0042 ✅",
+                  },
+                ].map((row) => (
+                  <tr key={row.competence} className="hover:bg-gray-50/50">
+                    <td className="px-3 py-3 font-medium text-gray-800">{row.competence}</td>
+                    <td className="px-3 py-3 text-gray-700">{row.impact}</td>
+                    <td className="px-3 py-3 text-xs text-gray-500">{row.indicateur}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Budget */}
+        {/* Financement et documents */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-800 mb-4">Budget</h2>
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="flex-1 overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-[#F8FBF8]">
-                    <th className="text-left px-4 py-2 text-gray-500 font-medium">Poste</th>
-                    <th className="text-right px-4 py-2 text-gray-500 font-medium">Montant (XOF)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {[
-                    { poste: "Honoraires formateur ANADER", montant: "240 000" },
-                    { poste: "Supports pédagogiques (12 classeurs)", montant: "48 000" },
-                    { poste: "Pauses-café + déjeuner J2", montant: "96 000" },
-                  ].map((row) => (
-                    <tr key={row.poste} className="hover:bg-gray-50/50">
-                      <td className="px-4 py-3 text-gray-600">{row.poste}</td>
-                      <td className="px-4 py-3 text-right text-gray-700">{row.montant}</td>
-                    </tr>
+          <h2 className="text-sm font-semibold text-gray-800 mb-1">Financement et documents</h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Prise en charge FDFP :{" "}
+            <span className="font-semibold text-[#2E7D32]">120 000 XOF</span> remboursés le{" "}
+            <span className="font-medium text-gray-700">28/02/2025</span>{" "}
+            <span className="font-mono text-gray-400">(FDFP-CI-REMB-2025-089)</span>
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  {["Document", "Référence", "Date", "Action"].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left px-3 py-2 text-xs font-medium text-gray-500 first:rounded-l-lg last:rounded-r-lg"
+                    >
+                      {h}
+                    </th>
                   ))}
-                  <tr className="bg-green-50 font-bold">
-                    <td className="px-4 py-3 text-gray-800">Total</td>
-                    <td className="px-4 py-3 text-right text-green-700">384 000</td>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[
+                  {
+                    doc: "Convention FDFP (prise en charge)",
+                    ref: "FDFP-CI-ANADER-2025-0047",
+                    date: "15/12/2024",
+                    action: "Voir",
+                  },
+                  {
+                    doc: "Facture ANADER",
+                    ref: "ANADER-FAC-2025-0089",
+                    date: "10/01/2025",
+                    action: "Voir (120 000 XOF)",
+                  },
+                  {
+                    doc: "Attestation Ibrahim Sawadogo",
+                    ref: "ANADER-2025-0142",
+                    date: "10/01/2025",
+                    action: "Télécharger",
+                  },
+                  {
+                    doc: "Attestation Akissi Kouamé",
+                    ref: "ANADER-2025-0143",
+                    date: "10/01/2025",
+                    action: "Télécharger",
+                  },
+                  {
+                    doc: "Rapport évaluation formateur",
+                    ref: "FORM-EVAL-2025-003",
+                    date: "12/01/2025",
+                    action: "Voir",
+                  },
+                ].map((row) => (
+                  <tr key={row.ref} className="hover:bg-gray-50/50">
+                    <td className="px-3 py-3 text-gray-800">{row.doc}</td>
+                    <td className="px-3 py-3 font-mono text-xs text-gray-500">{row.ref}</td>
+                    <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{row.date}</td>
+                    <td className="px-3 py-3">
+                      <button className="text-xs text-[#2E7D32] hover:underline font-medium">
+                        📄 {row.action}
+                      </button>
+                    </td>
                   </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="flex-1 space-y-3">
-              <div className="p-4 bg-green-50 border border-green-100 rounded-xl text-xs text-green-800">
-                <div className="font-semibold mb-1">✅ Prise en charge</div>
-                <div>Budget formations RH 2025 — Poste 641-FOR</div>
-              </div>
-              <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
-                <div className="font-semibold mb-1">Imputable projet</div>
-                <div>PRJ-2025-001 (RA anacarde) : 50% soit <span className="font-bold">192 000 XOF</span></div>
-              </div>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -331,10 +349,10 @@ export default async function FormationDetailPage({
             ← Retour aux formations
           </a>
           <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
-            Imprimer la liste d'émargement
+            Télécharger les attestations
           </button>
           <button className="bg-[#E65100] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-orange-800 transition-colors">
-            Générer les attestations
+            Planifier prochaine formation
           </button>
         </div>
 

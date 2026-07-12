@@ -8,297 +8,290 @@ export default async function MembreCooperativePage({
   const { id } = await params;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Topbar
-        breadcrumb={["RH", "Coopérative", `Membre ${id}`]}
-      />
+    <div className="flex-1 flex flex-col min-h-0 bg-[#F8FBF8]">
+      <Topbar breadcrumb={["RH", "Coopérative", `Membre ${id}`]} />
 
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+
         {/* En-tête bandeau vert */}
-        <div className="rounded-2xl bg-[#1B5E20] text-white p-6">
-          <div className="flex flex-col md:flex-row md:items-center gap-5">
-            {/* Avatar */}
-            <div className="flex-shrink-0 w-16 h-16 rounded-full bg-[#4CAF50] flex items-center justify-center text-2xl font-bold text-white">
-              BK
-            </div>
-
-            {/* Infos principales */}
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold">Bamba Koné</h1>
-                <span className="text-sm bg-white/20 rounded-full px-3 py-0.5">N° COOP-0042</span>
-                <span className="text-xs bg-green-400/30 border border-green-300/50 rounded-full px-3 py-0.5 font-medium">
+        <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#1B5E20" }}>
+          <div className="p-6 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-mono text-xs bg-white/20 text-white px-2 py-0.5 rounded">
+                  MBR-047
+                </span>
+                <span className="bg-green-400/30 text-green-100 text-xs font-medium px-3 py-0.5 rounded-full border border-green-300/40">
                   ✅ Membre actif
                 </span>
+                <span className="bg-blue-400/30 text-blue-100 text-xs font-medium px-3 py-0.5 rounded-full border border-blue-300/40">
+                  ✅ Certifié RA 2020
+                </span>
               </div>
-              <p className="text-green-200 text-sm">Depuis 2018 · 7 ans de membership</p>
-              <p className="text-green-300 text-sm mt-0.5">📍 Soubré Nord, Secteur 4</p>
+              <h1 className="text-xl font-bold text-white">Yao Kouamé — Producteur cacao</h1>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 text-sm text-green-200">
+                <div>
+                  <span className="text-white font-semibold">Coopérative :</span>{" "}
+                  COOPAGRI-NAWA (Coop. Agriculteurs Région Nawa)
+                </div>
+                <div>
+                  <span className="text-white font-semibold">Village :</span>{" "}
+                  Méagui sous-préfecture
+                </div>
+                <div>
+                  <span className="text-white font-semibold">Exploitation :</span>{" "}
+                  4,2 ha cacao
+                </div>
+                <div>
+                  <span className="text-white font-semibold">Membre depuis :</span>{" "}
+                  12/03/2018 (7 ans)
+                </div>
+              </div>
+            </div>
+            <div className="flex-shrink-0 bg-green-900/50 rounded-xl px-5 py-4 text-center">
+              <div className="text-lg font-bold text-white">3,8 t</div>
+              <div className="text-xs text-green-200 mt-1">Quota livraison 2025</div>
             </div>
           </div>
+        </div>
 
-          {/* 5 KPI */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6 pt-5 border-t border-white/20">
+        {/* 4 KPI */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Productions certifiées 2024", value: "3,2 t", sub: "Grade AA ✅", green: true },
+            { label: "Ristournes 2024 versées", value: "160 000 XOF", sub: "Versement effectué" },
+            { label: "Encours micro-crédit", value: "85 000 XOF", sub: "sur 200 000 XOF" },
+            { label: "Formations ANADER suivies", value: "3", sub: "✅ À jour", green: true },
+          ].map((kpi) => (
+            <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5">
+              <div className="text-xs text-gray-500 mb-1">{kpi.label}</div>
+              <div className={`text-xl font-bold ${kpi.green ? "text-[#2E7D32]" : "text-gray-800"}`}>
+                {kpi.value}
+              </div>
+              <div className="text-xs text-gray-400 mt-1">{kpi.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Profil exploitation */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-sm font-semibold text-gray-800 mb-4">Profil exploitation</h2>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-3 text-sm">
             {[
-              { label: "Surface certifiée RA", value: "4,8 ha", sub: "2 parcelles" },
-              { label: "Production 2024-2025", value: "5,48 t", sub: "cacao" },
-              { label: "Revenus bruts 2024", value: "5 627 000", sub: "XOF" },
-              { label: "Prime qualité RA", value: "284 000", sub: "XOF reçue" },
-              { label: "Micro-crédit en cours", value: "800 000", sub: "XOF · intrants" },
-            ].map((kpi) => (
-              <div key={kpi.label} className="text-center">
-                <p className="text-xl font-bold">{kpi.value}</p>
-                <p className="text-xs text-green-200 mt-0.5">{kpi.sub}</p>
-                <p className="text-xs text-green-300 mt-0.5">{kpi.label}</p>
+              { label: "Superficie totale", value: "4,2 ha (3,8 ha cacao + 0,4 ha cultures vivrières)" },
+              { label: "Variété dominante", value: "Hybride F1 PH16 résistante + quelques plants locaux Forastero" },
+              { label: "Age moyen verger", value: "12 ans (plantation 2013)" },
+              { label: "Arbres d'ombre", value: "Gliricidia sepium (28%) + quelques caféiers" },
+              { label: "Certification RA", value: "N° RA-CI-2025-MBR047 — Score 86/100" },
+              { label: "Sous-traitance", value: "2 saisonniers pendant la grande récolte (famille)" },
+              { label: "GPS parcelle", value: "5°25'12\"N 6°58'44\"W" },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex flex-col gap-0.5">
+                <dt className="text-xs text-gray-400">{label}</dt>
+                <dd className="text-gray-700 font-medium">{value}</dd>
               </div>
             ))}
-          </div>
+          </dl>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Informations personnelles */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">Informations personnelles</h2>
-            <dl className="space-y-2.5 text-sm">
-              {[
-                { label: "N° CNPS", value: "CI-CNPS-2001-00341287" },
-                { label: "Date de naissance", value: "18/06/1978 (47 ans)" },
-                { label: "Téléphone", value: "+225 05 XX XX XX" },
-                { label: "Situation familiale", value: "Marié, 5 enfants" },
-                { label: "Niveau d'instruction", value: "Primaire (CEP 1991)" },
-                { label: "Langue", value: "Dioula + Français basique" },
-                { label: "Distance expl./habitation", value: "1,2 km" },
-              ].map(({ label, value }) => (
-                <div key={label} className="flex justify-between gap-4">
-                  <dt className="text-gray-500 shrink-0">{label}</dt>
-                  <dd className="text-gray-800 font-medium text-right">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-
-          {/* Participation coopérative */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">Participation à la vie coopérative</h2>
-            <div className="space-y-3 text-sm">
-              {[
-                { event: "AGO 2025", status: "✅ Présent", detail: "Vote favorable extension micro-crédit" },
-                { event: "AGO 2024", status: "✅ Présent", detail: "" },
-                { event: "AGO 2023", status: "❌ Absent", detail: "Maladie" },
-              ].map(({ event, status, detail }) => (
-                <div key={event} className="flex items-start justify-between gap-2">
-                  <span className="text-gray-500 font-medium w-20">{event}</span>
-                  <span className="flex-1 text-gray-800">{status}{detail ? ` — ${detail}` : ""}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-xs text-gray-500">Comité</p>
-              <p className="text-sm text-gray-800 font-medium mt-1">
-                Membre du comité de contrôle qualité (depuis 2023)
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Parcelles */}
+        {/* Livraisons 2025 */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Parcelles</h2>
+          <h2 className="text-sm font-semibold text-gray-800 mb-4">Livraisons à la coopérative 2025</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#F8FBF8]">
-                  {["Code", "Surface", "Culture", "Statut foncier", "Certif. RA", "Rendement 2024"].map((h) => (
-                    <th key={h} className="text-left text-xs font-medium text-gray-500 px-3 py-2 first:rounded-l-lg last:rounded-r-lg">
+                  {["Date", "Lot", "Qté brute", "Qté nette", "Grade", "PU", "Montant"].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left px-3 py-2 text-xs font-medium text-gray-500 first:rounded-l-lg last:rounded-r-lg"
+                    >
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                <tr>
-                  <td className="px-3 py-3 font-mono text-xs text-gray-600">PAR-K1</td>
-                  <td className="px-3 py-3">3,2 ha</td>
-                  <td className="px-3 py-3">Cacao Forastero</td>
-                  <td className="px-3 py-3 text-xs">Titre foncier TF-41028</td>
-                  <td className="px-3 py-3"><span className="text-green-700 font-medium">✅ Certifiée</span></td>
-                  <td className="px-3 py-3 font-medium">1,14 t/ha</td>
+                <tr className="hover:bg-gray-50/50">
+                  <td className="px-3 py-3 text-gray-600 whitespace-nowrap">15/02/2025</td>
+                  <td className="px-3 py-3 font-mono text-xs text-gray-500">LOT-MBR047-H1-01</td>
+                  <td className="px-3 py-3">824 kg</td>
+                  <td className="px-3 py-3">798 kg</td>
+                  <td className="px-3 py-3 text-[#2E7D32] font-medium">AA (82%)</td>
+                  <td className="px-3 py-3">1 082 XOF</td>
+                  <td className="px-3 py-3 font-medium">863 436 XOF</td>
                 </tr>
-                <tr>
-                  <td className="px-3 py-3 font-mono text-xs text-gray-600">PAR-K2</td>
-                  <td className="px-3 py-3">1,6 ha</td>
-                  <td className="px-3 py-3">Anacarde CI-61</td>
-                  <td className="px-3 py-3 text-xs">Fermage (propriétaire famille)</td>
-                  <td className="px-3 py-3"><span className="text-orange-600 font-medium">❌ Non encore</span></td>
-                  <td className="px-3 py-3 font-medium">1,22 t/ha</td>
+                <tr className="hover:bg-gray-50/50">
+                  <td className="px-3 py-3 text-gray-600 whitespace-nowrap">28/03/2025</td>
+                  <td className="px-3 py-3 font-mono text-xs text-gray-500">LOT-MBR047-H1-02</td>
+                  <td className="px-3 py-3">612 kg</td>
+                  <td className="px-3 py-3">590 kg</td>
+                  <td className="px-3 py-3 text-[#2E7D32] font-medium">AA (86%)</td>
+                  <td className="px-3 py-3">1 085 XOF</td>
+                  <td className="px-3 py-3 font-medium">640 150 XOF</td>
+                </tr>
+                <tr className="bg-green-50 font-semibold">
+                  <td className="px-3 py-3 text-gray-700 rounded-l-lg">TOTAL H1 2025</td>
+                  <td className="px-3 py-3"></td>
+                  <td className="px-3 py-3">1 436 kg</td>
+                  <td className="px-3 py-3">1 388 kg</td>
+                  <td className="px-3 py-3 text-[#2E7D32]">84% AA</td>
+                  <td className="px-3 py-3"></td>
+                  <td className="px-3 py-3 text-[#2E7D32] rounded-r-lg">1 503 586 XOF</td>
                 </tr>
               </tbody>
             </table>
           </div>
+          <p className="text-xs text-gray-500 mt-3">
+            Projection H2 2025 :{" "}
+            <span className="font-medium text-gray-700">2 412 kg</span>{" "}
+            (selon floraison mesurée juin 2025)
+          </p>
         </div>
 
-        {/* Historique de production */}
+        {/* Micro-crédit coopératif */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Historique de production</h2>
+          <h2 className="text-sm font-semibold text-gray-800 mb-4">Micro-crédit coopératif</h2>
 
-          {/* SVG Bar Chart */}
-          <div className="mb-5">
-            <p className="text-xs text-gray-500 mb-3">Production cacao 3 campagnes (tonnes)</p>
-            <svg viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-sm">
-              {/* Axes */}
-              <line x1="50" y1="10" x2="50" y2="140" stroke="#e5e7eb" strokeWidth="1" />
-              <line x1="50" y1="140" x2="390" y2="140" stroke="#e5e7eb" strokeWidth="1" />
-              {/* Grid lines */}
-              {[1, 2, 3, 4, 5, 6].map((v) => (
-                <g key={v}>
-                  <line x1="50" y1={140 - v * 20} x2="390" y2={140 - v * 20} stroke="#f3f4f6" strokeWidth="1" />
-                  <text x="42" y={144 - v * 20} textAnchor="end" fontSize="9" fill="#9ca3af">{v}</text>
-                </g>
-              ))}
-              {/* Bars */}
-              {[
-                { x: 90, height: 3.48 * 20, label: "2022-23", value: "3,48 t" },
-                { x: 200, height: 4.62 * 20, label: "2023-24", value: "4,62 t" },
-                { x: 310, height: 5.48 * 20, label: "2024-25", value: "5,48 t" },
-              ].map(({ x, height, label, value }) => (
-                <g key={label}>
-                  <rect
-                    x={x - 35}
-                    y={140 - height}
-                    width={70}
-                    height={height}
-                    rx="4"
-                    fill="#2E7D32"
-                    opacity={label === "2024-25" ? "1" : label === "2023-24" ? "0.8" : "0.6"}
-                  />
-                  <text x={x} y={140 - height - 5} textAnchor="middle" fontSize="10" fill="#1B5E20" fontWeight="600">
-                    {value}
-                  </text>
-                  <text x={x} y="158" textAnchor="middle" fontSize="9" fill="#6b7280">{label}</text>
-                </g>
-              ))}
-            </svg>
-          </div>
-
-          <div className="overflow-x-auto">
+          {/* Prêt en cours */}
+          <div className="overflow-x-auto mb-5">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#F8FBF8]">
-                  {["Campagne", "Cacao (t)", "Anacarde (t)", "CA cacao (XOF)", "Grade AA%", "Prime RA"].map((h) => (
-                    <th key={h} className="text-left text-xs font-medium text-gray-500 px-3 py-2 first:rounded-l-lg last:rounded-r-lg">{h}</th>
+                  {["Prêt", "Date", "Montant initial", "Remboursé", "Solde", "Taux", "Échéance"].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left px-3 py-2 text-xs font-medium text-gray-500 first:rounded-l-lg last:rounded-r-lg"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="hover:bg-gray-50/50">
+                  <td className="px-3 py-3 font-mono text-xs text-gray-500">MCR-2024-MBR047-01</td>
+                  <td className="px-3 py-3 text-gray-600 whitespace-nowrap">15/09/2024</td>
+                  <td className="px-3 py-3 font-medium">200 000 XOF</td>
+                  <td className="px-3 py-3 text-[#2E7D32] font-medium">115 000 XOF</td>
+                  <td className="px-3 py-3 font-bold text-orange-600">85 000 XOF</td>
+                  <td className="px-3 py-3 text-gray-600">4,5%/an (CI OHADA)</td>
+                  <td className="px-3 py-3 text-gray-600 whitespace-nowrap">15/09/2025</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Plan de remboursement restant */}
+          <h3 className="text-xs font-semibold text-gray-600 mb-3">Plan de remboursement restant</h3>
+          <div className="overflow-x-auto mb-4">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  {["Mois", "Mensualité", "Capital", "Intérêts"].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left px-3 py-2 text-xs font-medium text-gray-500 first:rounded-l-lg last:rounded-r-lg"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                <tr className="hover:bg-gray-50/50">
+                  <td className="px-3 py-3 text-gray-700">Août 2025</td>
+                  <td className="px-3 py-3 font-medium">21 500 XOF</td>
+                  <td className="px-3 py-3">21 108 XOF</td>
+                  <td className="px-3 py-3 text-gray-500">392 XOF</td>
+                </tr>
+                <tr className="hover:bg-gray-50/50">
+                  <td className="px-3 py-3 text-gray-700">Septembre 2025</td>
+                  <td className="px-3 py-3 font-medium">63 892 XOF <span className="text-xs font-normal text-gray-400">(solde)</span></td>
+                  <td className="px-3 py-3">63 500 XOF</td>
+                  <td className="px-3 py-3 text-gray-500">392 XOF</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-gray-500 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+            Remboursement aligné sur la grande récolte (oct 2025). Dossier clôturé septembre 2025.
+          </p>
+        </div>
+
+        {/* Assemblées et participation */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-sm font-semibold text-gray-800 mb-4">Assemblées et participation</h2>
+          <div className="overflow-x-auto mb-4">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  {["Assemblée", "Date", "Présence", "Vote", "Décision clé"].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left px-3 py-2 text-xs font-medium text-gray-500 first:rounded-l-lg last:rounded-r-lg"
+                    >
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {[
-                  { camp: "2022-2023", cacao: "3,48", anac: "1,96", ca: "3 758 400", grade: "42%", prime: "0 (pré-certif.)" },
-                  { camp: "2023-2024", cacao: "4,62", anac: "1,92", ca: "4 990 800", grade: "58%", prime: "180 000 XOF" },
-                  { camp: "2024-2025", cacao: "5,48", anac: "2,12", ca: "5 627 000", grade: "64%", prime: "284 000 XOF ✅" },
+                  {
+                    assemblee: "AG extraordinaire COOPAGRI-NAWA",
+                    date: "15/11/2024",
+                    presence: "✅ Présent",
+                    vote: "OUI",
+                    decision: "Renouvellement certification RA 2025",
+                  },
+                  {
+                    assemblee: "AG ordinaire 2025",
+                    date: "28/02/2025",
+                    presence: "✅ Présent",
+                    vote: "OUI",
+                    decision: "Ristournes 2024 + tarif collecte 2025",
+                  },
+                  {
+                    assemblee: "Comité technique BPA",
+                    date: "14/04/2025",
+                    presence: "✅ Présent",
+                    vote: "—",
+                    decision: "Formation ANADER programmée juin 2025",
+                  },
                 ].map((row) => (
-                  <tr key={row.camp}>
-                    <td className="px-3 py-3 font-medium text-gray-700">{row.camp}</td>
-                    <td className="px-3 py-3">{row.cacao} t</td>
-                    <td className="px-3 py-3">{row.anac} t</td>
-                    <td className="px-3 py-3">{row.ca}</td>
-                    <td className="px-3 py-3">{row.grade}</td>
-                    <td className="px-3 py-3 text-green-700 font-medium">{row.prime}</td>
+                  <tr key={row.assemblee} className="hover:bg-gray-50/50">
+                    <td className="px-3 py-3 font-medium text-gray-800">{row.assemblee}</td>
+                    <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{row.date}</td>
+                    <td className="px-3 py-3 text-green-700">{row.presence}</td>
+                    <td className="px-3 py-3 text-gray-700">{row.vote}</td>
+                    <td className="px-3 py-3 text-xs text-gray-500">{row.decision}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
-
-        {/* Micro-crédits */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Micro-crédits</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-[#F8FBF8]">
-                  {["N°", "Type", "Montant", "Taux", "Accordé", "Remboursement", "Statut"].map((h) => (
-                    <th key={h} className="text-left text-xs font-medium text-gray-500 px-3 py-2 first:rounded-l-lg last:rounded-r-lg">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                <tr>
-                  <td className="px-3 py-3 font-mono text-xs text-gray-600">MC-2025-018</td>
-                  <td className="px-3 py-3 text-xs">Intrants (KCl + Ridomil)</td>
-                  <td className="px-3 py-3 font-medium">800 000 XOF</td>
-                  <td className="px-3 py-3 text-green-700 font-medium">0%</td>
-                  <td className="px-3 py-3 text-xs text-gray-500">15/03/2025</td>
-                  <td className="px-3 py-3 text-xs">12 × 66 667 XOF</td>
-                  <td className="px-3 py-3">
-                    <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs rounded-full px-2 py-0.5 font-medium">
-                      ✅ En cours (5/12)
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-3 font-mono text-xs text-gray-600">MC-2024-007</td>
-                  <td className="px-3 py-3 text-xs">Équipement (pulvérisateur)</td>
-                  <td className="px-3 py-3 font-medium">350 000 XOF</td>
-                  <td className="px-3 py-3 text-green-700 font-medium">0%</td>
-                  <td className="px-3 py-3 text-xs text-gray-500">01/04/2024</td>
-                  <td className="px-3 py-3 text-xs">Remboursé en 8 mois</td>
-                  <td className="px-3 py-3">
-                    <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs rounded-full px-2 py-0.5 font-medium">
-                      ✅ Soldé
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Formations */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Formations suivies</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-[#F8FBF8]">
-                  {["Formation", "Date", "Durée", "Note", "Certificat"].map((h) => (
-                    <th key={h} className="text-left text-xs font-medium text-gray-500 px-3 py-2 first:rounded-l-lg last:rounded-r-lg">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {[
-                  { name: "BPA Rainforest Alliance", date: "Jan 2025", dur: "8h", note: "16/20", cert: "✅ RA BPA 2025" },
-                  { name: "Taille et entretien cacao", date: "Sep 2024", dur: "4h", note: "—", cert: "Attestation" },
-                  { name: "Sécurité produits phyto", date: "Jun 2024", dur: "4h", note: "—", cert: "Attestation" },
-                  { name: "Gestion budget familial", date: "Mar 2023", dur: "4h", note: "—", cert: "Attestation" },
-                ].map((f) => (
-                  <tr key={f.name}>
-                    <td className="px-3 py-3 font-medium text-gray-800">{f.name}</td>
-                    <td className="px-3 py-3 text-gray-500">{f.date}</td>
-                    <td className="px-3 py-3 text-gray-500">{f.dur}</td>
-                    <td className="px-3 py-3">{f.note}</td>
-                    <td className="px-3 py-3 text-green-700 text-xs font-medium">{f.cert}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="text-xs text-[#2E7D32] font-semibold">
+            Score participation : 100% (3/3 assemblées) ✅
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 pb-2">
           <a
             href="/cooperative"
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-medium px-4 py-2 hover:bg-gray-50 transition-colors"
           >
             ← Retour à la coopérative
           </a>
-          <button className="inline-flex items-center gap-2 rounded-xl bg-[#2E7D32] text-white px-4 py-2.5 text-xs font-medium hover:bg-[#1B5E20] transition-colors">
-            Émettre micro-crédit
+          <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
+            Enregistrer une livraison
           </button>
-          <button className="inline-flex items-center gap-2 rounded-xl border border-[#2E7D32] text-[#2E7D32] px-4 py-2.5 text-xs font-medium hover:bg-green-50 transition-colors">
-            Générer fiche membre PDF
+          <button className="bg-[#E65100] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-orange-800 transition-colors">
+            Micro-crédit
           </button>
         </div>
+
       </div>
     </div>
   );

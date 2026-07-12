@@ -8,296 +8,323 @@ export default async function ElevageDetailPage({
   const { id } = await params;
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-gray-50">
-      <Topbar breadcrumb={["Production", "Élevage", `Bâtiment ${id}`]} />
+    <div className="min-h-screen bg-[#F8FBF8]">
+      <Topbar breadcrumb={["Production", "Élevage", `Troupeau ${id}`]} />
 
-      <div className="flex-1 p-6 space-y-6">
+      <div className="p-6 max-w-6xl mx-auto space-y-6">
 
-        {/* EN-TÊTE */}
-        <div className="rounded-2xl overflow-hidden" style={{ background: "#1B5E20" }}>
-          <div className="p-6 text-white">
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-bold">ELV-001 — Élevage Poulets de Chair</h1>
-                  <span className="inline-flex items-center gap-1 bg-green-400 text-green-900 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                    ✅ En production
-                  </span>
-                </div>
-                <p className="text-green-200 text-sm">Bâtiment : Hangar B, Zone Soubré Nord</p>
-                <div className="flex flex-wrap gap-4 text-sm text-green-100 mt-2">
-                  <span>Superficie : 240 m²</span>
-                  <span>|</span>
-                  <span>Capacité : 1 200 poulets (densité 5/m²)</span>
-                  <span>|</span>
-                  <span>Responsable : Yao Gnalé (Technicien Élevage)</span>
-                </div>
-                <p className="text-green-200 text-sm mt-1">Lot actuel : <span className="font-semibold text-white">LOT-ELV-2025-03</span></p>
+        {/* ── En-tête ── */}
+        <div className="rounded-2xl bg-[#1B5E20] text-white p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-green-300 text-xs font-medium uppercase tracking-wider">Fiche Élevage</p>
+              <h1 className="text-2xl font-bold">ELV-001 — Volailles pondeuses + chair</h1>
+              <p className="text-green-100 mt-2 text-sm">
+                <span className="font-semibold">Espèce :</span> Gallus gallus domesticus — Race Cobb 500 (chair) + Lohmann Brown (ponte)
+              </p>
+              <div className="flex flex-wrap gap-4 mt-2 text-sm text-green-100">
+                <span><span className="font-semibold">Effectif :</span> 180 sujets totaux</span>
+                <span><span className="font-semibold">Mise en place :</span> Lot mars 2025</span>
               </div>
+            </div>
+            <div className="flex flex-col gap-2 items-end">
+              <span className="inline-flex items-center gap-1.5 bg-green-700 border border-green-500 text-green-100 text-xs font-medium px-3 py-1.5 rounded-xl">
+                ✅ Zootechnie RA
+              </span>
+              <span className="text-green-300 text-xs">Pharmacovigilance : à jour 2025</span>
             </div>
           </div>
         </div>
 
-        {/* KPI */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <p className="text-xs text-gray-500 mb-1">Effectif actuel</p>
-            <p className="text-2xl font-bold text-gray-900">1 156</p>
-            <p className="text-xs text-gray-400 mt-1">J28 sur cycle 42j</p>
-          </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <p className="text-xs text-gray-500 mb-1">Mortalité cumulée</p>
-            <p className="text-2xl font-bold text-gray-900">44</p>
-            <p className="text-xs text-green-600 mt-1">3,67% — norme &lt;5% ✅</p>
-          </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <p className="text-xs text-gray-500 mb-1">GMQ moyen</p>
-            <p className="text-2xl font-bold text-gray-900">54 g/j</p>
-            <p className="text-xs text-orange-500 mt-1">⚠️ Objectif : 55 g/j</p>
-          </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <p className="text-xs text-gray-500 mb-1">Poids moy. J28</p>
-            <p className="text-2xl font-bold text-gray-900">1 512 g</p>
-            <p className="text-xs text-gray-400 mt-1">Objectif J42 : 2 300 g</p>
-          </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5">
-            <p className="text-xs text-gray-500 mb-1">IC (Indice Conso.)</p>
-            <p className="text-2xl font-bold text-gray-900">1,72</p>
-            <p className="text-xs text-green-600 mt-1">kg aliment / kg poids ✅</p>
-          </div>
+        {/* ── 4 KPI ── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Effectif actuel", value: "178 sujets", sub: "2 mortalités — Taux survie 98,9%", icon: "✅", color: "text-green-700" },
+            { label: "Production œufs J-7", value: "714 œufs", sub: "Taux de ponte 85% des 120 pondeuses", icon: "✅", color: "text-green-700" },
+            { label: "CA volailles H1 2025", value: "312 000 XOF", sub: "Cumul semestre 1", icon: "", color: "text-blue-700" },
+            { label: "Prochain acte vétérinaire", value: "20/07/2025", sub: "Rappel Newcastle", icon: "", color: "text-orange-600" },
+          ].map((kpi) => (
+            <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5 flex flex-col gap-1">
+              <p className="text-xs text-gray-500">{kpi.label}</p>
+              <p className={`text-lg font-bold ${kpi.color}`}>
+                {kpi.icon && <span className="mr-1">{kpi.icon}</span>}{kpi.value}
+              </p>
+              <p className="text-xs text-gray-400">{kpi.sub}</p>
+            </div>
+          ))}
         </div>
 
-        {/* SUIVI DU LOT */}
+        {/* ── Composition du troupeau ── */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Suivi du lot LOT-ELV-2025-03</h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">Composition ELV-001</h2>
+          <div className="flex flex-wrap gap-8 items-center">
+            {/* Donut SVG */}
+            <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" className="w-48 h-48 shrink-0">
+              {/* Cobb 500 : 60/180 = 33,7% → angle 121° */}
+              {/* Lohmann : 120/180 = 66,7% → angle 240° */}
+              {(() => {
+                const cx = 120, cy = 120, r = 90, inner = 54;
+                // Cobb 500 — 33.7% starting at -90°
+                const cobb = (60 / 180) * 2 * Math.PI;
+                const lohm = (120 / 180) * 2 * Math.PI;
+                const startAngle = -Math.PI / 2;
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between border-b border-gray-50 py-1">
-                <span className="text-gray-500">Sourcing poussinière</span>
-                <span className="text-gray-800 font-medium">Coval CI (Abidjan) — Souche Ross 308</span>
-              </div>
-              <div className="flex justify-between border-b border-gray-50 py-1">
-                <span className="text-gray-500">Date mise en place</span>
-                <span className="text-gray-800 font-medium">13/06/2025 (J0)</span>
-              </div>
-              <div className="flex justify-between border-b border-gray-50 py-1">
-                <span className="text-gray-500">Date abattage prévue</span>
-                <span className="text-gray-800 font-medium">24/07/2025 (J42)</span>
-              </div>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between border-b border-gray-50 py-1">
-                <span className="text-gray-500">Poids mis en place</span>
-                <span className="text-gray-800 font-medium">42 g/poussin (1 200 poussins)</span>
-              </div>
-              <div className="flex justify-between border-b border-gray-50 py-1">
-                <span className="text-gray-500">Aliment J0-J10</span>
-                <span className="text-gray-800 font-medium">Démarrage</span>
-              </div>
-              <div className="flex justify-between border-b border-gray-50 py-1">
-                <span className="text-gray-500">Aliment J11-J35</span>
-                <span className="text-gray-800 font-medium">Croissance</span>
-              </div>
-              <div className="flex justify-between border-b border-gray-50 py-1">
-                <span className="text-gray-500">Aliment J36-J42</span>
-                <span className="text-gray-800 font-medium">Finition</span>
-              </div>
-            </div>
-          </div>
+                const arc = (sa: number, ea: number, ro: number, ri: number) => {
+                  const x1 = cx + ro * Math.cos(sa), y1 = cy + ro * Math.sin(sa);
+                  const x2 = cx + ro * Math.cos(ea), y2 = cy + ro * Math.sin(ea);
+                  const x3 = cx + ri * Math.cos(ea), y3 = cy + ri * Math.sin(ea);
+                  const x4 = cx + ri * Math.cos(sa), y4 = cy + ri * Math.sin(sa);
+                  const large = ea - sa > Math.PI ? 1 : 0;
+                  return `M ${x1} ${y1} A ${ro} ${ro} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${ri} ${ri} 0 ${large} 0 ${x4} ${y4} Z`;
+                };
 
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Suivi hebdomadaire</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="bg-[#F8FBF8]">
-                  <th className="text-left py-2 px-3 font-semibold text-gray-600 rounded-l-lg">Semaine</th>
-                  <th className="text-left py-2 px-3 font-semibold text-gray-600">Jour</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">Effectif</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">Mortalité sem.</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">Poids moy. (g)</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">Aliment (kg)</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">IC sem.</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600 rounded-r-lg">T° hangar</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {[
-                  { sem: "S1", jour: "J0→J7", effectif: "1 200→1 185", mort: "15 (1,25%)", poids: "185 g (J7)", alim: "42 kg", ic: "1,35", temp: "32°C ✅" },
-                  { sem: "S2", jour: "J7→J14", effectif: "1 185→1 172", mort: "13 (1,10%)", poids: "420 g (J14)", alim: "148 kg", ic: "1,52", temp: "29°C ✅" },
-                  { sem: "S3", jour: "J14→J21", effectif: "1 172→1 161", mort: "11 (0,94%)", poids: "820 g (J21)", alim: "310 kg", ic: "1,65", temp: "27°C ✅" },
-                  { sem: "S4 (partiel)", jour: "J21→J28", effectif: "1 161→1 156", mort: "5 (0,43%)", poids: "1 512 g (J28)", alim: "258 kg (partiel)", ic: "1,72", temp: "26°C ✅" },
-                ].map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
-                    <td className="py-2 px-3 font-medium text-gray-800">{row.sem}</td>
-                    <td className="py-2 px-3 text-gray-600">{row.jour}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.effectif}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.mort}</td>
-                    <td className="py-2 px-3 text-right font-medium text-gray-800">{row.poids}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.alim}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.ic}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.temp}</td>
+                const a0 = startAngle;
+                const a1 = startAngle + cobb;
+                const a2 = startAngle + cobb + lohm;
+
+                return (
+                  <>
+                    <path d={arc(a0, a1, r, inner)} fill="#1B5E20" />
+                    <path d={arc(a1, a2, r, inner)} fill="#4CAF50" />
+                    <text x={cx} y={cy - 6} textAnchor="middle" fontSize="22" fontWeight="700" fill="#1B5E20">180</text>
+                    <text x={cx} y={cy + 12} textAnchor="middle" fontSize="10" fill="#555">sujets</text>
+                    {/* Labels */}
+                    <text x={cx - 10} y={cy - 68} textAnchor="middle" fontSize="9" fill="#1B5E20" fontWeight="600">33,7%</text>
+                    <text x={cx + 74} y={cy + 40} textAnchor="middle" fontSize="9" fill="#388E3C" fontWeight="600">66,4%</text>
+                  </>
+                );
+              })()}
+              {/* Légende donut */}
+              <rect x="20" y="210" width="12" height="12" rx="2" fill="#1B5E20" />
+              <text x="36" y="220" fontSize="9" fill="#555">Cobb 500</text>
+              <rect x="110" y="210" width="12" height="12" rx="2" fill="#4CAF50" />
+              <text x="126" y="220" fontSize="9" fill="#555">Lohmann Brown</text>
+            </svg>
+
+            {/* Tableau composition */}
+            <div className="flex-1 min-w-0">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-[#F8FBF8]">
+                    {["Catégorie", "Nb", "Âge", "Objectif"].map((h) => (
+                      <th key={h} className="text-left px-3 py-2.5 text-gray-500 font-medium">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* SVG Courbe de croissance */}
-          <div className="mt-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Courbe de croissance poids J0→J42 vs objectif Ross 308</h3>
-            <div className="overflow-x-auto">
-              <svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-[560px]">
-                {/* Background */}
-                <rect width="560" height="220" fill="#f9fafb" rx="8" />
-                {/* Grid */}
-                {[0, 500, 1000, 1500, 2000, 2500].map((v, i) => {
-                  const y = 190 - (v / 2500) * 160;
-                  return (
-                    <g key={i}>
-                      <line x1="50" y1={y} x2="540" y2={y} stroke="#e5e7eb" strokeWidth="1" />
-                      <text x="44" y={y + 4} textAnchor="end" fontSize="9" fill="#9ca3af">{v}</text>
-                    </g>
-                  );
-                })}
-                {/* X axis labels */}
-                {["J0", "J7", "J14", "J21", "J28", "J35", "J42"].map((label, i) => {
-                  const x = 50 + (i / 6) * 490;
-                  return (
-                    <text key={i} x={x} y="208" textAnchor="middle" fontSize="9" fill="#6b7280">{label}</text>
-                  );
-                })}
-                {/* Réel line (bleu) */}
-                {(() => {
-                  const pts = [
-                    [0, 42], [1, 185], [2, 420], [3, 820], [4, 1512], [5, 1950], [6, 2280]
-                  ];
-                  const coords = pts.map(([i, v]) => `${50 + (i / 6) * 490},${190 - (v / 2500) * 160}`);
-                  return (
-                    <polyline points={coords.join(" ")} fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinejoin="round" />
-                  );
-                })()}
-                {/* Objectif Ross 308 (vert pointillé) */}
-                {(() => {
-                  const pts = [
-                    [0, 42], [1, 195], [2, 430], [3, 850], [4, 1540], [5, 1980], [6, 2300]
-                  ];
-                  const coords = pts.map(([i, v]) => `${50 + (i / 6) * 490},${190 - (v / 2500) * 160}`);
-                  return (
-                    <polyline points={coords.join(" ")} fill="none" stroke="#16a34a" strokeWidth="2" strokeDasharray="6,4" strokeLinejoin="round" />
-                  );
-                })()}
-                {/* Dots réels */}
-                {[[0, 42], [1, 185], [2, 420], [3, 820], [4, 1512]].map(([i, v]) => (
-                  <circle key={i} cx={50 + (i / 6) * 490} cy={190 - (v / 2500) * 160} r="4" fill="#2563eb" />
-                ))}
-                {/* Projection dots */}
-                {[[5, 1950], [6, 2280]].map(([i, v]) => (
-                  <circle key={i} cx={50 + (i / 6) * 490} cy={190 - (v / 2500) * 160} r="4" fill="#2563eb" fillOpacity="0.4" stroke="#2563eb" strokeWidth="1.5" />
-                ))}
-                {/* Legend */}
-                <line x1="60" y1="14" x2="80" y2="14" stroke="#2563eb" strokeWidth="2.5" />
-                <circle cx="70" cy="14" r="3" fill="#2563eb" />
-                <text x="85" y="18" fontSize="10" fill="#374151">Réel</text>
-                <line x1="130" y1="14" x2="150" y2="14" stroke="#16a34a" strokeWidth="2" strokeDasharray="5,3" />
-                <text x="155" y="18" fontSize="10" fill="#374151">Objectif Ross 308</text>
-                {/* Y axis label */}
-                <text x="10" y="110" fontSize="9" fill="#9ca3af" transform="rotate(-90,10,110)">Poids (g)</text>
-              </svg>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {[
+                    { cat: "Poulets chair Cobb 500", nb: "60", age: "18 sem. (prêt abattage août)", obj: "2,2 kg vif/sujet" },
+                    { cat: "Poules pondeuses Lohmann Brown", nb: "120", age: "28 sem. (pleine ponte)", obj: "85% taux ponte" },
+                    { cat: "Total", nb: "180", age: "—", obj: "—" },
+                  ].map((r) => (
+                    <tr key={r.cat} className={`hover:bg-gray-50 ${r.cat === "Total" ? "font-semibold bg-green-50" : ""}`}>
+                      <td className="px-3 py-2.5 text-gray-700">{r.cat}</td>
+                      <td className="px-3 py-2.5 text-gray-600">{r.nb}</td>
+                      <td className="px-3 py-2.5 text-gray-500">{r.age}</td>
+                      <td className="px-3 py-2.5 text-gray-500">{r.obj}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
-        {/* ALIMENTATION */}
+        {/* ── Suivi de croissance Cobb 500 ── */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Alimentation</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-semibold text-gray-700">Poids moyen poulets chair — Sem 1 à 18</h2>
+            <span className="text-xs text-green-700 font-medium bg-green-50 border border-green-100 px-3 py-1 rounded-xl">
+              ICM : 1,68 — Standard Cobb &lt;1,80 ✅
+            </span>
+          </div>
+          <svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+            {(() => {
+              // Réalisé
+              const realise = [
+                { s: 1, v: 0.2 }, { s: 4, v: 0.9 }, { s: 8, v: 1.8 },
+                { s: 12, v: 2.4 }, { s: 16, v: 3.1 }, { s: 18, v: 3.4 },
+              ];
+              // Standard Cobb 500 (approximation linéaire)
+              const standard = [
+                { s: 1, v: 0.18 }, { s: 4, v: 0.85 }, { s: 8, v: 1.7 },
+                { s: 12, v: 2.3 }, { s: 16, v: 3.0 }, { s: 18, v: 3.2 },
+              ];
 
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Plan d&apos;alimentation Ross 308</h3>
-          <div className="overflow-x-auto mb-6">
+              const startX = 50, startY = 10, chartH = 160, chartW = 570;
+              const maxS = 18, maxV = 4;
+
+              const toX = (s: number) => startX + (s / maxS) * chartW;
+              const toY = (v: number) => startY + chartH - (v / maxV) * chartH;
+
+              const pathD = (pts: {s:number,v:number}[]) =>
+                pts.map((p, i) => `${i === 0 ? "M" : "L"} ${toX(p.s)} ${toY(p.v)}`).join(" ");
+
+              return (
+                <g>
+                  {/* Grid */}
+                  {[0, 1, 2, 3, 4].map((v) => {
+                    const y = toY(v);
+                    return (
+                      <g key={v}>
+                        <line x1={startX} y1={y} x2={startX + chartW} y2={y} stroke="#f0f0f0" strokeWidth="1" />
+                        <text x={startX - 6} y={y + 4} textAnchor="end" fontSize="9" fill="#bbb">{v}kg</text>
+                      </g>
+                    );
+                  })}
+
+                  {/* X axis labels */}
+                  {[1, 4, 8, 12, 16, 18].map((s) => (
+                    <text key={s} x={toX(s)} y={startY + chartH + 14} textAnchor="middle" fontSize="9" fill="#888">S{s}</text>
+                  ))}
+
+                  {/* Standard Cobb — pointillé */}
+                  <path d={pathD(standard)} fill="none" stroke="#e53935" strokeWidth="1.5" strokeDasharray="5,3" />
+
+                  {/* Réalisé */}
+                  <path d={pathD(realise)} fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  {realise.map((p) => (
+                    <circle key={p.s} cx={toX(p.s)} cy={toY(p.v)} r="4" fill="#2E7D32" stroke="white" strokeWidth="1.5" />
+                  ))}
+
+                  {/* Légende */}
+                  <line x1={startX} y1={startY + chartH + 30} x2={startX + 20} y2={startY + chartH + 30} stroke="#2E7D32" strokeWidth="2" />
+                  <text x={startX + 26} y={startY + chartH + 34} fontSize="9" fill="#555">Réalisé</text>
+                  <line x1={startX + 110} y1={startY + chartH + 30} x2={startX + 130} y2={startY + chartH + 30} stroke="#e53935" strokeWidth="1.5" strokeDasharray="4,2" />
+                  <text x={startX + 136} y={startY + chartH + 34} fontSize="9" fill="#555">Standard Cobb 500</text>
+                </g>
+              );
+            })()}
+          </svg>
+        </div>
+
+        {/* ── Production œufs 30 jours ── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">Taux de ponte journalier — Juin-Jul 2025</h2>
+          <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+            {(() => {
+              // 30 valeurs autour de 82-87%
+              const raw = [
+                85,84,85,86,87,85,84,83,85,86,87,85,86,84,82,83,85,86,85,84,
+                87,86,85,84,83,85,86,85,84,85,
+              ];
+              const startX = 50, startY = 10, chartH = 130, chartW = 620;
+              const n = raw.length;
+              const minV = 78, maxV = 90;
+
+              const toX = (i: number) => startX + (i / (n - 1)) * chartW;
+              const toY = (v: number) => startY + chartH - ((v - minV) / (maxV - minV)) * chartH;
+
+              const pathD = raw.map((v, i) => `${i === 0 ? "M" : "L"} ${toX(i)} ${toY(v)}`).join(" ");
+              // Fill
+              const fillD = pathD + ` L ${toX(n-1)} ${startY + chartH} L ${toX(0)} ${startY + chartH} Z`;
+
+              return (
+                <g>
+                  {/* Grid */}
+                  {[80, 82, 84, 86, 88].map((v) => {
+                    const y = toY(v);
+                    return (
+                      <g key={v}>
+                        <line x1={startX} y1={y} x2={startX + chartW} y2={y} stroke="#f5f5f5" strokeWidth="1" />
+                        <text x={startX - 6} y={y + 4} textAnchor="end" fontSize="9" fill="#bbb">{v}%</text>
+                      </g>
+                    );
+                  })}
+
+                  {/* X axis */}
+                  {[0, 9, 19, 29].map((i) => {
+                    const labels = ["01/06", "10/06", "20/06", "01/07"];
+                    return (
+                      <text key={i} x={toX(i)} y={startY + chartH + 14} textAnchor="middle" fontSize="9" fill="#aaa">{labels[[0,9,19,29].indexOf(i)]}</text>
+                    );
+                  })}
+
+                  {/* Objectif 85% */}
+                  <line x1={startX} y1={toY(85)} x2={startX + chartW} y2={toY(85)}
+                    stroke="#2E7D32" strokeWidth="1.5" strokeDasharray="5,3" opacity="0.5" />
+                  <text x={startX + chartW + 4} y={toY(85) + 4} fontSize="9" fill="#2E7D32">Obj 85%</text>
+
+                  {/* Area */}
+                  <path d={fillD} fill="#4CAF50" opacity="0.12" />
+                  {/* Line */}
+                  <path d={pathD} fill="none" stroke="#4CAF50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+
+                  {/* Stats */}
+                  <text x={startX} y={startY + chartH + 30} fontSize="9" fill="#555">
+                    Moyenne : 85,0% | Objectif : 85% ✅
+                  </text>
+                </g>
+              );
+            })()}
+          </svg>
+
+          {/* Tableau bilan juin */}
+          <div className="overflow-x-auto mt-4">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-[#F8FBF8]">
-                  <th className="text-left py-2 px-3 font-semibold text-gray-600 rounded-l-lg">Phase</th>
-                  <th className="text-left py-2 px-3 font-semibold text-gray-600">Période</th>
-                  <th className="text-left py-2 px-3 font-semibold text-gray-600">Aliment</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">Protéines</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">Énergie</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600 rounded-r-lg">Qté prévue</th>
+                  {["Semaine", "Jours", "Œufs produits", "Taux ponte", "Œufs vendus", "Revenu"].map((h) => (
+                    <th key={h} className="text-left px-3 py-2.5 text-gray-500 font-medium">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {[
-                  { phase: "Démarrage", periode: "J0-J10", aliment: "Poussin Start 500g", prot: "22%", energie: "3 000 kcal/kg", qty: "180 kg" },
-                  { phase: "Croissance", periode: "J11-J35", aliment: "Poulet Croissance 500g", prot: "19%", energie: "3 100 kcal/kg", qty: "720 kg" },
-                  { phase: "Finition", periode: "J36-J42", aliment: "Poulet Finition 500g", prot: "17%", energie: "3 200 kcal/kg", qty: "280 kg" },
-                ].map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
-                    <td className="py-2 px-3 font-medium text-gray-800">{row.phase}</td>
-                    <td className="py-2 px-3 text-gray-600">{row.periode}</td>
-                    <td className="py-2 px-3 text-gray-700">{row.aliment}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.prot}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.energie}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.qty}</td>
+                  { s: "S1 Jun", j: "7j", prod: "714", taux: "85%", vendu: "700", rev: "35 000 XOF" },
+                  { s: "S2 Jun", j: "7j", prod: "718", taux: "85,5%", vendu: "718", rev: "35 900 XOF" },
+                  { s: "S3 Jun", j: "7j", prod: "706", taux: "84%", vendu: "706", rev: "35 300 XOF" },
+                  { s: "S4 Jun", j: "7j", prod: "721", taux: "85,8%", vendu: "714", rev: "35 700 XOF" },
+                ].map((r) => (
+                  <tr key={r.s} className="hover:bg-gray-50">
+                    <td className="px-3 py-2.5 font-medium text-gray-700">{r.s}</td>
+                    <td className="px-3 py-2.5 text-gray-500">{r.j}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{r.prod}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{r.taux}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{r.vendu}</td>
+                    <td className="px-3 py-2.5 font-medium text-green-700">{r.rev}</td>
                   </tr>
                 ))}
                 <tr className="bg-green-50 font-semibold">
-                  <td className="py-2 px-3 text-green-800">Total prévu</td>
-                  <td className="py-2 px-3 text-green-700">42 jours</td>
-                  <td className="py-2 px-3 text-green-700">—</td>
-                  <td className="py-2 px-3 text-right text-green-700">—</td>
-                  <td className="py-2 px-3 text-right text-green-700">—</td>
-                  <td className="py-2 px-3 text-right text-green-800">1 180 kg</td>
+                  <td className="px-3 py-2.5 text-gray-700">JUIN</td>
+                  <td className="px-3 py-2.5 text-gray-500">28j</td>
+                  <td className="px-3 py-2.5 text-gray-700">2 859</td>
+                  <td className="px-3 py-2.5 text-gray-700">85,1%</td>
+                  <td className="px-3 py-2.5 text-gray-700">2 838</td>
+                  <td className="px-3 py-2.5 text-green-700">141 900 XOF</td>
                 </tr>
               </tbody>
             </table>
           </div>
-
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Stock aliment disponible</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="rounded-xl border border-green-100 bg-green-50 p-4">
-              <p className="text-xs text-green-700 font-medium">Poulet Croissance</p>
-              <p className="text-xl font-bold text-green-800 mt-1">312 kg ✅</p>
-              <p className="text-xs text-green-600 mt-1">Stock suffisant J28→J35</p>
-            </div>
-            <div className="rounded-xl border border-green-100 bg-green-50 p-4">
-              <p className="text-xs text-green-700 font-medium">Poulet Finition</p>
-              <p className="text-xl font-bold text-green-800 mt-1">280 kg ✅</p>
-              <p className="text-xs text-green-600 mt-1">Précommandé — livraison J34</p>
-            </div>
-          </div>
         </div>
 
-        {/* SANTÉ & BIOSÉCURITÉ */}
+        {/* ── Prophylaxie vétérinaire ── */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Santé &amp; Biosécurité</h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">Protocole sanitaire 2025</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-[#F8FBF8]">
-                  <th className="text-left py-2 px-3 font-semibold text-gray-600 rounded-l-lg">Intervention</th>
-                  <th className="text-left py-2 px-3 font-semibold text-gray-600">Produit</th>
-                  <th className="text-left py-2 px-3 font-semibold text-gray-600">Voie</th>
-                  <th className="text-center py-2 px-3 font-semibold text-gray-600">Jour</th>
-                  <th className="text-center py-2 px-3 font-semibold text-gray-600">Date</th>
-                  <th className="text-left py-2 px-3 font-semibold text-gray-600 rounded-r-lg">Réalisé par</th>
+                  {["Date", "Acte", "Vaccin / Médicament", "Vétérinaire", "Statut"].map((h) => (
+                    <th key={h} className="text-left px-3 py-2.5 text-gray-500 font-medium">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {[
-                  { inter: "Vaccination Newcastle", produit: "Hitchner B1 (eau de boisson)", voie: "Eau", jour: "J3", date: "16/06", real: "Yao G. ✅" },
-                  { inter: "Vaccination Gumboro", produit: "D78 (eau de boisson)", voie: "Eau", jour: "J7", date: "20/06", real: "Yao G. ✅" },
-                  { inter: "Vaccination Newcastle 2", produit: "La Sota (eau de boisson)", voie: "Eau", jour: "J14", date: "27/06", real: "Yao G. ✅" },
-                  { inter: "Vitaminose (prévention)", produit: "Vitaminol ADE", voie: "Eau", jour: "J0→J7", date: "Continu", real: "Yao G. ✅" },
-                  { inter: "Vaccination Gumboro 2", produit: "228E (eau de boisson)", voie: "Eau", jour: "J21", date: "04/07", real: "Yao G. ✅" },
-                  { inter: "Traitement anticoccidien", produit: "Amprolium 20%", voie: "Eau", jour: "Si nécessaire", date: "—", real: "Selon clinique" },
-                ].map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
-                    <td className="py-2 px-3 font-medium text-gray-800">{row.inter}</td>
-                    <td className="py-2 px-3 text-gray-600">{row.produit}</td>
-                    <td className="py-2 px-3 text-gray-700">{row.voie}</td>
-                    <td className="py-2 px-3 text-center text-gray-700">{row.jour}</td>
-                    <td className="py-2 px-3 text-center text-gray-700">{row.date}</td>
-                    <td className="py-2 px-3 text-gray-700">{row.real}</td>
+                  { date: "15/03/2025", acte: "Mise en place — bilan entrée", med: "Marquage + pesée", vet: "Dr. Coulibaly", statut: "✅ Fait", c: "text-green-700", planned: false },
+                  { date: "22/03/2025", acte: "Primo-vaccination Newcastle", med: "Hitchner B1 — oculaire", vet: "Dr. Coulibaly", statut: "✅ Fait", c: "text-green-700", planned: false },
+                  { date: "05/04/2025", acte: "Vaccination Gumboro", med: "Nobilis Gumboro D78", vet: "Dr. Coulibaly", statut: "✅ Fait", c: "text-green-700", planned: false },
+                  { date: "19/04/2025", acte: "Rappel Newcastle", med: "Clone 30 eau de boisson", vet: "Dr. Coulibaly", statut: "✅ Fait", c: "text-green-700", planned: false },
+                  { date: "20/07/2025", acte: "Rappel Newcastle", med: "Clone 30", vet: "Dr. Coulibaly", statut: "🔵 Planifié (J+9)", c: "text-blue-600", planned: true },
+                  { date: "20/08/2025", acte: "Abattage lot Cobb 500 (60 sujets)", med: "—", vet: "—", statut: "🔵 Planifié", c: "text-blue-600", planned: true },
+                ].map((r) => (
+                  <tr key={r.date + r.acte} className={`hover:bg-gray-50 ${r.planned ? "bg-blue-50/30" : ""}`}>
+                    <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{r.date}</td>
+                    <td className={`px-3 py-2.5 ${r.planned ? "font-semibold text-gray-800" : "text-gray-700"}`}>{r.acte}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{r.med}</td>
+                    <td className="px-3 py-2.5 text-gray-500">{r.vet}</td>
+                    <td className={`px-3 py-2.5 font-medium ${r.c}`}>{r.statut}</td>
                   </tr>
                 ))}
               </tbody>
@@ -305,84 +332,19 @@ export default async function ElevageDetailPage({
           </div>
         </div>
 
-        {/* HISTORIQUE DES LOTS */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Historique des lots</h2>
-          <div className="overflow-x-auto mb-6">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="bg-[#F8FBF8]">
-                  <th className="text-left py-2 px-3 font-semibold text-gray-600 rounded-l-lg">Lot</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">Effectif initial</th>
-                  <th className="text-center py-2 px-3 font-semibold text-gray-600">Durée</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">Poids sortie</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">Mortalité</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">IC</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600">CA (XOF)</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-600 rounded-r-lg">Marge</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {[
-                  { lot: "LOT-ELV-2025-02", eff: "1 200", dur: "42j (terminé 01/06)", poids: "2 287 g/poulet", mort: "3,2%", ic: "1,69", ca: "2 489 000", marge: "28,4%" },
-                  { lot: "LOT-ELV-2025-01", eff: "1 000", dur: "42j (terminé 19/04)", poids: "2 312 g/poulet", mort: "4,1%", ic: "1,73", ca: "2 127 000", marge: "25,8%" },
-                  { lot: "LOT-ELV-2024-04", eff: "1 200", dur: "42j (terminé 07/03)", poids: "2 198 g/poulet", mort: "5,5%", ic: "1,81", ca: "2 240 000", marge: "22,1%" },
-                ].map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
-                    <td className="py-2 px-3 font-medium text-gray-800">{row.lot}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.eff}</td>
-                    <td className="py-2 px-3 text-center text-gray-600">{row.dur}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.poids}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.mort}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.ic}</td>
-                    <td className="py-2 px-3 text-right text-gray-700">{row.ca}</td>
-                    <td className="py-2 px-3 text-right text-green-700 font-medium">{row.marge}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Projection */}
-          <div className="rounded-xl bg-green-50 border border-green-100 p-4">
-            <h3 className="text-sm font-semibold text-green-800 mb-3">Projection lot actuel (LOT-ELV-2025-03)</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              {[
-                { label: "Poids abattage estimé J42", value: "2 280 g/poulet" },
-                { label: "Effectif estimé abattage", value: "1 148 poulets" },
-                { label: "Poids vif total estimé", value: "2 617 kg" },
-                { label: "Prix de vente", value: "1 250 XOF/kg" },
-              ].map((item, i) => (
-                <div key={i}>
-                  <p className="text-xs text-green-600">{item.label}</p>
-                  <p className="text-sm font-semibold text-green-800 mt-0.5">{item.value}</p>
-                </div>
-              ))}
-              <div>
-                <p className="text-xs text-green-600">CA estimé</p>
-                <p className="text-lg font-bold text-green-900 mt-0.5">3 271 250 XOF 🎉</p>
-                <p className="text-xs text-green-600">Meilleur lot 2025</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ACTIONS */}
-        <div className="flex flex-wrap gap-3">
-          <a
-            href="/elevage"
-            className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-gray-200 transition-colors"
-          >
-            ← Retour à l&apos;élevage
+        {/* ── Actions ── */}
+        <div className="flex flex-wrap gap-3 pb-2">
+          <a href="/elevage"
+            className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-gray-200 transition-colors">
+            ← Retour à l&#39;élevage
           </a>
           <button className="inline-flex items-center gap-2 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors">
-            Saisir mesure quotidienne
+            Enregistrer un acte vétérinaire
           </button>
-          <button className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-gray-50 transition-colors">
-            Rapport vétérinaire
+          <button className="inline-flex items-center gap-2 bg-orange-600 text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-orange-700 transition-colors">
+            Planifier abattage
           </button>
         </div>
-
       </div>
     </div>
   );

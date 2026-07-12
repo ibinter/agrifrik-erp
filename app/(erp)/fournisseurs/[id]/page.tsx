@@ -1,7 +1,7 @@
 import Topbar from "../../../components/Topbar";
-import { CheckCircle, MapPin, Phone, Mail, Star, Package, Clock, TrendingUp, ShoppingCart } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, ShoppingCart, Mail, CheckCircle2, Clock, Package, Star } from "lucide-react";
 
-/* params: Promise<{ id: string }> — Next.js 15 async params */
 export default async function FournisseurDetailPage({
   params,
 }: {
@@ -9,364 +9,319 @@ export default async function FournisseurDetailPage({
 }) {
   const { id } = await params;
 
-  /* ─── KPI ─── */
-  const kpis = [
-    { label: "CA 2025",        value: "1 120 000 XOF", icon: TrendingUp,   color: "#2E7D32", bg: "#E8F5E9" },
-    { label: "Commandes 2025", value: "1",              icon: ShoppingCart, color: "#1565C0", bg: "#E3F2FD" },
-    { label: "En cours",       value: "0",              icon: Package,      color: "#E65100", bg: "#FFF3E0" },
-    { label: "Délai moyen",    value: "14 jours",       icon: Clock,        color: "#6A1B9A", bg: "#F3E5F5" },
-    { label: "Note fourniss.", value: "4 / 5",          icon: Star,         color: "#F9A825", bg: "#FFFDE7" },
+  /* ─── DONNÉES STATIQUES FOUR-002 ─────────────────────────── */
+
+  const CATALOGUE = [
+    { produit: "Super Cupravit OB 50 WP", ref: "SCPA-CUP-1KG",  homol: "MINAGRI-PHY-0184", dar: "14j", pu: "8 400 XOF",  unite: "kg" },
+    { produit: "Confidor 350 SC",          ref: "SCPA-CONF-1L",   homol: "MINAGRI-PHY-0291", dar: "21j", pu: "30 000 XOF", unite: "L" },
+    { produit: "Ridomil Gold 48 WP",        ref: "SCPA-RID-1KG",   homol: "MINAGRI-PHY-0318", dar: "14j", pu: "18 900 XOF", unite: "kg" },
+    { produit: "KCl 60% (engrais)",         ref: "SCPA-KCL-50KG",  homol: "MINAGRI-ENG-0052", dar: "—",   pu: "80 000 XOF", unite: "sac 50kg" },
   ];
 
-  /* ─── COMMANDES ─── */
-  const commandes = [
-    {
-      num: "ACH-2025-088", date: "28/06/2025", produits: "KCl 50% (urgence)",
-      qte: "4 t", montant: "1 120 000 XOF", livraison: "08/07/2025",
-      statut: "Livré", statutOk: true, note: "",
-    },
-    {
-      num: "ACH-2024-064", date: "15/09/2024", produits: "KCl 50% + NPK 20-10-10",
-      qte: "8 t + 5 t", montant: "2 840 000 XOF", livraison: "01/10/2024",
-      statut: "Livré", statutOk: true, note: "",
-    },
-    {
-      num: "ACH-2024-028", date: "20/04/2024", produits: "Sulfate de potasse 4 t",
-      qte: "4 t", montant: "840 000 XOF", livraison: "10/05/2024",
-      statut: "Livré (retard 3j)", statutOk: false, note: "retard 3j",
-    },
-    {
-      num: "ACH-2024-012", date: "15/02/2024", produits: "NPK 20-10-10",
-      qte: "10 t", montant: "560 000 XOF", livraison: "28/02/2024",
-      statut: "Livré", statutOk: true, note: "",
-    },
+  const COMMANDES = [
+    { num: "ACH-2025-004", date: "05/02", produit: "Confidor 350 SC 4L",     qty: "4 L",  montant: "141 600 XOF", livraison: "09/02", delai: "4j" },
+    { num: "ACH-2025-006", date: "28/03", produit: "Super Cupravit OB 8 kg", qty: "8 kg", montant: "79 296 XOF",  livraison: "01/04", delai: "4j" },
+    { num: "ACH-2025-017", date: "02/06", produit: "Ridomil Gold 4 kg",       qty: "4 kg", montant: "89 208 XOF",  livraison: "05/06", delai: "3j" },
+    { num: "ACH-2025-022", date: "09/06", produit: "Super Cupravit OB 4 kg", qty: "4 kg", montant: "39 648 XOF",  livraison: "14/06", delai: "5j" },
   ];
 
-  /* ─── PRODUITS ─── */
-  const produits = [
-    { nom: "Chlorure de potassium (KCl 60%)", formulation: "Poudre",    emballage: "Sacs 50 kg", prix: "168 000 XOF/t",  moq: "1 t",    delai: "14 j DDP" },
-    { nom: "NPK 20-10-10",                    formulation: "Granulés",  emballage: "Sacs 50 kg", prix: "224 000 XOF/t",  moq: "2 t",    delai: "14 j DDP" },
-    { nom: "Sulfate de potasse (K2SO4)",       formulation: "Poudre",    emballage: "Sacs 25 kg", prix: "285 000 XOF/t",  moq: "0,5 t",  delai: "14 j DDP" },
-    { nom: "Urée 46%",                         formulation: "Granulés",  emballage: "Sacs 50 kg", prix: "182 000 XOF/t",  moq: "1 t",    delai: "14 j DDP" },
-    { nom: "Soufre micronisé 80%",             formulation: "Poudre",    emballage: "Sacs 25 kg", prix: "124 000 XOF/t",  moq: "0,5 t",  delai: "21 j DDP" },
+  const EVALUATION = [
+    { critere: "Qualité produits",   note: 20, commentaire: "Zéro retour produit défectueux en 2025" },
+    { critere: "Respect des délais", note: 19, commentaire: "1 livraison à J+5 (limite haute)" },
+    { critere: "Conformité RA",      note: 20, commentaire: "100% produits homologués RA" },
+    { critere: "Documentation",      note: 18, commentaire: "Fiche de données sécurité (FDS) toujours fournie" },
+    { critere: "Réactivité service", note: 18, commentaire: "Réponse devis <24h" },
   ];
 
-  /* ─── ÉVALUATION ─── */
-  const evaluation = [
-    { critere: "Qualité produits",    note: 19, commentaire: "Conformité analyses labo toujours respectée" },
-    { critere: "Délai de livraison",  note: 16, commentaire: "Un retard 3j en 2024, sinon exemplaire" },
-    { critere: "Prix compétitif",     note: 15, commentaire: "Légèrement plus cher que Mosaic (concurrence) mais DDP simplifie la logistique" },
-    { critere: "Communication",       note: 18, commentaire: "Réactivité excellente, devis en 24h" },
-    { critere: "Flexibilité",         note: 17, commentaire: "A accepté livraison urgente 14j en 2025" },
+  /* bar chart — 7 mois */
+  const BAR_DATA = [
+    { mois: "Jan", val: 0 },
+    { mois: "Fév", val: 141600 },
+    { mois: "Mar", val: 0 },
+    { mois: "Avr", val: 79296 },
+    { mois: "Mai", val: 0 },
+    { mois: "Jun", val: 128856 },
+    { mois: "Jul", val: 0 },
   ];
-
-  /* ─── HISTORIQUE RELATION ─── */
-  const historique = [
-    { annee: "2025", nb: "1", montant: "1 120 000", produits: "KCl 4t urgence",       delai: "14 j", incidents: "0", ok: true },
-    { annee: "2024", nb: "3", montant: "4 240 000", produits: "KCl, NPK, sulfate",    delai: "16 j", incidents: "1 (retard 3j)", ok: false },
-    { annee: "2023", nb: "2", montant: "2 180 000", produits: "NPK, soufre",          delai: "18 j", incidents: "0", ok: true },
-  ];
+  const MAX_VAL = 141600;
+  const BAR_H = 110;
+  const BAR_W = 50;
+  const GAP = 38;
+  const LEFT = 48;
 
   return (
-    <div>
-      <Topbar
-        title={`Fiche ${id}`}
-        breadcrumb={["Logistique", "Fournisseurs", `Fiche ${id}`]}
-      />
+    <div className="min-h-screen bg-[#F4F6F4]">
+      <Topbar breadcrumbs={["Logistique", "Fournisseurs", `Fournisseur ${id}`]} />
 
-      <div className="p-6 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
 
-        {/* ── EN-TÊTE ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
-                  <CheckCircle size={15} />
-                  Fournisseur approuvé
-                </span>
-                <span className="inline-flex px-3 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
-                  Catégorie : Engrais &amp; Intrants
-                </span>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">SCPA Afrique SARL</h2>
-              <p className="text-sm text-gray-500 mt-1">Fournisseur stratégique · Relation depuis 2023</p>
-            </div>
-            <div className="flex items-center gap-1">
-              {[1, 2, 3, 4].map((i) => (
-                <Star key={i} size={18} fill="#F9A825" color="#F9A825" />
-              ))}
-              <Star size={18} fill="none" color="#D1D5DB" />
-              <span className="ml-1 text-sm font-medium text-gray-600">4/5</span>
-            </div>
-          </div>
-
-          {/* Informations générales */}
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-3 text-sm">
-            <InfoRow label="Raison sociale"            value="SCPA Afrique SARL" />
-            <InfoRow label="Pays"                      value="France (siège) | Entrepôt Abidjan CI" />
-            <InfoRow
-              label="Adresse siège"
-              value="12 Rue de la Paix, 92100 Boulogne-Billancourt"
-              icon={<MapPin size={13} className="text-gray-400 shrink-0 mt-0.5" />}
-            />
-            <InfoRow
-              label="Entrepôt CI"
-              value="Zone industrielle d'Abidjan"
-              icon={<MapPin size={13} className="text-gray-400 shrink-0 mt-0.5" />}
-            />
-            <InfoRow
-              label="Téléphone FR"
-              value="+33 1 40 XX XX XX"
-              icon={<Phone size={13} className="text-gray-400 shrink-0 mt-0.5" />}
-            />
-            <InfoRow
-              label="Téléphone CI"
-              value="+225 27 21 XX XX XX"
-              icon={<Phone size={13} className="text-gray-400 shrink-0 mt-0.5" />}
-            />
-            <InfoRow
-              label="Email"
-              value="commercial@scpa-afrique.com"
-              icon={<Mail size={13} className="text-gray-400 shrink-0 mt-0.5" />}
-            />
-            <InfoRow label="RCCM"                        value="2018-B-21847" />
-            <InfoRow label="TVA intracommunautaire"       value="FR12 345 678 901" />
-            <InfoRow label="Contact principal"            value="M. Pierre Dumont (commercial export)" />
-            <InfoRow label="Incoterm habituel"            value="DDP Soubré (livraison franco)" />
-          </div>
-        </div>
-
-        {/* ── KPI ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          {kpis.map((k) => {
-            const Icon = k.icon;
-            return (
-              <div key={k.label} className="bg-white rounded-2xl border border-gray-100 p-4">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: k.bg }}>
-                  <Icon size={18} color={k.color} strokeWidth={1.8} />
+        {/* ── EN-TÊTE BANDEAU VERT ─────────────────────────────── */}
+        <div className="rounded-2xl overflow-hidden shadow-sm">
+          <div className="bg-[#1B5E20] px-6 py-5 text-white">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs bg-white/20 rounded px-2 py-0.5 font-mono">FOUR-002</span>
+                  <span className="text-xs bg-white/20 rounded px-2 py-0.5">Intrants phytosanitaires &amp; engrais</span>
                 </div>
-                <div className="text-xl font-bold text-gray-900">{k.value}</div>
-                <div className="text-xs text-gray-500 mt-0.5">{k.label}</div>
+                <h1 className="text-2xl font-bold">SCPA Afrique CI</h1>
+                <p className="text-green-200 text-sm">Société Commerciale des Produits Agrochimiques</p>
+                <p className="text-green-100 text-sm mt-1">Zone Industrielle de Yopougon, Abidjan, Côte d&apos;Ivoire</p>
               </div>
-            );
-          })}
-        </div>
-
-        {/* ── ONGLETS (statique côté serveur : sections empilées avec ancres visuelles) ── */}
-        {/* Vue d'ensemble */}
-        <Section title="Vue d'ensemble">
-          {/* Historique relation */}
-          <div className="bg-white rounded-2xl border border-gray-100">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h4 className="font-semibold text-gray-900 text-sm">Historique de la relation</h4>
+              <div className="flex flex-col items-end gap-2">
+                <span className="inline-flex items-center gap-1.5 bg-green-400/25 border border-green-300/40 rounded-full px-3 py-1 text-sm font-semibold">
+                  <CheckCircle2 size={14} /> Fournisseur agréé RA
+                </span>
+                <div className="flex items-center gap-1">
+                  <Star size={16} className="text-yellow-300 fill-yellow-300" />
+                  <span className="text-lg font-bold">94</span>
+                  <span className="text-green-200 text-sm">/100</span>
+                </div>
+              </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr style={{ backgroundColor: "#F8FBF8" }}>
-                    {["Année", "Nb commandes", "Montant total (XOF)", "Produits", "Délai moy.", "Incidents"].map((h) => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {historique.map((row) => (
-                    <tr key={row.annee} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-xs font-semibold text-gray-900">{row.annee}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600 text-center">{row.nb}</td>
-                      <td className="px-4 py-3 text-xs font-medium" style={{ color: "#2E7D32" }}>{row.montant}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{row.produits}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{row.delai}</td>
-                      <td className="px-4 py-3 text-xs">
-                        <span className={row.ok ? "text-green-700 font-medium" : "text-yellow-700 font-medium"}>
-                          {row.incidents} {row.ok ? "✅" : "⚠️"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+            <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+              <div>
+                <p className="text-green-300 text-xs">Contact principal</p>
+                <p className="font-medium">Koné Aboubakar</p>
+                <p className="text-green-200 text-xs">Représentant commercial Région Nawa</p>
+              </div>
+              <div>
+                <p className="text-green-300 text-xs">Téléphone</p>
+                <p className="font-medium">+225 27 21 44 00 11</p>
+              </div>
+              <div>
+                <p className="text-green-300 text-xs">Email</p>
+                <p className="font-medium break-all">aboubakar.kone@scpa-afrique.com</p>
+              </div>
             </div>
           </div>
 
-          {/* Conditions commerciales */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-5">
-            <h4 className="font-semibold text-gray-900 text-sm mb-4">Conditions commerciales</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* KPI strip */}
+          <div className="bg-white grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-100">
+            {[
+              { label: "Achats 2025 YTD",  val: "248 976 XOF", sub: "",                   Icon: ShoppingCart },
+              { label: "Commandes 2025",    val: "4 commandes",  sub: "",                   Icon: Package },
+              { label: "Délai moyen livraison", val: "4,3 jours", sub: "Promesse 3-5j ✅", Icon: Clock },
+              { label: "Produits RA-conformes", val: "100%",       sub: "Tous conformes ✅", Icon: CheckCircle2 },
+            ].map((k) => (
+              <div key={k.label} className="flex items-center gap-3 px-4 py-3">
+                <k.Icon size={18} className="text-[#2E7D32] shrink-0" />
+                <div>
+                  <p className="text-xs text-gray-500">{k.label}</p>
+                  <p className="text-base font-bold text-gray-900">{k.val}</p>
+                  {k.sub && <p className="text-xs text-green-700">{k.sub}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── INFORMATIONS LÉGALES ─────────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Informations légales</h2>
+          <table className="w-full text-sm">
+            <tbody className="divide-y divide-gray-50">
               {[
-                ["Minimum de commande",     "1 tonne"],
-                ["Délai standard",          "14–21 jours (DDP)"],
-                ["Délai express (urgence)", "7–10 jours (+15% surcoût)"],
-                ["Paiement",               "Virement SWIFT 30 jours ou PayCom BICICI CI"],
-                ["Remise volume",          ">10 t = 5% | >20 t = 8%"],
-                ["Devise",                 "EUR (facturé en EUR, converti XOF à la livraison)"],
-              ].map(([label, val]) => (
-                <div key={label} className="flex gap-2">
-                  <span className="text-xs text-gray-400 w-44 shrink-0">{label}</span>
-                  <span className="text-xs font-medium text-gray-800">{val}</span>
-                </div>
+                ["RCCM",               "CI-ABJ-2001-B-12847"],
+                ["NIF",                "CI-2001-83421-B"],
+                ["Siège",              "Zone Industrielle Yopougon, Lot 142 B"],
+                ["Représentant légal", "M. Thierry Akré (DG)"],
+                ["Agrément phyto CI",  "MINAGRI-PHY-2024-0042 (valide 31/12/2026)"],
+                ["Référencement RA",   "Fournisseur homologué Rainforest Alliance 2020 — Produits homologués"],
+                ["FDFP",               "À jour cotisations"],
+                ["Caution fournisseur","Sans (relations établies depuis 2018)"],
+              ].map(([champ, val]) => (
+                <tr key={champ}>
+                  <td className="py-2 pr-4 text-gray-500 font-medium whitespace-nowrap w-52">{champ}</td>
+                  <td className="py-2 text-gray-800">{val}</td>
+                </tr>
               ))}
-            </div>
-          </div>
-        </Section>
+            </tbody>
+          </table>
+        </div>
 
-        {/* Commandes */}
-        <Section title="Commandes">
-          <div className="bg-white rounded-2xl border border-gray-100">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h4 className="font-semibold text-gray-900 text-sm">Toutes les commandes</h4>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr style={{ backgroundColor: "#F8FBF8" }}>
-                    {["N° commande", "Date", "Produits", "Qté", "Montant", "Livraison", "Statut"].map((h) => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {commandes.map((c) => (
-                    <tr key={c.num} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-xs font-mono font-semibold text-gray-900">{c.num}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{c.date}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{c.produits}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{c.qte}</td>
-                      <td className="px-4 py-3 text-xs font-semibold" style={{ color: "#2E7D32" }}>{c.montant}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{c.livraison}</td>
-                      <td className="px-4 py-3 text-xs">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${c.statutOk ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-700"}`}>
-                          {c.statutOk ? "✅" : "⚠️"} {c.statut}
-                        </span>
-                      </td>
-                    </tr>
+        {/* ── CATALOGUE PRODUITS ───────────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Catalogue produits fournis</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8] text-left">
+                  {["Produit","Réf. SCPA","Homologation CI","Conformité RA","DAR","PU HT","Unité"].map((h) => (
+                    <th key={h} className="px-3 py-2 text-xs text-gray-500 font-medium whitespace-nowrap">{h}</th>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </Section>
-
-        {/* Produits */}
-        <Section title="Produits">
-          <div className="bg-white rounded-2xl border border-gray-100">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h4 className="font-semibold text-gray-900 text-sm">Catalogue SCPA Afrique — Tarifs 2025</h4>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr style={{ backgroundColor: "#F8FBF8" }}>
-                    {["Produit", "Formulation", "Emballage", "Prix unitaire (2025)", "MOQ", "Délai"].map((h) => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
-                    ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {CATALOGUE.map((p) => (
+                  <tr key={p.ref} className="hover:bg-gray-50">
+                    <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">{p.produit}</td>
+                    <td className="px-3 py-2 font-mono text-xs text-gray-600">{p.ref}</td>
+                    <td className="px-3 py-2 text-xs text-gray-600">{p.homol}</td>
+                    <td className="px-3 py-2">
+                      <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 rounded-full px-2 py-0.5">
+                        <CheckCircle2 size={11} /> Autorisé RA
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-xs text-gray-600">{p.dar}</td>
+                    <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">{p.pu}</td>
+                    <td className="px-3 py-2 text-xs text-gray-600">{p.unite}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {produits.map((p) => (
-                    <tr key={p.nom} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-xs font-medium text-gray-900">{p.nom}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{p.formulation}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{p.emballage}</td>
-                      <td className="px-4 py-3 text-xs font-semibold" style={{ color: "#2E7D32" }}>{p.prix}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{p.moq}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{p.delai}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </Section>
+          <div className="mt-3 rounded-xl bg-green-50 border border-green-100 px-4 py-3 text-xs text-green-800 flex items-start gap-2">
+            <CheckCircle2 size={13} className="mt-0.5 text-green-600 shrink-0" />
+            <span>
+              Tous les produits SCPA utilisés sur EXP-001 figurent dans la liste des produits autorisés Rainforest Alliance 2020.
+              Registre tenu à jour (voir Intrants).
+            </span>
+          </div>
+        </div>
 
-        {/* Évaluation */}
-        <Section title="Évaluation fournisseur">
-          <div className="bg-white rounded-2xl border border-gray-100">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h4 className="font-semibold text-gray-900 text-sm">Grille d&apos;évaluation</h4>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr style={{ backgroundColor: "#F8FBF8" }}>
-                    {["Critère", "Note /20", "Barre", "Commentaire"].map((h) => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
-                    ))}
+        {/* ── HISTORIQUE COMMANDES ─────────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Historique des commandes 2025</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8] text-left">
+                  {["N° Commande","Date","Produit","Qté","Montant TTC","Livraison","Délai"].map((h) => (
+                    <th key={h} className="px-3 py-2 text-xs text-gray-500 font-medium whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {COMMANDES.map((c) => (
+                  <tr key={c.num} className="hover:bg-gray-50">
+                    <td className="px-3 py-2 font-mono text-xs text-[#2E7D32] font-medium">{c.num}</td>
+                    <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{c.date}</td>
+                    <td className="px-3 py-2 text-gray-900">{c.produit}</td>
+                    <td className="px-3 py-2 text-gray-600">{c.qty}</td>
+                    <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">{c.montant}</td>
+                    <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{c.livraison}</td>
+                    <td className="px-3 py-2">
+                      <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-green-50 text-green-700">
+                        <CheckCircle2 size={11} /> {c.delai}
+                      </span>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {evaluation.map((e) => (
-                    <tr key={e.critere} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-xs font-medium text-gray-900">{e.critere}</td>
-                      <td className="px-4 py-3 text-xs font-bold" style={{ color: e.note >= 18 ? "#2E7D32" : e.note >= 15 ? "#F9A825" : "#E65100" }}>
-                        {e.note}/20
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="w-28 h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${(e.note / 20) * 100}%`,
-                              backgroundColor: e.note >= 18 ? "#4CAF50" : e.note >= 15 ? "#F9A825" : "#E65100",
-                            }}
-                          />
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{e.commentaire}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+                <tr className="bg-[#F8FBF8] font-semibold text-sm">
+                  <td className="px-3 py-2 text-gray-700" colSpan={4}>TOTAL 2025</td>
+                  <td className="px-3 py-2 text-gray-900 whitespace-nowrap">349 752 XOF</td>
+                  <td className="px-3 py-2" />
+                  <td className="px-3 py-2 text-gray-700 text-xs">4,0j moy.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+        </div>
 
-          {/* Note globale */}
-          <div className="flex items-center gap-4 rounded-2xl p-5 bg-green-50 border border-green-200">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: "#2E7D32" }}>
-              <span className="text-white text-lg font-bold">17</span>
-            </div>
-            <div>
-              <p className="font-bold text-green-900 text-base">Note globale : 17/20</p>
-              <p className="text-sm text-green-800 mt-0.5">Fournisseur stratégique recommandé</p>
-            </div>
+        {/* ── SVG BAR CHART ────────────────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-gray-900 mb-4">Achats SCPA par mois — 2025</h2>
+          <div className="overflow-x-auto">
+            <svg width={640} height={180} viewBox="0 0 640 180" className="block">
+              {/* gridlines */}
+              {[0, 0.25, 0.5, 0.75, 1].map((t) => {
+                const y = 20 + (1 - t) * BAR_H;
+                return (
+                  <g key={t}>
+                    <line x1={LEFT} y1={y} x2={630} y2={y} stroke="#E5E7EB" strokeWidth={1} />
+                    <text x={LEFT - 4} y={y + 4} textAnchor="end" fontSize={9} fill="#9CA3AF">
+                      {t === 0 ? "0" : `${Math.round((t * MAX_VAL) / 1000)}k`}
+                    </text>
+                  </g>
+                );
+              })}
+              {/* bars */}
+              {BAR_DATA.map((d, i) => {
+                const bh = d.val === 0 ? 2 : (d.val / MAX_VAL) * BAR_H;
+                const x = LEFT + 10 + i * (BAR_W + GAP);
+                const y = 20 + BAR_H - bh;
+                return (
+                  <g key={d.mois}>
+                    <rect x={x} y={y} width={BAR_W} height={bh} rx={4} fill={d.val > 0 ? "#2E7D32" : "#E5E7EB"} />
+                    {d.val > 0 && (
+                      <text x={x + BAR_W / 2} y={y - 4} textAnchor="middle" fontSize={8} fill="#1B5E20" fontWeight="600">
+                        {(d.val / 1000).toFixed(0)}k
+                      </text>
+                    )}
+                    <text x={x + BAR_W / 2} y={170} textAnchor="middle" fontSize={9} fill="#6B7280">
+                      {d.mois}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
           </div>
-        </Section>
+        </div>
 
-      </div>
-    </div>
-  );
-}
+        {/* ── ÉVALUATION FOURNISSEUR ───────────────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Évaluation fournisseur</h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-[#F8FBF8] text-left">
+                {["Critère","Note /20","Commentaire"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-xs text-gray-500 font-medium">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {EVALUATION.map((e) => (
+                <tr key={e.critere} className="hover:bg-gray-50">
+                  <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">{e.critere}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full bg-[#2E7D32]" style={{ width: `${(e.note / 20) * 100}%` }} />
+                      </div>
+                      <span className="text-sm font-semibold text-[#1B5E20]">{e.note}/20</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-xs text-gray-600">{e.commentaire}</td>
+                </tr>
+              ))}
+              <tr className="bg-green-50">
+                <td className="px-3 py-2 font-bold text-gray-900">SCORE GLOBAL</td>
+                <td className="px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 h-2 bg-green-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-[#2E7D32]" style={{ width: "94%" }} />
+                    </div>
+                    <span className="text-sm font-bold text-[#1B5E20]">94/100</span>
+                  </div>
+                </td>
+                <td className="px-3 py-2">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full px-2.5 py-0.5">
+                    <CheckCircle2 size={11} /> Fournisseur stratégique
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-/* ─── COMPOSANTS UTILITAIRES ─── */
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-gray-100" />
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider px-2">{title}</h3>
-        <div className="h-px flex-1 bg-gray-100" />
-      </div>
-      {children}
-    </div>
-  );
-}
+        {/* ── ACTIONS ──────────────────────────────────────────── */}
+        <div className="flex flex-wrap gap-3 pb-4">
+          <Link
+            href="/fournisseurs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <ArrowLeft size={14} /> Retour aux fournisseurs
+          </Link>
+          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2E7D32] text-white text-xs font-medium hover:bg-[#1B5E20] transition-colors">
+            <ShoppingCart size={14} /> Nouvelle commande
+          </button>
+          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#2E7D32] text-[#2E7D32] text-xs font-medium hover:bg-green-50 transition-colors">
+            <Mail size={14} /> Contacter SCPA
+          </button>
+        </div>
 
-function InfoRow({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-start gap-2">
-      {icon}
-      <div>
-        <span className="text-xs text-gray-400">{label}</span>
-        <p className="text-sm text-gray-800 font-medium">{value}</p>
       </div>
     </div>
   );
