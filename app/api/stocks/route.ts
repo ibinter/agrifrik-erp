@@ -28,13 +28,14 @@ export async function POST(
 
   const mouvement: MouvementStock = {
     id: `mvt-${Date.now()}`,
-    produitId: body.produitId,
+    stockId: body.stockId,
     type: body.type,
     quantite: body.quantite,
     entrepotSource: body.entrepotSource,
     entrepotDestination: body.entrepotDestination,
-    date: body.date ?? new Date().toISOString().split("T")[0],
-    motif: body.motif ?? "",
+    dateMouvement: body.dateMouvement ?? new Date().toISOString().split("T")[0],
+    operateur: body.operateur ?? "Système",
+    motif: body.motif,
   };
 
   // En production, persister en base de données et mettre à jour le stock
