@@ -55,7 +55,8 @@ function StatutBadge({ statut }: { statut: Statut }) {
   );
 }
 
-function InventaireTable({ titre, rows }: { titre: string; rows: typeof agricoles }) {
+type StockRow = { code: string; produit: string; localisation: string; qte: string; unite: string; valeur: string; statut: Statut };
+function InventaireTable({ titre, rows }: { titre: string; rows: StockRow[] }) {
   return (
     <div className="mb-4">
       <div className="px-4 py-2 text-xs font-bold uppercase tracking-wide text-gray-500"
