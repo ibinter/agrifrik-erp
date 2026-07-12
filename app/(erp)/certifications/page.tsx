@@ -267,7 +267,6 @@ export default function CertificationsPage() {
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           <KpiCard
             icon={<CheckCircle size={20} className="text-green-700" />}
-            bg="bg-green-50"
             label="Certifications actives"
             value="8"
             accent="bg-green-50"
