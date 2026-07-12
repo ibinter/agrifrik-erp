@@ -9,208 +9,204 @@ export default async function LogistiqueFichePage({
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-gray-50">
-      <Topbar breadcrumb={["Logistique", "Logistique", `Expédition ${id}`]} />
+      <Topbar breadcrumb={["Logistique", "Logistique", `Transport ${id}`]} />
 
       <div className="p-6 space-y-6">
 
         {/* En-tête bandeau vert */}
         <div className="rounded-2xl bg-[#1B5E20] text-white p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="space-y-2">
+            <div className="space-y-3 flex-1">
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-xl font-bold">Fiche Expédition — LOG-2025-018</h1>
-                <span className="text-sm bg-blue-500/30 border border-blue-400/40 rounded-full px-3 py-1 font-medium">
-                  🔵 En transit maritime (J12/J22)
+                <h1 className="text-xl font-bold">Fiche Transport — LOG-2025-007</h1>
+                <span className="text-sm bg-green-400/20 border border-green-400/30 rounded-full px-3 py-1 font-medium">
+                  ✅ Livraison effectuée le 11/07/2025 à 11h42
                 </span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1 text-sm text-white/90 mt-2">
-                <div><span className="text-white/60">Trajet :</span> Soubré Nord → Entrepôt San-Pédro → Port Abidjan → Rotterdam (NL)</div>
-                <div><span className="text-white/60">Transporteur route :</span> SITARAIL CI (camion TIR — immat. CI-4821-KW)</div>
-                <div><span className="text-white/60">Armateur :</span> Maersk Line</div>
-                <div><span className="text-white/60">Navire :</span> MSC Abidjan | Voyage : V.25W-14</div>
+              <p className="text-white/80 text-sm">Livraison 3 400 kg cacao Grade AA — Barry Callebaut CI</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1.5 text-sm text-white/90 mt-1">
+                <div><span className="text-white/55">Chauffeur :</span> Koné Seydou (Transporteur Nawa-Express)</div>
+                <div><span className="text-white/55">Véhicule :</span> Toyota HiLux CI-2021-NW-0847 + remorque FR-AB-8812</div>
+                <div><span className="text-white/55">Départ :</span> ENT-001 EXP-001 Soubré</div>
+                <div><span className="text-white/55">Arrivée :</span> BC Entrepôt San-Pédro</div>
+                <div><span className="text-white/55">Distance :</span> 115 km</div>
+                <div><span className="text-white/55">Durée estimée :</span> 2h15 — <span className="text-green-300">Durée réelle : 2h08</span></div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 5 KPI */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* 4 KPI */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Volume", value: "1 conteneur 20' FCL", sub: "18 tonnes cacao Grade AA" },
-            { label: "Valeur marchandise", value: "19 566 000 XOF", sub: "1 087 XOF/kg" },
-            { label: "Fret maritime", value: "1 240 000 XOF", sub: "68,9 $/t" },
-            { label: "ETA Rotterdam", value: "24/07/2025", sub: "Dans 13 jours" },
-            { label: "Documents", value: "5/5 complets ✅", sub: "" },
+            { label: "Cargaison", value: "3 400 kg", sub: "52 sacs × 65 kg" },
+            { label: "Valeur transportée", value: "3 695 800 XOF", sub: "Cacao Grade AA" },
+            { label: "Coût transport", value: "204 000 XOF", sub: "0,060 XOF/kg/km" },
+            { label: "Documents", value: "BL-008 + FAC-2025-009", sub: "Fiche de pesée ✅" },
           ].map((kpi) => (
             <div key={kpi.label} className="rounded-2xl border border-gray-100 bg-white p-5">
               <p className="text-xs text-gray-500 mb-1">{kpi.label}</p>
               <p className="text-base font-bold text-[#1B5E20]">{kpi.value}</p>
-              {kpi.sub && <p className="text-xs text-gray-400 mt-1">{kpi.sub}</p>}
+              <p className="text-xs text-gray-400 mt-1">{kpi.sub}</p>
             </div>
           ))}
         </div>
 
-        {/* Suivi du transport — Carte SVG */}
+        {/* Détail de la cargaison */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Suivi du transport — Soubré → Rotterdam</h2>
+          <h2 className="text-base font-semibold text-gray-800 mb-4">Détail de la cargaison</h2>
           <div className="overflow-x-auto">
-            <svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-3xl mx-auto rounded-xl">
-              {/* Fond océan */}
-              <rect width="700" height="320" fill="#E3F2FD" rx="12" />
-
-              {/* Masse Afrique de l'Ouest stylisée */}
-              <polygon points="30,80 200,60 230,120 210,200 180,280 80,300 40,260 20,180" fill="#C8E6C9" stroke="#A5D6A7" strokeWidth="1.5" />
-              <text x="110" y="190" textAnchor="middle" fill="#2E7D32" fontSize="11" fontWeight="bold">Côte d&apos;Ivoire</text>
-
-              {/* Péninsule ibérique / Europe stylisée */}
-              <polygon points="430,20 560,20 600,60 590,130 540,160 490,150 450,100 420,60" fill="#E8EAF6" stroke="#C5CAE9" strokeWidth="1.5" />
-              <text x="515" y="95" textAnchor="middle" fill="#5C6BC0" fontSize="10" fontWeight="bold">Europe</text>
-
-              {/* Pays-Bas */}
-              <ellipse cx="570" cy="48" rx="28" ry="16" fill="#D1C4E9" stroke="#9575CD" strokeWidth="1.5" />
-              <text x="570" y="44" textAnchor="middle" fill="#4527A0" fontSize="9" fontWeight="bold">NL</text>
-              <text x="570" y="56" textAnchor="middle" fill="#4527A0" fontSize="8">Rotterdam</text>
-
-              {/* Méditerranée label */}
-              <text x="390" y="165" textAnchor="middle" fill="#1565C0" fontSize="10" fontStyle="italic">Méditerranée</text>
-
-              {/* Détroit de Gibraltar */}
-              <text x="380" y="130" textAnchor="middle" fill="#0D47A1" fontSize="9">Détroit Gibraltar</text>
-
-              {/* Golfe de Gascogne */}
-              <text x="460" y="195" textAnchor="middle" fill="#1565C0" fontSize="9" fontStyle="italic">Golfe de Gascogne</text>
-
-              {/* Points étapes */}
-              {/* 1. Soubré Nord */}
-              <circle cx="110" cy="155" r="8" fill="#2E7D32" stroke="white" strokeWidth="2" />
-              <text x="110" y="151" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">1</text>
-              <text x="110" y="175" textAnchor="middle" fill="#1B5E20" fontSize="9" fontWeight="bold">Soubré</text>
-              <text x="110" y="186" textAnchor="middle" fill="#555" fontSize="8">25/06 ✅</text>
-
-              {/* 2. San-Pédro */}
-              <circle cx="145" cy="225" r="8" fill="#2E7D32" stroke="white" strokeWidth="2" />
-              <text x="145" y="221" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">2</text>
-              <text x="145" y="245" textAnchor="middle" fill="#1B5E20" fontSize="9" fontWeight="bold">San-Pédro</text>
-              <text x="145" y="256" textAnchor="middle" fill="#555" fontSize="8">26/06 ✅</text>
-
-              {/* 3. Port Abidjan */}
-              <circle cx="185" cy="195" r="8" fill="#2E7D32" stroke="white" strokeWidth="2" />
-              <text x="185" y="191" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">3</text>
-              <text x="200" y="213" textAnchor="middle" fill="#1B5E20" fontSize="9" fontWeight="bold">Port Abidjan</text>
-              <text x="200" y="224" textAnchor="middle" fill="#555" fontSize="8">29/06 ✅</text>
-
-              {/* 4. Transit Méditerranée */}
-              <circle cx="365" cy="155" r="8" fill="#1565C0" stroke="white" strokeWidth="2" />
-              <text x="365" y="151" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">4</text>
-              <text x="365" y="175" textAnchor="middle" fill="#1565C0" fontSize="9" fontWeight="bold">Méditerranée</text>
-              <text x="365" y="186" textAnchor="middle" fill="#555" fontSize="8">En cours ✅</text>
-
-              {/* Position actuelle — Golfe de Gascogne */}
-              <circle cx="460" cy="210" r="9" fill="#E65100" stroke="white" strokeWidth="2" />
-              <text x="460" y="206" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">★</text>
-              <text x="480" y="228" textAnchor="middle" fill="#E65100" fontSize="9" fontWeight="bold">Position actuelle</text>
-              <text x="480" y="239" textAnchor="middle" fill="#555" fontSize="8">11/07 🔵</text>
-
-              {/* 5. Rotterdam */}
-              <circle cx="570" cy="48" r="8" fill="#7B1FA2" stroke="white" strokeWidth="2" />
-              <text x="570" y="44" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">5</text>
-              <text x="610" y="75" textAnchor="middle" fill="#4527A0" fontSize="9" fontWeight="bold">Rotterdam</text>
-              <text x="610" y="86" textAnchor="middle" fill="#555" fontSize="8">ETA 24/07 ⏳</text>
-
-              {/* 6. Barry Callebaut */}
-              <circle cx="600" cy="70" r="6" fill="#9C27B0" stroke="white" strokeWidth="2" />
-              <text x="600" y="66" textAnchor="middle" fill="white" fontSize="7" fontWeight="bold">6</text>
-              <text x="650" y="100" textAnchor="middle" fill="#555" fontSize="8">Barry Callebaut</text>
-              <text x="650" y="110" textAnchor="middle" fill="#555" fontSize="7">ETA 27/07 ⏳</text>
-
-              {/* Ligne de trajet pointillée rouge */}
-              <polyline
-                points="110,155 145,225 185,195 365,155 460,210 570,48 600,70"
-                fill="none"
-                stroke="#E53935"
-                strokeWidth="2"
-                strokeDasharray="8,5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-
-              {/* Légende */}
-              <rect x="10" y="268" width="210" height="44" rx="8" fill="white" opacity="0.92" stroke="#ddd" />
-              <circle cx="24" cy="280" r="5" fill="#2E7D32" />
-              <text x="36" y="284" fill="#333" fontSize="9">Étape complétée</text>
-              <circle cx="24" cy="295" r="5" fill="#E65100" />
-              <text x="36" y="299" fill="#333" fontSize="9">Position actuelle</text>
-              <circle cx="24" cy="310" r="5" fill="#7B1FA2" />
-              <text x="36" y="314" fill="#333" fontSize="9">Destination</text>
-              <line x1="115" y1="278" x2="140" y2="278" stroke="#E53935" strokeWidth="2" strokeDasharray="5,3" />
-              <text x="148" y="281" fill="#333" fontSize="9">Trajet maritime</text>
-            </svg>
-          </div>
-
-          {/* Timeline détaillée */}
-          <h3 className="text-sm font-semibold text-gray-700 mt-6 mb-3">Timeline détaillée</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-[700px]">
               <thead>
                 <tr className="bg-[#F8FBF8]">
-                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tl-xl">Étape</th>
-                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Date</th>
-                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Heure</th>
-                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Statut</th>
-                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tr-xl">Preuve</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tl-xl">#</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Lot</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Produit</th>
+                  <th className="text-right px-4 py-3 text-gray-600 font-medium">Nb sacs</th>
+                  <th className="text-right px-4 py-3 text-gray-600 font-medium">Poids brut</th>
+                  <th className="text-right px-4 py-3 text-gray-600 font-medium">Poids net</th>
+                  <th className="text-center px-4 py-3 text-gray-600 font-medium">Grade</th>
+                  <th className="text-right px-4 py-3 text-gray-600 font-medium rounded-tr-xl">Valeur</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {[
-                  ["Chargement ENT-001 (18 t)", "25/06/2025", "06h30", "✅ Fait", "BL interne"],
-                  ["Départ camion TIR", "25/06/2025", "08h15", "✅ Fait", "Bordereau SITARAIL"],
-                  ["Arrivée San-Pédro", "26/06/2025", "14h00", "✅ Fait", "Accusé réception"],
-                  ["Inspection DGD CI", "27/06/2025", "09h00", "✅ Dédouané", "Connaissement CI"],
-                  ["Chargement conteneur MAEU8441092", "28/06/2025", "15h00", "✅ Fait", "Packing list"],
-                  ["Départ navire MSC Abidjan", "29/06/2025", "23h59", "✅ Fait", "BL maritime"],
-                  ["Cap Vert (passage)", "04/07/2025", "—", "✅ Passé", "Tracking Maersk"],
-                  ["Détroit de Gibraltar (passage)", "09/07/2025", "—", "✅ Passé", "Tracking Maersk"],
-                  ["Position actuelle", "11/07/2025", "10h00", "🔵 Golfe de Gascogne", "GPS tracking"],
-                  ["ETA Rotterdam", "24/07/2025", "08h00", "⏳ Estimé", "Maersk Alert"],
+                  ["1", "LOT-2025-044", "Cacao sec Grade AA", "14 sacs", "910 kg", "896 kg", "AA", "973 312 XOF"],
+                  ["2", "LOT-2025-045", "Cacao sec Grade AA", "18 sacs", "1 170 kg", "1 152 kg", "AA", "1 252 224 XOF"],
+                  ["3", "LOT-2025-046", "Cacao sec Grade AA", "20 sacs", "1 300 kg", "1 280 kg", "AA", "1 391 360 XOF"],
                 ].map((row) => (
-                  <tr key={row[0]} className="hover:bg-gray-50/60">
+                  <tr key={row[1]} className="hover:bg-gray-50/60">
                     {row.map((cell, i) => (
-                      <td key={i} className="px-4 py-3 text-gray-700">{cell}</td>
+                      <td
+                        key={i}
+                        className={`px-4 py-3 text-gray-700 ${i === 6 ? "text-center" : i >= 3 ? "text-right" : ""} ${i === 1 ? "font-mono text-xs font-semibold" : ""}`}
+                      >
+                        {cell}
+                      </td>
                     ))}
                   </tr>
                 ))}
+                <tr className="bg-[#F8FBF8] font-bold">
+                  <td className="px-4 py-3 text-gray-800 rounded-bl-xl" colSpan={3}>TOTAL</td>
+                  <td className="px-4 py-3 text-gray-800 text-right">52 sacs</td>
+                  <td className="px-4 py-3 text-gray-800 text-right">3 380 kg brut</td>
+                  <td className="px-4 py-3 text-gray-800 text-right">3 328 kg net</td>
+                  <td className="px-4 py-3 text-gray-800 text-center">AA</td>
+                  <td className="px-4 py-3 text-[#1B5E20] text-right rounded-br-xl">≈ 3 695 800 XOF</td>
+                </tr>
               </tbody>
             </table>
           </div>
+          <p className="text-xs text-gray-400 mt-3">
+            Note : Poids contractuel facturé sur pesée BC à réception (fiche de pesée SGID-BC-2025-0847 confirmée)
+          </p>
         </div>
 
-        {/* Documents douaniers */}
+        {/* Traçabilité du trajet */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Documents douaniers</h2>
+          <h2 className="text-base font-semibold text-gray-800 mb-4">Traçabilité du trajet — LOG-2025-007</h2>
+
+          {/* Carte SVG */}
+          <div className="overflow-x-auto mb-6">
+            <svg
+              viewBox="0 0 700 280"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-full max-w-3xl mx-auto rounded-xl"
+            >
+              {/* Fond clair */}
+              <rect width="700" height="280" fill="#F1F8E9" rx="12" />
+
+              {/* Côte atlantique (bas) */}
+              <rect x="0" y="248" width="700" height="32" fill="#BBDEFB" rx="0" />
+              <text x="350" y="268" textAnchor="middle" fill="#1565C0" fontSize="10" fontStyle="italic">Côte Atlantique</text>
+
+              {/* Fond terrain intérieur */}
+              <rect x="0" y="0" width="700" height="248" fill="#F9FBE7" rx="12" />
+
+              {/* Route N1 — trait gris */}
+              <polyline
+                points="80,80 280,140 440,200 620,220"
+                fill="none"
+                stroke="#9E9E9E"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              {/* Flèche sur la route */}
+              <polygon points="612,215 626,220 612,225" fill="#9E9E9E" />
+              <text x="350" y="128" textAnchor="middle" fill="#757575" fontSize="9" fontWeight="500">Route N1</text>
+
+              {/* Tracé trajet — trait vert */}
+              <polyline
+                points="80,80 280,140 440,200 620,220"
+                fill="none"
+                stroke="#2E7D32"
+                strokeWidth="2.5"
+                strokeDasharray="10,5"
+                strokeLinecap="round"
+              />
+
+              {/* Point départ — EXP-001 Soubré */}
+              <circle cx="80" cy="80" r="12" fill="#2E7D32" stroke="white" strokeWidth="2.5" />
+              <text x="80" y="84" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">DEP</text>
+              <text x="80" y="60" textAnchor="middle" fill="#1B5E20" fontSize="10" fontWeight="bold">EXP-001 Soubré</text>
+              <text x="80" y="73" textAnchor="middle" fill="#4CAF50" fontSize="8">ENT-001</text>
+
+              {/* Méagui */}
+              <circle cx="280" cy="140" r="8" fill="#78909C" stroke="white" strokeWidth="2" />
+              <text x="280" y="125" textAnchor="middle" fill="#455A64" fontSize="9" fontWeight="600">Méagui</text>
+              <text x="280" y="115" textAnchor="middle" fill="#78909C" fontSize="8">10h22 ✅</text>
+
+              {/* Tabou carrefour */}
+              <circle cx="440" cy="200" r="8" fill="#78909C" stroke="white" strokeWidth="2" />
+              <text x="440" y="185" textAnchor="middle" fill="#455A64" fontSize="9" fontWeight="600">Tabou carrefour</text>
+
+              {/* Annotation distance */}
+              <rect x="240" y="155" width="140" height="28" rx="6" fill="white" opacity="0.9" stroke="#E0E0E0" />
+              <text x="310" y="167" textAnchor="middle" fill="#1B5E20" fontSize="9" fontWeight="bold">115 km</text>
+              <text x="310" y="179" textAnchor="middle" fill="#555" fontSize="8">Durée réelle : 2h08</text>
+
+              {/* Point arrivée — BC San-Pédro */}
+              <rect x="600" y="205" width="24" height="24" rx="4" fill="#1565C0" stroke="white" strokeWidth="2.5" />
+              <text x="612" y="221" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">BC</text>
+              <text x="635" y="200" textAnchor="start" fill="#0D47A1" fontSize="10" fontWeight="bold">BC Entrepôt</text>
+              <text x="635" y="212" textAnchor="start" fill="#0D47A1" fontSize="9">San-Pédro</text>
+              <text x="635" y="224" textAnchor="start" fill="#4CAF50" fontSize="8">11h42 ✅</text>
+
+              {/* Légende */}
+              <rect x="10" y="10" width="200" height="56" rx="8" fill="white" opacity="0.92" stroke="#E0E0E0" />
+              <circle cx="26" cy="26" r="6" fill="#2E7D32" />
+              <text x="38" y="30" fill="#333" fontSize="9">Point de départ (EXP-001)</text>
+              <circle cx="26" cy="42" r="6" fill="#78909C" />
+              <text x="38" y="46" fill="#333" fontSize="9">Étape intermédiaire</text>
+              <rect x="20" y="53" width="12" height="12" rx="2" fill="#1565C0" />
+              <text x="38" y="62" fill="#333" fontSize="9">Point d&apos;arrivée (BC)</text>
+            </svg>
+          </div>
+
+          {/* Horodatage */}
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Horodatage</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#F8FBF8]">
-                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tl-xl">Document</th>
-                  <th className="text-left px-4 py-3 text-gray-600 font-medium">N°</th>
-                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Date</th>
-                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Émis par</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tl-xl">Point</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Heure</th>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tr-xl">Statut</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {[
-                  ["Connaissement maritime (BL)", "MAEU-2025-CI-04821", "28/06/2025", "Maersk CI", "✅ Original reçu"],
-                  ["Certificat RA (copie)", "RA-CI-2025-00847", "01/03/2025", "Bureau Veritas", "✅ Annexé"],
-                  ["Certificat phytosanitaire", "PHYTO-CI-2025-1847", "26/06/2025", "MINADER CI", "✅ Original"],
-                  ["Certificat d'origine CEDEAO", "ORIG-CI-2025-2241", "26/06/2025", "Chambre Commerce", "✅ Original"],
-                  ["Attestation fumigation", "FUM-SPN-2025-447", "27/06/2025", "Cotecna CI", "✅ Original"],
-                  ["Déclaration export DGD CI", "DEX-2025-SP-18847", "27/06/2025", "DGD Côte d'Ivoire", "✅ Validée"],
+                  ["Chargement ENT-001", "08h45", "✅ 52 sacs vérifiés, scellés"],
+                  ["Départ EXP-001", "09h34", "✅ BL-008 tamponné, signé"],
+                  ["Passage Méagui", "10h22", "✅ GPS track"],
+                  ["Arrivée BC San-Pédro", "11h42", "✅ Pesée + déchargement"],
+                  ["Réception BC signée", "12h15", "✅ SGID-BC-2025-0847"],
                 ].map((row) => (
                   <tr key={row[0]} className="hover:bg-gray-50/60">
-                    {row.map((cell, i) => (
-                      <td key={i} className="px-4 py-3 text-gray-700">{cell}</td>
-                    ))}
+                    <td className="px-4 py-3 text-gray-800 font-medium">{row[0]}</td>
+                    <td className="px-4 py-3 text-gray-700 font-mono text-sm">{row[1]}</td>
+                    <td className="px-4 py-3 text-gray-700">{row[2]}</td>
                   </tr>
                 ))}
               </tbody>
@@ -218,66 +214,77 @@ export default async function LogistiqueFichePage({
           </div>
         </div>
 
-        {/* Données conteneur */}
+        {/* Documents de transport */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Données conteneur</h2>
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-2 text-sm">
-            {[
-              ["N° conteneur", "MAEU 844 109-2 (ISO 6346)"],
-              ["Type", "20' Standard Dry (5,9 m × 2,35 m × 2,39 m)"],
-              ["Tare", "2 200 kg"],
-              ["Charge utile", "18 000 kg"],
-              ["Poids total", "20 200 kg ✅ (<24 000 kg max)"],
-              ["Température à l'embarquement", "24°C / HR 65% (conforme cacao sec <7,5% humidité)"],
-              ["Scellé douanier", "CI-DGD-2025-SP-84471 ✅"],
-              ["IMO class", "Non dangereux (cacao = marchandise générale sèche)"],
-            ].map(([dt, dd]) => (
-              <div key={dt} className="flex gap-2">
-                <dt className="w-52 flex-shrink-0 text-gray-500">{dt} :</dt>
-                <dd className="text-gray-800 font-medium">{dd}</dd>
-              </div>
-            ))}
-          </dl>
+          <h2 className="text-base font-semibold text-gray-800 mb-4">Documents de transport</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F8FBF8]">
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tl-xl">Document</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Référence</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tr-xl">Statut</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[
+                  ["Bon de livraison BL-008", "BL-EXP001-2025-008", "✅ Signé BC le 11/07 12:15"],
+                  ["Facture commerciale", "FAC-2025-009", "✅ Émise + remise banque"],
+                  ["Fiche de pesée BC", "SGID-BC-2025-0847", "✅ Poids net : 3 400 kg confirmé"],
+                  ["Fiche traçabilité lots", "FT-2025-044/045/046", "✅ EUDR conforme"],
+                  ["Certificat d'origine CI", "CO-MINAGRI-2025-0847", "✅ Valide"],
+                ].map((row) => (
+                  <tr key={row[1]} className="hover:bg-gray-50/60">
+                    <td className="px-4 py-3 text-gray-800 font-medium">{row[0]}</td>
+                    <td className="px-4 py-3 text-gray-700 font-mono text-xs">{row[1]}</td>
+                    <td className="px-4 py-3 text-gray-700">{row[2]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* Finances transport */}
+        {/* Coût de transport */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Finances transport</h2>
+          <h2 className="text-base font-semibold text-gray-800 mb-4">Coût de transport</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#F8FBF8]">
                   <th className="text-left px-4 py-3 text-gray-600 font-medium rounded-tl-xl">Poste</th>
-                  <th className="text-right px-4 py-3 text-gray-600 font-medium rounded-tr-xl">Montant (XOF)</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Détail</th>
+                  <th className="text-right px-4 py-3 text-gray-600 font-medium rounded-tr-xl">Montant</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {[
-                  ["Transport route Soubré → San-Pédro (SITARAIL)", "120 000"],
-                  ["Manutention portuaire San-Pédro", "48 000"],
-                  ["Fret maritime Abidjan → Rotterdam (Maersk 20')", "1 240 000"],
-                  ["Assurance maritime (0,35% valeur)", "68 481"],
-                  ["Frais DGD CI (droits export)", "92 000"],
-                  ["Inspection phytosanitaire MINADER", "24 000"],
-                  ["Cotecna inspection (fumigation)", "36 000"],
-                ].map(([poste, montant]) => (
-                  <tr key={poste} className="hover:bg-gray-50/60">
-                    <td className="px-4 py-3 text-gray-700">{poste}</td>
-                    <td className="px-4 py-3 text-gray-700 text-right">{montant}</td>
+                  ["Carburant (115 km × 2 × 0,6 L/km = 138 L × 735 XOF/L)", "Gasoil EXP-001", "101 430 XOF"],
+                  ["Conducteur (forfait livraison Nawa-Express)", "Koné Seydou", "75 000 XOF"],
+                  ["Péages et divers", "N1 Méagui–San-Pédro", "27 570 XOF"],
+                ].map((row) => (
+                  <tr key={row[0]} className="hover:bg-gray-50/60">
+                    <td className="px-4 py-3 text-gray-700">{row[0]}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{row[1]}</td>
+                    <td className="px-4 py-3 text-gray-700 text-right font-medium">{row[2]}</td>
                   </tr>
                 ))}
                 <tr className="bg-[#F8FBF8] font-bold">
-                  <td className="px-4 py-3 text-gray-800">Total coût transport</td>
-                  <td className="px-4 py-3 text-[#1B5E20] text-right">1 628 481 XOF</td>
-                </tr>
-                <tr className="bg-green-50">
-                  <td className="px-4 py-3 text-gray-700">Coût transport / kg</td>
-                  <td className="px-4 py-3 text-[#2E7D32] text-right font-semibold">
-                    90 XOF/kg <span className="text-xs font-normal text-gray-500">(budget : 95 XOF/kg → économie 5 XOF/kg)</span>
-                  </td>
+                  <td className="px-4 py-3 text-gray-800 rounded-bl-xl" colSpan={2}>TOTAL</td>
+                  <td className="px-4 py-3 text-[#1B5E20] text-right rounded-br-xl">204 000 XOF</td>
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-4 text-sm">
+            <span className="text-gray-600">
+              Coût logistique/kg : <span className="font-semibold text-gray-800">60 XOF/kg</span>
+            </span>
+            <span className="text-gray-400">|</span>
+            <span className="text-gray-600">
+              Budget planifié : <span className="font-semibold text-gray-800">65 XOF/kg</span>
+            </span>
+            <span className="text-green-700 font-semibold">→ Économie −5 XOF/kg ✅</span>
           </div>
         </div>
 
@@ -290,10 +297,10 @@ export default async function LogistiqueFichePage({
             ← Retour à la logistique
           </a>
           <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors">
-            Tracker sur Maersk
+            Nouveau transport
           </button>
           <button className="border border-[#2E7D32] text-[#2E7D32] rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#F8FBF8] transition-colors">
-            Télécharger les documents
+            Voir la facture
           </button>
         </div>
 
