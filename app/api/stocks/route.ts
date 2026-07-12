@@ -11,9 +11,9 @@ export async function POST(
 ): Promise<NextResponse<{ success: boolean; mouvement: MouvementStock } | { success: boolean; message: string }>> {
   const body: Omit<MouvementStock, "id"> = await request.json();
 
-  if (!body.produitId || !body.type || !body.quantite || body.quantite <= 0) {
+  if (!body.stockId || !body.type || !body.quantite || body.quantite <= 0) {
     return NextResponse.json(
-      { success: false, message: "Champs obligatoires manquants ou invalides : produitId, type, quantite" },
+      { success: false, message: "Champs obligatoires manquants ou invalides : stockId, type, quantite" },
       { status: 400 }
     );
   }
