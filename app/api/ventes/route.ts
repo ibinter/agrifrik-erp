@@ -14,9 +14,9 @@ export async function POST(
 ): Promise<NextResponse<{ success: boolean; id: string; total: number } | { success: boolean; message: string }>> {
   const body: Omit<Commande, "id" | "total"> = await request.json();
 
-  if (!body.client || !body.produit || !body.quantite || !body.prixUnitaire) {
+  if (!body.partenaire || !body.produit || !body.quantite || !body.prixUnitaire) {
     return NextResponse.json(
-      { success: false, message: "Champs obligatoires manquants : client, produit, quantite, prixUnitaire" },
+      { success: false, message: "Champs obligatoires manquants : partenaire, produit, quantite, prixUnitaire" },
       { status: 400 }
     );
   }
