@@ -18,6 +18,11 @@ const PUBLIC_PATHS = [
   "/icons",
   "/logo",
   "/public",
+  "/mentions-legales",
+  "/cgu",
+  "/politique-confidentialite",
+  "/politique-cookies",
+  "/api/sara",
 ];
 
 function isPublic(pathname: string): boolean {
