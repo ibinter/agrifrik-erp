@@ -236,7 +236,7 @@ export default async function SuiviQualiteDetailPage({
           <div className="px-6 py-4 border-b border-gray-100">
             <h2 className="text-sm font-semibold text-gray-900">Traçabilité du lot LOT-2025-046</h2>
           </div>
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <div className="relative pl-6 space-y-0">
               {[
                 {

@@ -274,7 +274,7 @@ export default function DevisPage() {
               Entonnoir de conversion 2025
             </h3>
             <FunnelChart />
-            <div className="mt-4 grid grid-cols-4 gap-2 text-center">
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
               {[
                 { label: "Émis", v: 4, pct: "100%" },
                 { label: "Répondus", v: 3, pct: "75%" },

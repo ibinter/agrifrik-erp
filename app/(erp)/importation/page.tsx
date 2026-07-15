@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -146,7 +146,7 @@ export default function ImportationPage() {
 
           {/* Onglet 2 : Documents douaniers */}
           {activeTab === 1 && (
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-6">
               <div>
                 <h3 className="text-sm font-semibold text-gray-800 dark:text-white mb-1">Dossier douanier IMP-2025-001 (en cours)</h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Étapes DGD — Direction Générale des Douanes CI</p>
@@ -237,7 +237,7 @@ export default function ImportationPage() {
 
           {/* Onglet 4 : Coûts & Taxes */}
           {activeTab === 3 && (
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-6">
               <h3 className="text-sm font-semibold text-gray-800 dark:text-white">Synthèse des coûts d&apos;importation 2025</h3>
               <div className="max-w-xl">
                 <div className="rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">

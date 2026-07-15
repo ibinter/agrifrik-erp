@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -118,7 +118,7 @@ export default function InventairePage() {
     <div className="min-h-screen bg-[#F8FBF8]">
       <Topbar breadcrumb={["Finance", "Inventaire"]} />
 
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -260,7 +260,7 @@ export default function InventairePage() {
         {/* TAB 2 — Immobilisations */}
         {tab === 2 && (
           <div className="space-y-5">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 { label: "Total valeur d'origine", value: "164,1 M XOF", color: "text-gray-800" },
                 { label: "Amortissements cumulés", value: "71,3 M XOF", color: "text-red-600" },

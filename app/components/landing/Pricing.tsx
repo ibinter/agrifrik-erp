@@ -41,7 +41,7 @@ export default function Pricing() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {p.plans.map((plan) => (
             <div key={plan.name}
-              className={`rounded-2xl p-6 flex flex-col transition-all ${plan.featured ? "shadow-2xl scale-[1.03]" : "border border-gray-100 hover:shadow-md"}`}
+              className={`rounded-2xl p-5 sm:p-6 flex flex-col transition-all ${plan.featured ? "shadow-2xl ring-2 ring-[#2E7D32]/30" : "border border-gray-100 hover:shadow-md"}`}
               style={plan.featured ? { background: "linear-gradient(155deg, #0C2010 0%, #1B5E20 50%, #2E7D32 100%)" } : { backgroundColor: "white" }}>
               {plan.featured && (
                 <div className="text-xs font-bold px-3 py-1 rounded-full self-start mb-4"

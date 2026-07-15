@@ -256,7 +256,7 @@ export default function BudgetPage() {
 
             {/* Résultat prévisionnel */}
             <div className="bg-[#1B5E20] text-white rounded-2xl p-5 shadow">
-              <div className="grid grid-cols-4 gap-4 text-sm">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div><p className="text-green-200 text-xs">Résultat budgété annuel</p><p className="font-bold text-lg mt-0.5">106,9 M XOF</p></div>
                 <div><p className="text-green-200 text-xs">Résultat budgété S1</p><p className="font-bold text-lg mt-0.5">66,45 M XOF</p></div>
                 <div><p className="text-green-200 text-xs">Résultat réalisé S1</p><p className="font-bold text-lg mt-0.5">70,6 M XOF</p></div>

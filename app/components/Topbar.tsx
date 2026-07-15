@@ -128,25 +128,32 @@ export default function Topbar({ title, breadcrumb }: TopbarProps) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 bg-white border-b border-gray-100 sticky top-0 z-30">
+    <header className="h-14 sm:h-16 flex items-center justify-between pl-14 lg:pl-6 pr-4 sm:pr-6 bg-white border-b border-gray-100 sticky top-0 z-30">
       {/* Left: title + breadcrumb */}
-      <div>
+      <div className="min-w-0 flex-1 mr-3">
         {breadcrumb && breadcrumb.length > 0 && (
-          <p className="text-xs text-gray-400 mb-0.5">{breadcrumb.join(" › ")}</p>
+          <p className="text-xs text-gray-400 mb-0.5 truncate">{breadcrumb.join(" › ")}</p>
         )}
-        <h1 className="text-base font-semibold text-gray-900 leading-none">{title}</h1>
+        <h1 className="text-sm sm:text-base font-semibold text-gray-900 leading-none truncate">{title}</h1>
       </div>
 
       {/* Right: search + notif + user */}
-      <div className="flex items-center gap-3">
-        {/* Search */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Search — icon on mobile, full bar on sm+ */}
         <button
           onClick={() => setSearchOpen(true)}
-          className="hidden sm:flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-400 hover:bg-gray-50 w-64 transition-colors"
+          className="sm:hidden w-8 h-8 rounded-xl flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"
+          aria-label="Rechercher"
+        >
+          <Search size={16} />
+        </button>
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="hidden sm:flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-400 hover:bg-gray-50 w-48 lg:w-64 transition-colors"
         >
           <Search size={14} />
-          <span>Rechercher...</span>
-          <span className="ml-auto text-xs bg-gray-100 px-1.5 py-0.5 rounded">Ctrl+K</span>
+          <span className="hidden md:inline">Rechercher...</span>
+          <span className="ml-auto text-xs bg-gray-100 px-1.5 py-0.5 rounded hidden lg:block">Ctrl+K</span>
         </button>
         <GlobalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
@@ -167,7 +174,7 @@ export default function Topbar({ title, breadcrumb }: TopbarProps) {
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-white shadow-xl rounded-2xl z-50 border border-gray-100 overflow-hidden">
+            <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white shadow-xl rounded-2xl z-50 border border-gray-100 overflow-hidden">
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                 <div className="flex items-center gap-2">
@@ -249,7 +256,7 @@ export default function Topbar({ title, breadcrumb }: TopbarProps) {
           </button>
 
           {userOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white shadow-xl rounded-2xl z-50 border border-gray-100 overflow-hidden">
+            <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white shadow-xl rounded-2xl z-50 border border-gray-100 overflow-hidden">
               {/* User header */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
                 <div

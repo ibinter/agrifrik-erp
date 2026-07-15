@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -297,7 +297,7 @@ function HistoriqueRA() {
           </svg>
         </div>
         {/* mini KPI ligne */}
-        <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
           {[
             { label: "Tendance", value: "+3 pts/an en moyenne", ok: true },
             { label: "NC critiques totales (5 ans)", value: "0 — Excellent", ok: true },
@@ -431,7 +431,7 @@ export default function AuditPage() {
     <div>
       <Topbar title="Audit & Conformité" breadcrumb={["Commerce", "Audit"]} />
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         {/* En-tête + bouton */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>

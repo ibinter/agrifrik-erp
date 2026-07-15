@@ -79,8 +79,8 @@ export default function SaraChat() {
 
       {/* Chat window */}
       {open && (
-        <div className="fixed bottom-44 right-5 z-50 w-80 sm:w-96 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-          style={{ maxHeight: "480px", border: "1px solid rgba(0,0,0,0.1)" }}>
+        <div className="fixed bottom-44 right-3 sm:right-5 z-50 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+          style={{ maxHeight: "480px", border: "1px solid rgba(0,0,0,0.1)", width: "min(320px, calc(100vw - 24px))" }}>
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3" style={{ background: "linear-gradient(135deg, #0C1F0F, #1B5E20)" }}>
             <div className="w-9 h-9 rounded-xl overflow-hidden bg-white/10 flex items-center justify-center shrink-0">

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Topbar from "../../components/Topbar";
@@ -198,7 +198,7 @@ export default function DashboardPage() {
     <div>
       <Topbar title="Tableau de Bord" breadcrumb={["Dashboard"]} />
 
-      <div className="p-6 space-y-5">
+      <div className="p-4 sm:p-6 space-y-5">
 
         {/* ── EN-TÊTE ────────────────────────────────────────── */}
         <div

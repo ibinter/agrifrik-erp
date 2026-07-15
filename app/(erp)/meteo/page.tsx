@@ -268,7 +268,7 @@ export default function MeteoPage() {
     <div className="min-h-screen bg-gray-50">
       <Topbar breadcrumb={["IA", "MÃ©tÃ©o Agricole"]} />
 
-      <div className="p-6 max-w-6xl mx-auto space-y-5">
+      <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-5">
 
         {/* â”€â”€ En-tÃªte â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">

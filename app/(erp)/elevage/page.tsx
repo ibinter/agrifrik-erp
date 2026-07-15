@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -564,7 +564,7 @@ export default function ElevagePage() {
     <div>
       <Topbar title="Élevage" breadcrumb={["Production", "Élevage"]} />
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
 
         {/* KPI */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">

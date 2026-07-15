@@ -258,7 +258,8 @@ export default function CalendrierPage() {
           <div className="space-y-5">
 
             {/* Grille calendrier */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+            <div className="min-w-[560px]">
               {/* En-têtes colonnes */}
               <div className="grid grid-cols-7 border-b border-gray-100">
                 {WEEKDAYS.map((d) => (
@@ -329,16 +330,17 @@ export default function CalendrierPage() {
                 ))}
               </div>
             </div>
+            </div>{/* end min-w wrapper */}
           </div>
         )}
 
         {/* ══════════ VUE SEMAINE ══════════ */}
         {view === "semaine" && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 overflow-x-auto">
             <p className="text-sm text-gray-500 mb-4">
               Semaine du <strong>07 au 13 Juillet 2025</strong>
             </p>
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-7 gap-2 min-w-[560px]">
               {[
                 { wd: "Lun", day: 7 },
                 { wd: "Mar", day: 8 },

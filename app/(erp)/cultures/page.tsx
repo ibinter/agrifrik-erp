@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -85,7 +85,7 @@ export default function CulturesPage() {
     <div>
       <Topbar title="Cultures & Plantations" breadcrumb={["Production", "Cultures"]} />
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         {/* KPI */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           {[
@@ -126,7 +126,7 @@ export default function CulturesPage() {
             ))}
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {/* ── Vue d'ensemble ── */}
             {activeTab === "overview" && (
               <div>

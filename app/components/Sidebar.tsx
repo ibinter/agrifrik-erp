@@ -460,11 +460,12 @@ export default function Sidebar() {
         <SidebarContent />
       </aside>
 
-      {/* Mobile toggle button */}
+      {/* Mobile toggle button — aligned with Topbar (h-14 sm:h-16) */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-40 w-9 h-9 rounded-lg flex items-center justify-center shadow-lg"
+        className="lg:hidden fixed top-[11px] sm:top-[14px] left-3 z-40 w-9 h-9 rounded-xl flex items-center justify-center shadow-md"
         style={{ backgroundColor: "#2E7D32" }}
+        aria-label="Ouvrir le menu"
       >
         <Menu size={18} color="white" />
       </button>

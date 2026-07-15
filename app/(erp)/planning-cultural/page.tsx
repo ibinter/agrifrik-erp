@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -387,7 +387,7 @@ export default function PlanningCulturalPage() {
     <div className="min-h-screen bg-gray-50">
       <Topbar title="Planning Cultural" breadcrumb={["Production", "Planning Cultural"]} />
 
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

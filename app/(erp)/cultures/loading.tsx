@@ -1,6 +1,6 @@
-export default function CulturesLoading() {
+﻿export default function CulturesLoading() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* 2 KPI skeletons */}
       <div className="grid grid-cols-2 gap-4">
         {Array.from({ length: 2 }).map((_, i) => (

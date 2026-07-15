@@ -402,7 +402,7 @@ function FormulaireTab() {
       {/* Photos upload */}
       <div>
         <label className="text-xs font-medium text-gray-600 mb-2 block">Photos de l&apos;intervention</label>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[1, 2, 3].map(n => (
             <div
               key={n}

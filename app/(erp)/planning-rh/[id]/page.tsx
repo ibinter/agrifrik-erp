@@ -155,7 +155,7 @@ export default async function PlanningRhDetailPage({
       <div className="max-w-5xl mx-auto px-6 py-6 space-y-6">
         {/* En-tête bandeau */}
         <div className="rounded-2xl overflow-hidden" style={{ background: "#1B5E20" }}>
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div>
                 <p className="text-green-200 text-xs font-medium uppercase tracking-wider mb-1">

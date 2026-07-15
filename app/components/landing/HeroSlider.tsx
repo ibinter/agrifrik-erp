@@ -38,13 +38,13 @@ export default function HeroSlider() {
       <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
         style={{ backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
-      {/* Radial glow */}
-      <div className="absolute top-0 right-0 w-[700px] h-[700px] rounded-full opacity-10 pointer-events-none"
+      {/* Radial glow — clipped by parent overflow-hidden */}
+      <div className="absolute top-0 right-0 w-[400px] sm:w-[700px] h-[400px] sm:h-[700px] rounded-full opacity-10 pointer-events-none"
         style={{ background: "radial-gradient(circle, #A5D6A7, transparent)", transform: "translate(30%, -30%)" }} />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 flex flex-col lg:flex-row items-center gap-12 pt-20 pb-24" style={{ minHeight: "92vh" }}>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 flex flex-col lg:flex-row items-center gap-8 lg:gap-12 pt-16 sm:pt-20 pb-20 sm:pb-24" style={{ minHeight: "92vh" }}>
         {/* Left column */}
-        <div className="flex-1 flex flex-col items-start text-left max-w-2xl">
+        <div className="flex-1 flex flex-col items-start text-left w-full max-w-2xl">
           {/* Badge */}
           <div key={`badge-${cur}`}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-6 animate-fade-in"
@@ -55,8 +55,8 @@ export default function HeroSlider() {
 
           {/* Title */}
           <h1 key={`title-${cur}`}
-            className="text-4xl sm:text-5xl xl:text-6xl font-extrabold text-white leading-[1.08] mb-6 animate-slide-up"
-            style={{ textWrap: "balance" }}>
+            className="text-3xl sm:text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] mb-5 sm:mb-6 animate-slide-up w-full"
+            style={{ textWrap: "balance", overflowWrap: "break-word" }}>
             {slide.title[lang]}
           </h1>
 
@@ -90,8 +90,8 @@ export default function HeroSlider() {
         </div>
 
         {/* Right column — dashboard SVG mockup */}
-        <div className="flex-1 flex justify-center lg:justify-end w-full">
-          <div className="relative w-full max-w-lg">
+        <div className="flex-1 flex justify-center lg:justify-end w-full min-w-0">
+          <div className="relative w-full max-w-xs sm:max-w-sm lg:max-w-lg">
             <div className="absolute -inset-4 rounded-3xl opacity-20 blur-2xl"
               style={{ background: "linear-gradient(135deg, #4CAF50, #1B5E20)" }} />
             <svg viewBox="0 0 560 400" xmlns="http://www.w3.org/2000/svg"

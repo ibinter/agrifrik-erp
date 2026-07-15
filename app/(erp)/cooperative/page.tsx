@@ -205,7 +205,7 @@ export default function CooperativePage() {
           <div className="space-y-5">
             <div className="rounded-2xl border border-gray-100 bg-white p-5">
               <h2 className="text-sm font-semibold text-gray-800 mb-4">Tableau de bord coopérative</h2>
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 {[
                   { label: "Hommes", value: "88", sub: "62%", color: "bg-blue-50 text-blue-700" },
                   { label: "Femmes", value: "54", sub: "38%", color: "bg-pink-50 text-pink-700" },
@@ -378,7 +378,7 @@ export default function CooperativePage() {
               </div>
 
               <h3 className="text-xs font-semibold text-gray-600 mb-3">Types de crédit disponibles</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
                   { nom: "Crédit intrants", max: "200 000 XOF", taux: "0%", duree: "Remboursement récolte", benef: 38, color: "border-green-200 bg-green-50/30" },
                   { nom: "Crédit équipement", max: "500 000 XOF", taux: "4%", duree: "24 mois", benef: 12, color: "border-blue-200 bg-blue-50/30" },

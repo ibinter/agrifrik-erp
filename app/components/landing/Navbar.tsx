@@ -74,23 +74,23 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — full-width panel, no fixed height to avoid overflow */}
       {open && (
-        <div className="lg:hidden border-t border-white/10" style={{ backgroundColor: "#1B5E20" }}>
-          <div className="px-4 py-4 flex flex-col gap-3">
+        <div className="lg:hidden border-t border-white/10 w-full" style={{ backgroundColor: "#1B5E20" }}>
+          <div className="px-4 py-5 flex flex-col gap-1">
             {links.map(({ key, href }) => (
               <a key={key} href={href} onClick={() => setOpen(false)}
-                className="text-sm font-medium text-green-100 hover:text-white py-1">
+                className="text-sm font-medium text-green-100 hover:text-white hover:bg-white/10 rounded-xl px-3 py-3 transition-colors">
                 {t.nav[key as keyof typeof t.nav][lang]}
               </a>
             ))}
-            <div className="flex flex-col gap-2 pt-3 border-t border-white/10">
+            <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-white/10">
               <Link href="/login" onClick={() => setOpen(false)}
-                className="text-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white border border-white/30">
+                className="w-full text-center px-4 py-3 rounded-xl text-sm font-semibold text-white border border-white/30 hover:bg-white/10 transition-colors">
                 {t.nav.connexion[lang]}
               </Link>
               <Link href="/login" onClick={() => setOpen(false)}
-                className="text-center px-4 py-2.5 rounded-xl text-sm font-bold"
+                className="w-full text-center px-4 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-90"
                 style={{ backgroundColor: "#E65100", color: "white" }}>
                 {t.nav.essai[lang]}
               </Link>

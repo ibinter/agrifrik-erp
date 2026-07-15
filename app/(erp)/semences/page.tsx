@@ -221,7 +221,7 @@ export default function SemencesPage() {
 
         {/* KPI — Stocks */}
         {tab === "stocks" && (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { label: "Références en stock", value: "12", color: "#2E7D32" },
               { label: "En alerte seuil", value: "2", color: "#E53935" },

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -398,7 +398,7 @@ export default function GestionTerresPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Topbar title="Gestion des Terres & Foncier" breadcrumb={["RH & Social", "Gestion des Terres"]} />
 
-      <div className="p-6 max-w-7xl mx-auto space-y-5">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-5">
         {/* KPI */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {kpis.map((k, i) => (

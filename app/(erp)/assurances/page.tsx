@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Topbar from "../../components/Topbar";
 import { Shield, AlertTriangle, FileText, CheckCircle, Plus } from "lucide-react";
@@ -72,7 +72,7 @@ export default function AssurancesPage() {
     <div className="min-h-screen bg-gray-50">
       <Topbar breadcrumb={["Finance", "Assurances"]} title="Assurances" />
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         {/* En-tête */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>

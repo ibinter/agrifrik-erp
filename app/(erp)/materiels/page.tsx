@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -97,7 +97,7 @@ export default function MaterielsPage() {
     <div className="flex-1 flex flex-col min-h-screen bg-gray-50">
       <Topbar breadcrumb={["Logistique", "Matériels"]} />
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
 
         {/* En-tête */}
         <div className="flex flex-wrap items-start justify-between gap-4">

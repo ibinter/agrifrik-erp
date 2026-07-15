@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -394,7 +394,7 @@ export default function CartographiePage() {
     <div className="min-h-screen bg-gray-50">
       <Topbar title="Cartographie" breadcrumb={["Production", "Cartographie"]} />
 
-      <div className="p-6 space-y-5">
+      <div className="p-4 sm:p-6 space-y-5">
 
         {/* ── En-tête ── */}
         <div className="rounded-2xl px-6 py-5 text-white" style={{ background: "linear-gradient(135deg,#1B5E20 0%,#2E7D32 60%,#388E3C 100%)" }}>

@@ -205,7 +205,7 @@ export default function LogsPage() {
     <div className="min-h-screen bg-gray-50">
       <Topbar breadcrumb={["Admin", "Journal des Actions"]} />
 
-      <div className="p-6 max-w-7xl mx-auto space-y-5">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-5">
         {/* En-tÃªte */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -219,7 +219,7 @@ export default function LogsPage() {
           </div>
 
           {/* KPI */}
-          <div className="grid grid-cols-4 gap-3 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
             {[
               { label: "Actions ce mois", value: "2 847", color: "text-[#2E7D32]" },
               { label: "Utilisateurs actifs", value: "5", color: "text-blue-700" },

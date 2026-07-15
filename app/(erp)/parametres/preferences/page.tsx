@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { User, Shield, Sliders, Plug, Monitor, Globe, LayoutDashboard, Bell, Save, RotateCcw } from "lucide-react";
@@ -31,7 +31,7 @@ function SectionCard({ title, icon, children }: { title: string; icon: React.Rea
         <span className="text-[#2E7D32]">{icon}</span>
         <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
       </div>
-      <div className="p-6 space-y-6">{children}</div>
+      <div className="p-4 sm:p-6 space-y-6">{children}</div>
     </div>
   );
 }

@@ -169,7 +169,7 @@ export default async function EntrepotDetailPage({ params }: { params: Promise<{
 
         {/* Bandeau en-tete */}
         <div className="rounded-2xl overflow-hidden" style={{ background: "#1B5E20" }}>
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
               <div>
                 <div className="flex items-center gap-3 mb-2">

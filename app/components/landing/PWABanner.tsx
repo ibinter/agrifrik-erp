@@ -43,7 +43,7 @@ export default function PWABanner() {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-24 left-4 z-50 max-w-xs w-full rounded-2xl shadow-2xl p-4"
+    <div className="fixed bottom-24 left-3 right-3 sm:left-4 sm:right-auto sm:w-80 z-50 rounded-2xl shadow-2xl p-4"
       style={{ backgroundColor: "white", border: "1px solid #E5E7EB" }}>
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"

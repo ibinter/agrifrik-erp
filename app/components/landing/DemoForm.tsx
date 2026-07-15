@@ -58,7 +58,7 @@ export default function DemoForm() {
           </div>
 
           {/* Form */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-5 sm:p-8 shadow-sm border border-gray-100">
             {sent ? (
               <div className="flex flex-col items-center text-center py-8">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
@@ -72,13 +72,13 @@ export default function DemoForm() {
               </div>
             ) : (
               <form onSubmit={submit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input className={input} style={style} placeholder={d.name[lang]} value={form.name} onChange={e => set("name", e.target.value)} required />
                   <input className={input} style={style} placeholder={d.company[lang]} value={form.company} onChange={e => set("company", e.target.value)} required />
                 </div>
                 <input type="email" className={input} style={style} placeholder={d.email[lang]} value={form.email} onChange={e => set("email", e.target.value)} required />
                 <input type="tel" className={input} style={style} placeholder={d.phone[lang]} value={form.phone} onChange={e => set("phone", e.target.value)} />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <select className={input} style={style} value={form.country} onChange={e => set("country", e.target.value)}>
                     <option value="">{d.country[lang]}</option>
                     {COUNTRIES.map(c => <option key={c}>{c}</option>)}

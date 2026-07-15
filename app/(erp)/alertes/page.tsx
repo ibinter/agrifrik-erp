@@ -171,7 +171,7 @@ export default function AlertesPage() {
     <div className="min-h-screen bg-gray-50">
       <Topbar breadcrumb={["Admin", "Centre d'Alertes"]} />
 
-      <div className="p-6 max-w-6xl mx-auto space-y-5">
+      <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-5">
         {/* En-tÃªte */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -193,7 +193,7 @@ export default function AlertesPage() {
           </div>
 
           {/* KPI */}
-          <div className="grid grid-cols-4 gap-3 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
             <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-center">
               <p className="text-2xl font-bold text-red-600">{critiques}</p>
               <p className="text-[11px] text-red-500 font-medium mt-0.5">Critiques</p>

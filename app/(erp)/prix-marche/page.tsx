@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -132,7 +132,7 @@ export default function PrixMarchePage() {
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-[#F8FBF8]">
       <Topbar />
-      <div className="p-6 flex-1">
+      <div className="p-4 sm:p-6 flex-1">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
           <span>Commerce</span>
