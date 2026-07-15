@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192",
+        model: "llama-3.1-8b-instant",
         messages: [{ role: "system", content: SYSTEM_PROMPT }, ...chatMessages],
         max_tokens: 512,
         temperature: 0.7,
@@ -53,7 +53,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (!res.ok) {
-      throw new Error(`Groq API error: ${res.status}`);
+      const errBody = await res.text();
+      console.error("Groq error body:", errBody);
+      throw new Error(`Groq API error: ${res.status} — ${errBody}`);
     }
 
     const data = await res.json();
