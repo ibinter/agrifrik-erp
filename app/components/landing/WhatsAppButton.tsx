@@ -5,13 +5,13 @@ import { t } from "./translations";
 export default function WhatsAppButton() {
   const { lang } = useLang();
   const msg = encodeURIComponent(t.whatsapp.message[lang]);
-  const phone = "2250707070707";
+  const phone = "22527222760014";
   return (
     <a
       href={`https://wa.me/${phone}?text=${msg}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-5 right-5 z-50 w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+      className="fixed bottom-5 left-5 z-50 w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
       style={{ backgroundColor: "#25D366" }}
       aria-label={t.whatsapp.tooltip[lang]}
       title={t.whatsapp.tooltip[lang]}>
