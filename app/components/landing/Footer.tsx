@@ -44,10 +44,13 @@ export default function Footer() {
             </div>
             <p className="text-sm text-gray-400 leading-relaxed mb-6 max-w-xs">{f.tagline[lang]}</p>
             <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
-              <Phone size={12} /><a href="tel:+22507070707" className="hover:text-white transition-colors">+225 07 07 07 07 07</a>
+              <Phone size={12} /><a href="tel:+2252722276014" className="hover:text-white transition-colors">+225 27 22 27 60 14</a>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+              <Phone size={12} /><a href="tel:+2250555059901" className="hover:text-white transition-colors">+225 05 55 05 99 01</a>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-400">
-              <Mail size={12} /><a href="mailto:contact@agrifrik.com" className="hover:text-white transition-colors">contact@agrifrik.com</a>
+              <Mail size={12} /><a href="mailto:agrifrik@ibigsoft.com" className="hover:text-white transition-colors">agrifrik@ibigsoft.com</a>
             </div>
           </div>
 
@@ -75,7 +78,7 @@ export default function Footer() {
             { label: lang === "fr" ? "Devenir partenaire" : "Become a partner", href: "https://ibigpartners.com/", external: true },
             { label: "IBIG PARTNERS", href: "https://ibigpartners.com/", external: true },
             { label: "Support", href: "mailto:support@agrifrik.com" },
-            { label: lang === "fr" ? "Contact" : "Contact", href: "mailto:contact@agrifrik.com" },
+            { label: lang === "fr" ? "Contact" : "Contact", href: "mailto:agrifrik@ibigsoft.com" },
           ])}
 
           {col(lang === "fr" ? "Légal" : "Legal", [

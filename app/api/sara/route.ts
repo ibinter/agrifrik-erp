@@ -12,7 +12,7 @@ TARIFS (XOF/mois HT):
 - Business: 39 900 XOF/mois (annuel: 33 200 XOF/mois) — 10 exploitations, utilisateurs illimités
 - Entreprise: 99 900 XOF/mois (annuel: 83 200 XOF/mois) — exploitations illimitées, fonctionnalités sur mesure
 
-CONTACT: contact@agrifrik.com | +225 07 07 07 07 07 | ibigsoft.com
+CONTACT: agrifrik@ibigsoft.com | +225 27 22 27 60 14 | ibigsoft.com
 
 RÈGLES STRICTES:
 - Ne jamais inventer des fonctionnalités, certifications, clients, partenaires ou chiffres
@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
 
     if (!apiKey) {
       return NextResponse.json({ message: lang === "fr"
-        ? "Le service IA n'est pas encore configuré. Contactez-nous à contact@agrifrik.com"
-        : "AI service not configured yet. Contact us at contact@agrifrik.com"
+        ? "Le service IA n'est pas encore configuré. Contactez-nous à agrifrik@ibigsoft.com"
+        : "AI service not configured yet. Contact us at agrifrik@ibigsoft.com"
       });
     }
 

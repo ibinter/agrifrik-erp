@@ -47,7 +47,7 @@ export default function CGU() {
 
       <section className="mb-8">
         <h2 className="text-xl font-bold text-gray-800 mb-3">8. Contact</h2>
-        <p className="text-gray-600">Pour toute question : <a href="mailto:contact@agrifrik.com" className="text-green-700">contact@agrifrik.com</a></p>
+        <p className="text-gray-600">Pour toute question : <a href="mailto:agrifrik@ibigsoft.com" className="text-green-700">agrifrik@ibigsoft.com</a></p>
       </section>
     </article>
   );

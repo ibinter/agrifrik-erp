@@ -2,8 +2,8 @@ export type Lang = "fr" | "en";
 
 export const t = {
   topbar: {
-    fr: "Essai gratuit 30 jours · Assistance : +225 07 07 07 07 07 · Une solution IBIG Soft",
-    en: "30-day free trial · Support: +225 07 07 07 07 07 · An IBIG Soft solution",
+    fr: "Essai gratuit 30 jours · Assistance : +225 27 22 27 60 14 · Une solution IBIG Soft",
+    en: "30-day free trial · Support: +225 27 22 27 60 14 · An IBIG Soft solution",
   },
   nav: {
     accueil: { fr: "Accueil", en: "Home" },
