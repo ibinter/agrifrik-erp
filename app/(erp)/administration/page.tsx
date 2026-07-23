@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Topbar from "../../components/Topbar";
-import { Users, Settings, Database, Shield, Plus, Edit2, RefreshCw, Download, Upload, HardDrive } from "lucide-react";
+import { Users, Settings, Database, Shield, Plus, Edit2, RefreshCw, Download, Upload, HardDrive, CreditCard, CheckCircle2, Clock, XCircle, AlertTriangle } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type Tab = "utilisateurs" | "systeme" | "donnees" | "securite";
+type Tab = "utilisateurs" | "systeme" | "donnees" | "securite" | "paiements";
 
 // ── DATA ───────────────────────────────────────────────────────────────────────
 
@@ -343,6 +343,175 @@ function TabDonnees() {
   );
 }
 
+// ── Tab Paiements ──────────────────────────────────────────────────────────────
+
+type PaiementAdmin = {
+  id: string; reference: string; organisation: string; email: string;
+  montant: number; devise: string; methode: string; statut: "en_attente" | "valide" | "rejete";
+  date: string; justificatif?: string; planCode?: string;
+};
+
+const DEMO_PAIEMENTS: PaiementAdmin[] = [
+  { id: "1", reference: "PAY-20250723-001", organisation: "Ferme Koffi", email: "koffi@ferme.ci", montant: 24900, devise: "XOF", methode: "Mobile Money (MTN)", statut: "en_attente", date: "2025-07-23", planCode: "pro" },
+  { id: "2", reference: "PAY-20250722-003", organisation: "Coop Savane", email: "coop@savane.ci", montant: 11900, devise: "XOF", methode: "Orange Money", statut: "en_attente", date: "2025-07-22", planCode: "starter" },
+  { id: "3", reference: "PAY-20250721-002", organisation: "AgriTech CI", email: "admin@agritech.ci", montant: 39900, devise: "XOF", methode: "Virement bancaire", statut: "valide", date: "2025-07-21", planCode: "business" },
+  { id: "4", reference: "PAY-20250720-001", organisation: "IBIG Demo", email: "admin@agrifrik.com", montant: 24900, devise: "XOF", methode: "Voucher", statut: "valide", date: "2025-07-20", planCode: "pro" },
+  { id: "5", reference: "PAY-20250719-004", organisation: "N/A", email: "inconnu@test.ci", montant: 11900, devise: "XOF", methode: "Virement", statut: "rejete", date: "2025-07-19" },
+];
+
+function TabPaiements() {
+  const [paiements, setPaiements] = useState<PaiementAdmin[]>(DEMO_PAIEMENTS);
+  const [filterStatut, setFilterStatut] = useState<"tous" | "en_attente" | "valide" | "rejete">("tous");
+  const [validating, setValidating] = useState<string | null>(null);
+  const [msg, setMsg] = useState("");
+
+  const filtered = filterStatut === "tous" ? paiements : paiements.filter((p) => p.statut === filterStatut);
+
+  const handleValider = async (pmt: PaiementAdmin) => {
+    setValidating(pmt.id);
+    setMsg("");
+    try {
+      const res = await fetch("/api/paiements/valider", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paiementId: pmt.id, planCode: pmt.planCode ?? "pro", periodicite: "mensuel", orgId: pmt.id, clientEmail: pmt.email }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        setPaiements((prev) => prev.map((p) => p.id === pmt.id ? { ...p, statut: "valide" } : p));
+        setMsg(`✅ Paiement ${pmt.reference} validé. Email de reçu envoyé.`);
+      } else {
+        const d = await res.json();
+        setMsg(`❌ ${d.error ?? "Erreur"}`);
+      }
+    } catch {
+      setMsg("❌ Erreur réseau");
+    } finally {
+      setValidating(null);
+    }
+  };
+
+  const handleRejeter = (id: string) => {
+    setPaiements((prev) => prev.map((p) => p.id === id ? { ...p, statut: "rejete" } : p));
+    setMsg("Paiement marqué comme rejeté.");
+  };
+
+  const enAttente = paiements.filter((p) => p.statut === "en_attente").length;
+  const totalValide = paiements.filter((p) => p.statut === "valide").reduce((s, p) => s + p.montant, 0);
+
+  return (
+    <div className="space-y-6">
+      {msg && (
+        <div className="rounded-xl px-4 py-3 text-sm font-medium" style={{ backgroundColor: msg.startsWith("✅") ? "#F0FDF4" : "#FEF2F2", color: msg.startsWith("✅") ? "#15803D" : "#B91C1C" }}>
+          {msg}
+        </div>
+      )}
+
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { label: "En attente", value: String(enAttente), icon: <Clock size={18} className="text-orange-500" />, bg: "#FFF7ED", color: "#C2410C" },
+          { label: "Total validé (mois)", value: `${totalValide.toLocaleString("fr-FR")} XOF`, icon: <CheckCircle2 size={18} className="text-green-600" />, bg: "#F0FDF4", color: "#15803D" },
+          { label: "Total paiements", value: String(paiements.length), icon: <CreditCard size={18} style={{ color: "#2E7D32" }} />, bg: "#F8FBF8", color: "#374151" },
+        ].map((k) => (
+          <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-5 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: k.bg }}>{k.icon}</div>
+            <div>
+              <p className="text-xs text-gray-500">{k.label}</p>
+              <p className="text-base font-bold" style={{ color: k.color }}>{k.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filtre */}
+      <div className="flex gap-2">
+        {(["tous","en_attente","valide","rejete"] as const).map((s) => (
+          <button key={s} onClick={() => setFilterStatut(s)}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-all"
+            style={{ borderColor: filterStatut === s ? "#2E7D32" : "#E5E7EB", backgroundColor: filterStatut === s ? "#F0FDF4" : "white", color: filterStatut === s ? "#2E7D32" : "#6B7280" }}>
+            {s === "tous" ? "Tous" : s === "en_attente" ? "En attente" : s === "valide" ? "Validés" : "Rejetés"}
+          </button>
+        ))}
+      </div>
+
+      {/* Tableau */}
+      <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-800">Paiements manuels — validation requise</h3>
+          {enAttente > 0 && (
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#FFF7ED", color: "#C2410C" }}>
+              {enAttente} en attente
+            </span>
+          )}
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-[#F8FBF8] text-gray-500 text-left">
+                <th className="px-4 py-3 font-medium text-xs">Référence</th>
+                <th className="px-4 py-3 font-medium text-xs">Organisation</th>
+                <th className="px-4 py-3 font-medium text-xs">Montant</th>
+                <th className="px-4 py-3 font-medium text-xs">Méthode</th>
+                <th className="px-4 py-3 font-medium text-xs">Date</th>
+                <th className="px-4 py-3 font-medium text-xs">Statut</th>
+                <th className="px-4 py-3 font-medium text-xs">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map((p) => (
+                <tr key={p.id} className="bg-white hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <p className="text-xs font-mono text-gray-700">{p.reference}</p>
+                    <p className="text-xs text-gray-400">{p.email}</p>
+                  </td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-800">{p.organisation}</td>
+                  <td className="px-4 py-3">
+                    <p className="text-sm font-bold text-gray-800">{p.montant.toLocaleString("fr-FR")} {p.devise}</p>
+                    {p.planCode && <p className="text-xs text-gray-400">{p.planCode}</p>}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-600">{p.methode}</td>
+                  <td className="px-4 py-3 text-xs text-gray-500">{p.date}</td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs font-semibold px-2 py-1 rounded-full"
+                      style={{
+                        backgroundColor: p.statut === "valide" ? "#F0FDF4" : p.statut === "en_attente" ? "#FFF7ED" : "#FEF2F2",
+                        color: p.statut === "valide" ? "#15803D" : p.statut === "en_attente" ? "#C2410C" : "#B91C1C",
+                      }}>
+                      {p.statut === "valide" ? "Validé" : p.statut === "en_attente" ? "En attente" : "Rejeté"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {p.statut === "en_attente" && (
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => handleValider(p)} disabled={validating === p.id}
+                          className="text-xs font-medium px-3 py-1.5 rounded-lg text-white transition-opacity flex items-center gap-1"
+                          style={{ backgroundColor: "#2E7D32", opacity: validating === p.id ? 0.6 : 1 }}>
+                          <CheckCircle2 size={12} />
+                          {validating === p.id ? "…" : "Valider"}
+                        </button>
+                        <button onClick={() => handleRejeter(p.id)}
+                          className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:border-red-200 hover:text-red-500 transition-colors flex items-center gap-1">
+                          <XCircle size={12} />
+                          Rejeter
+                        </button>
+                      </div>
+                    )}
+                    {p.statut !== "en_attente" && <span className="text-xs text-gray-400">—</span>}
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-gray-400">Aucun paiement dans cette catégorie</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TabSecurite() {
   return (
     <div className="space-y-6">
@@ -436,6 +605,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "systeme", label: "Système", icon: <Settings size={14} /> },
   { id: "donnees", label: "Données", icon: <Database size={14} /> },
   { id: "securite", label: "Sécurité", icon: <Shield size={14} /> },
+  { id: "paiements", label: "Paiements", icon: <CreditCard size={14} /> },
 ];
 
 export default function AdministrationPage() {
@@ -480,6 +650,7 @@ export default function AdministrationPage() {
         {activeTab === "systeme"      && <TabSysteme />}
         {activeTab === "donnees"      && <TabDonnees />}
         {activeTab === "securite"     && <TabSecurite />}
+        {activeTab === "paiements"    && <TabPaiements />}
       </main>
     </div>
   );
