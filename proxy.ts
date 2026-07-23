@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "./lib/supabase/server";
+import { verifySession, COOKIE_NAME } from "./lib/session";
+import { canAccess } from "./lib/permissions";
+import type { Role } from "./lib/permissions";
 
-// Routes publiques (pas besoin d'être connecté)
+// Routes publiques (aucune authentification requise)
 const PUBLIC_PATHS = [
   "/",
   "/login",
@@ -9,67 +11,70 @@ const PUBLIC_PATHS = [
   "/inscription",
   "/mot-de-passe-oublie",
   "/demo",
-  "/api/auth",
-  "/api/webhooks",
-  "/api/prix-marche",
-  "/_next",
-  "/favicon.ico",
-  "/manifest.json",
-  "/icons",
-  "/logo",
-  "/public",
-  "/mentions-legales",
-  "/cgu",
   "/politique-confidentialite",
   "/politique-cookies",
+  "/mentions-legales",
+  "/cgu",
+  "/verify",
+];
+
+const PUBLIC_PREFIXES = [
+  "/api/auth/",
   "/api/sara",
+  "/api/webhooks",
+  "/api/prix-marche",
+  "/_next/",
+  "/favicon",
+  "/logo",
+  "/icons",
+  "/manifest",
+  "/public",
 ];
 
 function isPublic(pathname: string): boolean {
-  return PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  if (PUBLIC_PATHS.includes(pathname)) return true;
+  return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Laisser passer les routes publiques
-  if (isPublic(pathname)) {
-    return NextResponse.next();
+  // Laisser passer les ressources statiques et routes publiques
+  if (isPublic(pathname)) return NextResponse.next();
+
+  // Lire et vérifier le cookie de session signé
+  const token = request.cookies.get(COOKIE_NAME)?.value;
+  const session = token ? await verifySession(token) : null;
+
+  // Non authentifié → redirection login
+  if (!session) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  // Vérifier la session Supabase via le cookie sb-access-token
-  const accessToken =
-    request.cookies.get("sb-access-token")?.value ??
-    request.cookies.get(`sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.split("//")[1]?.split(".")[0]}-auth-token`)?.value;
-
-  if (!accessToken) {
-    // Pas de token → vérifier via l'API Supabase (cookie session)
-    try {
-      const supabase = createServerClient();
-      // Pour Next.js App Router, on passe le cookie brut
-      const cookieHeader = request.headers.get("cookie") ?? "";
-      // Extraire le JSON du cookie supabase-auth-token
-      const match = cookieHeader.match(/sb-[^=]+-auth-token=([^;]+)/);
-      if (!match) {
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
-      const tokenData = JSON.parse(decodeURIComponent(match[1]));
-      const { data: { user } } = await supabase.auth.getUser(tokenData.access_token);
-      if (!user) {
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
-    } catch {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+  // Vérifier les permissions d'accès au module
+  const role = session.role as Role;
+  if (!canAccess(role, pathname)) {
+    const dashUrl = request.nextUrl.clone();
+    dashUrl.pathname = "/dashboard";
+    dashUrl.searchParams.set("error", "acces_refuse");
+    return NextResponse.redirect(dashUrl);
   }
 
-  return NextResponse.next();
+  // Injecter les infos de session dans les headers (disponibles côté serveur)
+  const response = NextResponse.next();
+  response.headers.set("x-user-id", session.userId);
+  response.headers.set("x-user-role", session.role);
+  response.headers.set("x-user-org", session.orgId);
+  return response;
 }
 
 export default proxy;
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|eot)).*)",
   ],
 };
