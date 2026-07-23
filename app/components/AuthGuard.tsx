@@ -2,6 +2,7 @@
 import { useAuth } from "../context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { canAccess } from "../../lib/permissions";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -9,8 +10,17 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isLoading && !user && !pathname.startsWith("/(auth)") && pathname !== "/") {
-      router.push("/login");
+    if (isLoading) return;
+
+    // Non connecté → login
+    if (!user) {
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    // Connecté mais accès refusé → dashboard
+    if (!canAccess(user.role, pathname)) {
+      router.push("/dashboard?error=acces_refuse");
     }
   }, [user, isLoading, pathname, router]);
 
@@ -21,6 +31,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
+
+  // Non connecté ou accès refusé : ne rien afficher pendant la redirection
+  if (!user || !canAccess(user.role, pathname)) return null;
 
   return <>{children}</>;
 }

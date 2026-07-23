@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "../context/AuthContext";
+import { canAccess } from "../../lib/permissions";
 import {
   LayoutDashboard,
   Sprout,
@@ -224,6 +226,28 @@ const navSections: NavSection[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
+  // Filtrer les sections et enfants selon le rôle de l'utilisateur
+  const visibleSections: NavSection[] = navSections
+    .map((section) => {
+      if (!section.children) {
+        if (!user || !canAccess(user.role, section.href ?? "/")) return null;
+        return section;
+      }
+      const visibleChildren = section.children.filter(
+        (c) => !user || canAccess(user.role, c.href)
+      );
+      if (visibleChildren.length === 0) return null;
+      return { ...section, children: visibleChildren };
+    })
+    .filter(Boolean) as NavSection[];
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
 
   // Determine which sections should be initially expanded
   const getInitialExpanded = () => {
@@ -304,7 +328,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
-        {navSections.map((section) => {
+        {visibleSections.map((section) => {
           const Icon = section.icon;
 
           // Simple link (no children)
@@ -427,7 +451,19 @@ export default function Sidebar() {
 
       {/* Logout */}
       <div className="flex-shrink-0 border-t p-2" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+        {/* Info utilisateur */}
+        {(!isCollapsed || mobile) && user && (
+          <div className="px-3 py-2 mb-1 rounded-lg" style={{ backgroundColor: "rgba(255,255,255,0.04)" }}>
+            <p className="text-xs font-semibold truncate" style={{ color: "#A5D6A7" }}>
+              {user.prenom} {user.nom}
+            </p>
+            <p className="text-xs truncate" style={{ color: "#6B7280", fontSize: 10 }}>
+              {user.role}
+            </p>
+          </div>
+        )}
         <button
+          onClick={handleLogout}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors"
           style={{
             color: "#9CA3AF",
