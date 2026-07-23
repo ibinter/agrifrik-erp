@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import GlobalSearch from "./GlobalSearch";
 import ThemeToggle from "./ThemeToggle";
+import { useI18n, LOCALE_LABELS, type Locale } from "../context/I18nContext";
 
 interface TopbarProps {
   title?: string;
@@ -71,6 +72,9 @@ const notifStyles = {
 export default function Topbar({ title, breadcrumb }: TopbarProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+  const { locale, setLocale } = useI18n();
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
   const [searchOpen, setSearchOpen] = useState(false);
   const { logout, user } = useAuth();
@@ -78,6 +82,7 @@ export default function Topbar({ title, breadcrumb }: TopbarProps) {
 
   const notifRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
+  // langRef already declared above
 
   // Global Ctrl+K shortcut to open search
   useEffect(() => {
@@ -99,6 +104,9 @@ export default function Topbar({ title, breadcrumb }: TopbarProps) {
       }
       if (userRef.current && !userRef.current.contains(e.target as Node)) {
         setUserOpen(false);
+      }
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
       }
     }
     document.addEventListener("mousedown", handleMouseDown);
@@ -159,6 +167,26 @@ export default function Topbar({ title, breadcrumb }: TopbarProps) {
 
         {/* Theme toggle */}
         <ThemeToggle />
+
+        {/* Language switcher */}
+        <div ref={langRef} className="relative">
+          <button onClick={() => { setLangOpen(v => !v); setNotifOpen(false); setUserOpen(false); }}
+            className="hidden sm:flex items-center gap-1 w-9 h-9 rounded-xl justify-center hover:bg-gray-100 transition-colors text-sm"
+            aria-label="Changer de langue" title="Langue">
+            <span>{LOCALE_LABELS[locale].flag}</span>
+          </button>
+          {langOpen && (
+            <div className="absolute right-0 mt-2 w-40 bg-white shadow-xl rounded-2xl z-50 border border-gray-100 overflow-hidden py-1">
+              {(Object.entries(LOCALE_LABELS) as [Locale, { label: string; flag: string }][]).map(([code, { label, flag }]) => (
+                <button key={code} onClick={() => { setLocale(code); setLangOpen(false); }}
+                  className={`flex items-center gap-2.5 w-full px-4 py-2 text-sm transition-colors ${locale === code ? "bg-green-50 text-[#2E7D32] font-semibold" : "text-gray-700 hover:bg-gray-50"}`}>
+                  <span>{flag}</span> {label}
+                  {locale === code && <span className="ml-auto text-[10px] font-bold text-[#2E7D32]">✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Notifications */}
         <div ref={notifRef} className="relative">

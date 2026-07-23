@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { I18nProvider } from "./context/I18nContext";
+import SwRegister from "./components/SwRegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -66,8 +68,11 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="AGRIFRIK" />
       </head>
       <body className="min-h-full flex flex-col">
+        <SwRegister />
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <I18nProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>
