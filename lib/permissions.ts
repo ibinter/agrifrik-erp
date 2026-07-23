@@ -80,6 +80,7 @@ const ACCESS_MATRIX: Record<string, Role[]> = {
   "/bailleur":           ["superadmin", "admin", "directeur"],
 
   // Administration — réservée aux admins
+  "/superadmin":        ["superadmin"],
   "/administration":    ["superadmin", "admin"],
   "/rse":               ["superadmin", "admin", "directeur"],
   "/portail-producteur":["superadmin", "admin", "directeur"],
