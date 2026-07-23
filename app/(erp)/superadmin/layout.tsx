@@ -6,7 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useEffect } from "react";
 import {
   LayoutDashboard, Building2, CreditCard, Key, Ticket,
-  Package, LogOut, Settings, Activity, Mail, Shield,
+  Package, LogOut, Settings, Activity, Mail, Shield, Monitor,
 } from "lucide-react";
 
 const NAV = [
@@ -18,6 +18,7 @@ const NAV = [
   { label: "Plans",          href: "/superadmin/plans",          icon: Package },
   { label: "Emails",         href: "/superadmin/emails",         icon: Mail },
   { label: "Activité",       href: "/superadmin/activite",       icon: Activity },
+  { label: "Monitoring",     href: "/superadmin/monitoring",     icon: Monitor },
   { label: "Paramètres",     href: "/superadmin/parametres",     icon: Settings },
 ];
 
