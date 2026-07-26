@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FileText, CheckCircle, Clock, TrendingUp, Plus, Eye, Search, Printer } from "lucide-react";
 import Topbar from "../../components/Topbar";
 import ExportButton from "../../components/ui/ExportButton";
+import { dbPost, DEMO_ORG_ID } from "@/lib/db";
 
 const kpis = [
   { label: "Factures 2025", value: "9", unit: "", sub: "Depuis janvier 2025", icon: FileText, iconColor: "#6A1B9A", iconBg: "#F3E5F5" },
@@ -147,7 +148,7 @@ function DSOChart() {
 interface ModalNouvelleFactureProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit: (data: { client: string; montantHT: number; tva: number; montantTTC: number; echeance: string }) => Promise<void>;
 }
 
 function ModalNouvelleFacture({ open, onClose, onSubmit }: ModalNouvelleFactureProps) {
@@ -155,15 +156,18 @@ function ModalNouvelleFacture({ open, onClose, onSubmit }: ModalNouvelleFactureP
   const [montantHT, setMontantHT] = useState("");
   const [tva, setTva] = useState("18");
   const [echeance, setEcheance] = useState("");
+  const [saving, setSaving] = useState(false);
 
   if (!open) return null;
 
   const ht = parseFloat(montantHT) || 0;
   const ttc = ht * (1 + parseFloat(tva) / 100);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSubmit();
+    setSaving(true);
+    await onSubmit({ client, montantHT: ht, tva: parseFloat(tva), montantTTC: ttc, echeance });
+    setSaving(false);
     setClient("");
     setMontantHT("");
     setTva("18");
@@ -235,10 +239,11 @@ function ModalNouvelleFacture({ open, onClose, onSubmit }: ModalNouvelleFactureP
             </button>
             <button
               type="submit"
-              className="flex-1 text-white rounded-xl text-xs font-medium px-3 py-2"
+              disabled={saving}
+              className="flex-1 text-white rounded-xl text-xs font-medium px-3 py-2 disabled:opacity-60"
               style={{ background: "#2E7D32" }}
             >
-              Enregistrer
+              {saving ? "Enregistrement..." : "Enregistrer"}
             </button>
           </div>
         </form>
@@ -252,8 +257,10 @@ export default function FacturesPage() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [toast, setToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState("Facture enregistrée avec succès");
 
-  function showToast() {
+  function showToast(msg?: string) {
+    setToastMsg(msg ?? "Facture enregistrée avec succès");
     setToast(true);
     setTimeout(() => setToast(false), 3000);
   }
@@ -272,16 +279,17 @@ export default function FacturesPage() {
 
       {toast && (
         <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-xs font-medium shadow-lg">
-          Facture enregistrÃ©e avec succÃ¨s
+          {toastMsg}
         </div>
       )}
 
       <ModalNouvelleFacture
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSubmit={() => {
+        onSubmit={async (data) => {
+          await dbPost("factures", { ...data, organisation_id: DEMO_ORG_ID });
           setModalOpen(false);
-          showToast();
+          showToast("Facture enregistrée avec succès");
         }}
       />
 
@@ -393,7 +401,10 @@ export default function FacturesPage() {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <button className="border border-gray-200 text-gray-600 rounded-lg text-xs px-2 py-1 hover:bg-gray-50 flex items-center gap-1">
+                          <button
+                            onClick={() => showToast("Visualisation de la facture disponible prochainement")}
+                            className="border border-gray-200 text-gray-600 rounded-lg text-xs px-2 py-1 hover:bg-gray-50 flex items-center gap-1"
+                          >
                             <Eye size={11} /> Voir
                           </button>
                           <button

@@ -457,7 +457,7 @@ export default function RHPage() {
                               Éditer
                             </button>
                             <button
-                              onClick={() => showToast(`Fiche de ${fullName} - en cours de développement`)}
+                              onClick={() => showToast(`Fiche employé disponible prochainement`)}
                               className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition border border-gray-200"
                             >
                               <FileText size={12} />

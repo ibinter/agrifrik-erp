@@ -208,6 +208,12 @@ export default function RapportsPage() {
   const [format, setFormat] = useState("PDF");
   const [perimetre, setPerimetre] = useState("Toutes exploitations");
   const [langue, setLangue] = useState("Français");
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }
 
   function toggleSection(title: string) {
     setOpenSections((prev) => ({ ...prev, [title]: !prev[title] }));
@@ -222,6 +228,11 @@ export default function RapportsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg">
+          {toast}
+        </div>
+      )}
       <Topbar title="Rapports & Business Intelligence" breadcrumb={["Rapports & BI", "Rapports"]} />
 
       <main className="p-4 sm:p-6 max-w-6xl mx-auto space-y-5 pb-14">
@@ -301,7 +312,10 @@ export default function RapportsPage() {
                             <FileText size={12} className="text-gray-400 shrink-0 group-hover:text-[#2E7D32]" />
                             <span className="text-xs text-gray-700 truncate group-hover:text-[#2E7D32]">{r}</span>
                           </div>
-                          <button className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => showToast("Rapport en cours de chargement")}
+                          >
                             <Eye size={13} className="text-[#2E7D32]" />
                           </button>
                         </div>
@@ -354,17 +368,26 @@ export default function RapportsPage() {
                         <div className="flex items-center gap-1.5">
                           {r.format !== "Email" && (
                             <>
-                              <button className="text-[11px] font-semibold text-[#2E7D32] border border-[#2E7D32]/25 bg-green-50 hover:bg-green-100 px-2 py-1 rounded-lg transition-colors">
+                              <button
+                                className="text-[11px] font-semibold text-[#2E7D32] border border-[#2E7D32]/25 bg-green-50 hover:bg-green-100 px-2 py-1 rounded-lg transition-colors"
+                                onClick={() => showToast("Ouverture du rapport")}
+                              >
                                 Voir
                               </button>
-                              <button className="text-[11px] font-semibold text-gray-600 border border-gray-200 bg-gray-50 hover:bg-gray-100 px-2 py-1 rounded-lg transition-colors flex items-center gap-1">
+                              <button
+                                className="text-[11px] font-semibold text-gray-600 border border-gray-200 bg-gray-50 hover:bg-gray-100 px-2 py-1 rounded-lg transition-colors flex items-center gap-1"
+                                onClick={() => { showToast("Téléchargement du rapport"); window.print(); }}
+                              >
                                 <Download size={10} />
                                 DL
                               </button>
                             </>
                           )}
                           {r.format === "Email" && (
-                            <button className="text-[11px] font-semibold text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors">
+                            <button
+                              className="text-[11px] font-semibold text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors"
+                              onClick={() => showToast("Rapport disponible")}
+                            >
                               Revoir
                             </button>
                           )}
@@ -394,11 +417,17 @@ export default function RapportsPage() {
                     <p className="text-xs text-gray-400 mt-0.5">{fav.categorie}</p>
                   </div>
                   <div className="flex gap-2 mt-auto">
-                    <button className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold bg-[#2E7D32] text-white py-1.5 rounded-xl hover:bg-[#1B5E20] transition-colors">
+                    <button
+                      className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold bg-[#2E7D32] text-white py-1.5 rounded-xl hover:bg-[#1B5E20] transition-colors"
+                      onClick={() => showToast("Génération du rapport en cours...")}
+                    >
                       <RefreshCw size={11} />
                       Générer
                     </button>
-                    <button className="flex items-center gap-1 text-xs font-semibold border border-gray-200 text-gray-600 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors">
+                    <button
+                      className="flex items-center gap-1 text-xs font-semibold border border-gray-200 text-gray-600 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors"
+                      onClick={() => window.print()}
+                    >
                       <Download size={11} />
                     </button>
                   </div>
@@ -518,15 +547,24 @@ export default function RapportsPage() {
 
               {/* Boutons */}
               <div className="flex flex-wrap gap-2 pt-1">
-                <button className="text-xs font-semibold border border-[#2E7D32] text-[#2E7D32] px-4 py-2 rounded-xl hover:bg-green-50 transition-colors flex items-center gap-1.5">
+                <button
+                  className="text-xs font-semibold border border-[#2E7D32] text-[#2E7D32] px-4 py-2 rounded-xl hover:bg-green-50 transition-colors flex items-center gap-1.5"
+                  onClick={() => showToast("Prévisualisation en cours...")}
+                >
                   <Eye size={13} />
                   Prévisualiser
                 </button>
-                <button className="text-xs font-semibold bg-[#2E7D32] text-white px-4 py-2 rounded-xl hover:bg-[#1B5E20] transition-colors flex items-center gap-1.5">
+                <button
+                  className="text-xs font-semibold bg-[#2E7D32] text-white px-4 py-2 rounded-xl hover:bg-[#1B5E20] transition-colors flex items-center gap-1.5"
+                  onClick={() => { showToast("Génération du rapport en cours..."); window.print(); }}
+                >
                   <Download size={13} />
                   Générer &amp; Télécharger
                 </button>
-                <button className="text-xs font-semibold border border-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-1.5">
+                <button
+                  className="text-xs font-semibold border border-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+                  onClick={() => showToast("Envoi planifié avec succès")}
+                >
                   <Send size={13} />
                   Planifier l&apos;envoi
                 </button>
@@ -551,7 +589,10 @@ export default function RapportsPage() {
                       <p className="text-xs font-bold text-[#1B5E20] uppercase tracking-wide">Rapport en vedette — S1 2025</p>
                       <p className="text-sm font-bold text-gray-900 mt-0.5">Compte de résultat consolidé</p>
                     </div>
-                    <button className="text-xs font-semibold bg-[#2E7D32] text-white px-3 py-1.5 rounded-xl hover:bg-[#1B5E20] transition-colors flex items-center gap-1.5 shrink-0">
+                    <button
+                      className="text-xs font-semibold bg-[#2E7D32] text-white px-3 py-1.5 rounded-xl hover:bg-[#1B5E20] transition-colors flex items-center gap-1.5 shrink-0"
+                      onClick={() => { showToast("Téléchargement du rapport"); window.print(); }}
+                    >
                       <Download size={12} />
                       Télécharger maintenant
                     </button>

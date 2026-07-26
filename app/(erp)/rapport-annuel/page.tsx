@@ -546,9 +546,13 @@ type Tab = typeof TABS[number];
 export default function RapportAnnuelPage() {
   const [activeTab, setActiveTab] = useState<Tab>("Vue d'ensemble");
 
+  function handleExportPDF() {
+    window.print();
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Topbar breadcrumb={["Rapports", "Rapport Annuel"]} />
+      <div className="no-print"><Topbar breadcrumb={["Rapports", "Rapport Annuel"]} /></div>
 
       <div className="flex-1 p-6 max-w-6xl mx-auto w-full">
         {/* En-tête bandeau vert */}
@@ -571,7 +575,7 @@ export default function RapportAnnuelPage() {
                 🖨️ Imprimer
               </button>
               <button
-                onClick={() => alert("Export PDF à connecter au backend")}
+                onClick={handleExportPDF}
                 className="flex items-center gap-1.5 bg-white text-[#1B5E20] hover:bg-green-50 rounded-xl px-4 py-2 text-sm font-semibold transition-all"
               >
                 📥 Télécharger PDF
@@ -602,6 +606,7 @@ export default function RapportAnnuelPage() {
         {activeTab === "Finance" && <FinanceTab />}
         {activeTab === "RSE & Certifications" && <RSETab />}
       </div>
+      <style>{`@media print { .no-print { display: none !important; } }`}</style>
     </div>
   );
 }

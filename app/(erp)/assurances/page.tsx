@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useState, useEffect } from "react";
 import Topbar from "../../components/Topbar";
 import { Shield, AlertTriangle, FileText, CheckCircle, Plus } from "lucide-react";
 
@@ -61,6 +62,14 @@ function SvgDonutGaranties() {
 
 /* ─── Page ──────────────────────────────────────────────────────────────────── */
 export default function AssurancesPage() {
+  const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(""), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
   const kpis = [
     { label: "Polices actives", value: "3", icon: Shield, color: "#2E7D32" },
     { label: "Valeur assurée", value: "62,85 M XOF", icon: FileText, color: "#1565C0" },
@@ -70,6 +79,11 @@ export default function AssurancesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-800 px-4 py-2.5 text-sm text-white shadow-lg">
+          {toast}
+        </div>
+      )}
       <Topbar breadcrumb={["Finance", "Assurances"]} title="Assurances" />
 
       <div className="p-4 sm:p-6 space-y-6">
@@ -79,7 +93,10 @@ export default function AssurancesPage() {
             <h1 className="text-xl font-bold text-gray-800">Assurances</h1>
             <p className="mt-0.5 text-sm text-gray-500">Polices en vigueur — Protection de l&apos;exploitation EXP-001</p>
           </div>
-          <button className="inline-flex items-center gap-2 rounded-xl bg-[#2E7D32] px-4 py-2 text-xs font-medium text-white hover:bg-[#1B5E20] transition-colors">
+          <button
+            onClick={() => setToast("Ajout de police disponible prochainement")}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#2E7D32] px-4 py-2 text-xs font-medium text-white hover:bg-[#1B5E20] transition-colors"
+          >
             <Plus size={14} />
             Nouvelle police
           </button>
@@ -110,7 +127,10 @@ export default function AssurancesPage() {
               <p className="font-semibold">Solde prime NSIA-MPR — 273 000 XOF — Échéance 15/07/2025 (dans 4 jours)</p>
               <p className="mt-1 text-red-600">Effectuer le virement SGBCI référence NSIA-MPR-2025-EXP001-S2.</p>
             </div>
-            <button className="ml-auto shrink-0 rounded-xl bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors">
+            <button
+              onClick={() => setToast("Paiement enregistré")}
+              className="ml-auto shrink-0 rounded-xl bg-red-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors"
+            >
               Payer
             </button>
           </div>

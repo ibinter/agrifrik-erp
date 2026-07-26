@@ -206,6 +206,12 @@ function StatutRapport({ statut }: { statut: RapportBailleur["statut"] }) {
 
 export default function BailleurPage() {
   const [tab, setTab] = useState<TabId>("projets");
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }
 
   const TABS: { id: TabId; label: string }[] = [
     { id: "projets", label: "Projets & Financements" },
@@ -274,7 +280,7 @@ export default function BailleurPage() {
                     <h3 className="text-base font-bold text-gray-900">{p.titre}</h3>
                     <p className="text-sm text-gray-500 mt-0.5">{p.bailleur}</p>
                   </div>
-                  <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2E7D32] text-white text-xs font-medium hover:bg-[#1B5E20] transition-colors">
+                  <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2E7D32] text-white text-xs font-medium hover:bg-[#1B5E20] transition-colors">
                     <Download size={13} /> Rapport PDF
                   </button>
                 </div>
@@ -431,7 +437,7 @@ export default function BailleurPage() {
                 <h3 className="text-base font-bold text-gray-800">Rapports bailleurs</h3>
                 <p className="text-xs text-gray-400 mt-0.5">6 soumis · 1 en cours · 1 à préparer</p>
               </div>
-              <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2E7D32] text-white text-xs font-medium hover:bg-[#1B5E20] transition-colors">
+              <button onClick={() => showToast("Rapport envoyé au bailleur")} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2E7D32] text-white text-xs font-medium hover:bg-[#1B5E20] transition-colors">
                 <Mail size={13} /> Envoyer rapport
               </button>
             </div>
@@ -504,6 +510,13 @@ export default function BailleurPage() {
         )}
 
       </main>
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-[#2E7D32] text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg">
+          <CheckCircle size={16} />
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

@@ -97,8 +97,8 @@ function Hist12MonthsSVG() {
 }
 
 // ── Produit card ──────────────────────────────────────────────────────────────
-function ProduitCard({ emoji, name, price, change, stars, sentiment }: {
-  emoji: string; name: string; price: string; change: string; stars: number; sentiment: string;
+function ProduitCard({ emoji, name, price, change, stars, sentiment, onDetail }: {
+  emoji: string; name: string; price: string; change: string; stars: number; sentiment: string; onDetail: () => void;
 }) {
   const up = change.startsWith("+");
   const flat = change === "0%";
@@ -119,7 +119,7 @@ function ProduitCard({ emoji, name, price, change, stars, sentiment }: {
         ))}
       </div>
       <div className="text-xs text-gray-500">{sentiment}</div>
-      <button className="mt-1 text-xs text-[#2E7D32] font-medium hover:underline text-left">Voir détail →</button>
+      <button onClick={onDetail} className="mt-1 text-xs text-[#2E7D32] font-medium hover:underline text-left">Voir détail →</button>
     </div>
   );
 }
@@ -128,10 +128,21 @@ function ProduitCard({ emoji, name, price, change, stars, sentiment }: {
 export default function PrixMarchePage() {
   const [tab, setTab] = useState<Tab>("Cours actuels");
   const [histPeriod, setHistPeriod] = useState("1 an");
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-[#F8FBF8]">
       <Topbar />
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#1B5E20] text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg">
+          {toast}
+        </div>
+      )}
       <div className="p-4 sm:p-6 flex-1">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
@@ -175,12 +186,12 @@ export default function PrixMarchePage() {
 
             {/* Cartes produits */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <ProduitCard emoji="🍫" name="Cacao Grade AA" price="1 087 XOF/kg" change="+1,1%" stars={4} sentiment="Acheter / Vendre" />
-              <ProduitCard emoji="🍫" name="Cacao Grade A" price="967 XOF/kg" change="+1,0%" stars={3} sentiment="Neutre" />
-              <ProduitCard emoji="🥜" name="Anacarde WW240" price="950 XOF/kg" change="-0,5%" stars={3} sentiment="Neutre" />
-              <ProduitCard emoji="🌴" name="Huile de palme brute" price="680 XOF/L" change="+0,3%" stars={2} sentiment="Attendre" />
-              <ProduitCard emoji="🌽" name="Maïs (marché local)" price="185 XOF/kg" change="-1,2%" stars={1} sentiment="Pas urgent" />
-              <ProduitCard emoji="🍚" name="Riz paddy" price="220 XOF/kg" change="0%" stars={2} sentiment="Neutre" />
+              <ProduitCard emoji="🍫" name="Cacao Grade AA" price="1 087 XOF/kg" change="+1,1%" stars={4} sentiment="Acheter / Vendre" onDetail={() => showToast("Détail disponible prochainement")} />
+              <ProduitCard emoji="🍫" name="Cacao Grade A" price="967 XOF/kg" change="+1,0%" stars={3} sentiment="Neutre" onDetail={() => showToast("Détail disponible prochainement")} />
+              <ProduitCard emoji="🥜" name="Anacarde WW240" price="950 XOF/kg" change="-0,5%" stars={3} sentiment="Neutre" onDetail={() => showToast("Détail disponible prochainement")} />
+              <ProduitCard emoji="🌴" name="Huile de palme brute" price="680 XOF/L" change="+0,3%" stars={2} sentiment="Attendre" onDetail={() => showToast("Détail disponible prochainement")} />
+              <ProduitCard emoji="🌽" name="Maïs (marché local)" price="185 XOF/kg" change="-1,2%" stars={1} sentiment="Pas urgent" onDetail={() => showToast("Détail disponible prochainement")} />
+              <ProduitCard emoji="🍚" name="Riz paddy" price="220 XOF/kg" change="0%" stars={2} sentiment="Neutre" onDetail={() => showToast("Détail disponible prochainement")} />
             </div>
 
             {/* Area chart BCC 30j */}
@@ -274,7 +285,7 @@ export default function PrixMarchePage() {
             <div className="rounded-2xl border border-gray-100 bg-white p-5">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-semibold text-gray-700">Alertes configurées</h2>
-                <button className="flex items-center gap-1 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-3 py-1.5">
+                <button onClick={() => showToast("Alerte de prix créée")} className="flex items-center gap-1 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-3 py-1.5">
                   <Plus className="w-3 h-3" />
                   Créer une alerte prix
                 </button>
@@ -305,7 +316,7 @@ export default function PrixMarchePage() {
                           <span className="text-amber-600 flex items-center gap-1"><Clock className="w-3 h-3" />{row.st} <span className="text-gray-400">({row.diff})</span></span>
                         </td>
                         <td className="px-3 py-2">
-                          <button className="text-[#2E7D32] text-xs font-medium hover:underline">Modifier</button>
+                          <button onClick={() => showToast("Modification disponible prochainement")} className="text-[#2E7D32] text-xs font-medium hover:underline">Modifier</button>
                         </td>
                       </tr>
                     ))}

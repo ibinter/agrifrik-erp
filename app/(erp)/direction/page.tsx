@@ -234,7 +234,7 @@ function TablePipeline() {
 }
 
 // ─── Table décisions requises ─────────────────────────────────────────────────
-function TableDecisions() {
+function TableDecisions({ onAction }: { onAction: (msg: string) => void }) {
   const rows = [
     {
       priorite: "🔴 URGENT",
@@ -291,7 +291,10 @@ function TableDecisions() {
                 <td className="px-3 py-2 text-gray-600 font-mono">{r.delai}</td>
                 <td className="px-3 py-2 text-gray-500">{r.impact}</td>
                 <td className="px-3 py-2">
-                  <button className="px-2 py-1 rounded-lg text-xs font-medium bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors">
+                  <button
+                    className="px-2 py-1 rounded-lg text-xs font-medium bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors"
+                    onClick={() => onAction("Action enregistrée")}
+                  >
                     {r.lien}
                   </button>
                 </td>
@@ -305,7 +308,7 @@ function TableDecisions() {
 }
 
 // ─── Card météo ───────────────────────────────────────────────────────────────
-function CardMeteo() {
+function CardMeteo({ onAction }: { onAction: (msg: string) => void }) {
   const previsions = [
     { jour: "Lun 14", icon: "☁️", temp: "27°C" },
     { jour: "Mar 15", icon: "🌧️", temp: "25°C" },
@@ -359,13 +362,22 @@ function CardMeteo() {
 
       {/* Boutons */}
       <div className="flex gap-2 mt-4 flex-wrap">
-        <button className="px-3 py-2 rounded-xl text-xs font-medium bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors">
+        <button
+          className="px-3 py-2 rounded-xl text-xs font-medium bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors"
+          onClick={() => { window.location.href = "/analytics"; }}
+        >
           Voir analytics complets
         </button>
-        <button className="px-3 py-2 rounded-xl text-xs font-medium border border-[#2E7D32] text-[#2E7D32] hover:bg-green-50 transition-colors">
+        <button
+          className="px-3 py-2 rounded-xl text-xs font-medium border border-[#2E7D32] text-[#2E7D32] hover:bg-green-50 transition-colors"
+          onClick={() => window.print()}
+        >
           Rapport mensuel
         </button>
-        <button className="px-3 py-2 rounded-xl text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+        <button
+          className="px-3 py-2 rounded-xl text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+          onClick={() => window.print()}
+        >
           Exporter tableau de bord
         </button>
       </div>
@@ -376,10 +388,21 @@ function CardMeteo() {
 // ─── Page principale ──────────────────────────────────────────────────────────
 export default function DirectionPage() {
   const [_tab, _setTab] = useState(0);
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-gray-50">
       <Topbar breadcrumb={["Rapports", "Direction"]} />
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-lg">
+          {toast}
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
@@ -464,10 +487,10 @@ export default function DirectionPage() {
         <TablePipeline />
 
         {/* Décisions requises */}
-        <TableDecisions />
+        <TableDecisions onAction={showToast} />
 
         {/* Météo */}
-        <CardMeteo />
+        <CardMeteo onAction={showToast} />
 
       </div>
     </div>

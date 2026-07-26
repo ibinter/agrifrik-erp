@@ -281,6 +281,12 @@ function moduleIcon(mod: NotifModule) {
 export default function NotificationsPage() {
   const [filter, setFilter] = useState<Filter>("all");
   const [notifications, setNotifications] = useState<Notification[]>(ALL_NOTIFS);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const markAllRead = () =>
     setNotifications((prev) => prev.map((n) => ({ ...n, lu: true })));
@@ -310,6 +316,11 @@ export default function NotificationsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      {toast && (
+        <div className="fixed bottom-5 right-5 z-50 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg">
+          {toast}
+        </div>
+      )}
       <Topbar />
       <main className="flex-1 p-6 max-w-5xl mx-auto w-full">
         {/* Header */}
@@ -330,7 +341,10 @@ export default function NotificationsPage() {
             >
               <CheckCircle2 size={13} /> Tout marquer comme lu
             </button>
-            <button className="flex items-center gap-1.5 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-3 py-2">
+            <button
+              onClick={() => showToast("Accédez aux paramètres de notification dans Paramètres")}
+              className="flex items-center gap-1.5 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-3 py-2"
+            >
               <Settings size={13} /> Paramètres notifications
             </button>
           </div>

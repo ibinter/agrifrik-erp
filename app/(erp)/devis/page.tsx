@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileText, CheckCircle, Clock, TrendingUp, Plus, Eye, FileDown, RefreshCw } from "lucide-react";
 import Topbar from "../../components/Topbar";
 
@@ -127,6 +127,13 @@ function FunnelChart() {
 /* ─── PAGE ──────────────────────────────────────────────── */
 export default function DevisPage() {
   const [filtre, setFiltre] = useState<Filtre>("Tous");
+  const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(""), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -143,6 +150,7 @@ export default function DevisPage() {
           <button
             className="flex items-center gap-1.5 text-white rounded-xl text-xs font-medium px-4 py-2"
             style={{ background: "#2E7D32" }}
+            onClick={() => setToast("Création de devis disponible prochainement")}
           >
             <Plus size={14} /> Nouveau devis
           </button>
@@ -227,16 +235,16 @@ export default function DevisPage() {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1">
-                          <button className="border border-gray-200 text-gray-600 rounded-lg text-xs px-2 py-1 hover:bg-gray-50 flex items-center gap-1">
+                          <button onClick={() => setToast("Visualisation du devis disponible prochainement")} className="border border-gray-200 text-gray-600 rounded-lg text-xs px-2 py-1 hover:bg-gray-50 flex items-center gap-1">
                             <Eye size={11} /> Voir
                           </button>
                           {d.statut !== "Converti" && (
-                            <button className="border border-gray-200 text-gray-600 rounded-lg text-xs px-2 py-1 hover:bg-gray-50 flex items-center gap-1">
+                            <button onClick={() => window.print()} className="border border-gray-200 text-gray-600 rounded-lg text-xs px-2 py-1 hover:bg-gray-50 flex items-center gap-1">
                               <FileDown size={11} /> PDF
                             </button>
                           )}
                           {d.statut === "En attente" && (
-                            <button className="border border-orange-200 text-orange-600 rounded-lg text-xs px-2 py-1 hover:bg-orange-50 flex items-center gap-1">
+                            <button onClick={() => setToast("Relance envoyée")} className="border border-orange-200 text-orange-600 rounded-lg text-xs px-2 py-1 hover:bg-orange-50 flex items-center gap-1">
                               <RefreshCw size={11} /> Relancer
                             </button>
                           )}
@@ -340,6 +348,12 @@ export default function DevisPage() {
         </div>
 
       </main>
+
+      {toast && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-sm font-medium shadow-lg">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

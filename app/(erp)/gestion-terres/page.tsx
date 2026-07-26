@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -74,7 +74,7 @@ function StatutBadge({ statut, label }: { statut: string; label: string }) {
 
 // ─── Onglets ─────────────────────────────────────────────────────────────────
 
-function OngletParcelles() {
+function OngletParcelles({ showToast }: { showToast: (msg: string) => void }) {
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5">
       <div className="flex items-center gap-2 mb-4">
@@ -110,10 +110,16 @@ function OngletParcelles() {
                 <td className="px-3 py-2.5 font-semibold text-gray-800 dark:text-gray-200 whitespace-nowrap">{p.valeur}</td>
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-1">
-                    <button className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors">
+                    <button
+                      onClick={() => showToast("Fiche parcelle disponible prochainement")}
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors"
+                    >
                       <Eye size={10} /> Voir
                     </button>
-                    <button className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <button
+                      onClick={() => showToast("Documents de la parcelle disponibles prochainement")}
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    >
                       <FileText size={10} />
                     </button>
                   </div>
@@ -321,7 +327,7 @@ function OngletCartographie() {
   );
 }
 
-function OngletDocuments() {
+function OngletDocuments({ showToast }: { showToast: (msg: string) => void }) {
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5">
       <div className="flex items-center gap-2 mb-4">
@@ -357,10 +363,16 @@ function OngletDocuments() {
                 <td className="px-3 py-2.5 text-gray-500 dark:text-gray-500 whitespace-nowrap">{d.format}</td>
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-1">
-                    <button className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors whitespace-nowrap">
+                    <button
+                      onClick={() => showToast("Visualisation disponible prochainement")}
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors whitespace-nowrap"
+                    >
                       <Eye size={10} /> Voir
                     </button>
-                    <button className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors whitespace-nowrap">
+                    <button
+                      onClick={() => showToast("Téléchargement disponible prochainement")}
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors whitespace-nowrap"
+                    >
                       <Download size={10} />
                     </button>
                   </div>
@@ -378,6 +390,12 @@ function OngletDocuments() {
 
 export default function GestionTerresPage() {
   const [onglet, setOnglet] = useState<OngletId>("parcelles");
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }
 
   const onglets: { id: OngletId; label: string; icon: React.ReactNode }[] = [
     { id: "parcelles", label: "Parcelles & Titres", icon: <Home size={14} /> },
@@ -397,6 +415,13 @@ export default function GestionTerresPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Topbar title="Gestion des Terres & Foncier" breadcrumb={["RH & Social", "Gestion des Terres"]} />
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-sm px-5 py-3 rounded-xl shadow-lg transition-all">
+          {toast}
+        </div>
+      )}
 
       <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-5">
         {/* KPI */}
@@ -433,10 +458,10 @@ export default function GestionTerresPage() {
         </div>
 
         {/* Contenu onglet */}
-        {onglet === "parcelles" && <OngletParcelles />}
+        {onglet === "parcelles" && <OngletParcelles showToast={showToast} />}
         {onglet === "fermages" && <OngletFermages />}
         {onglet === "cartographie" && <OngletCartographie />}
-        {onglet === "documents" && <OngletDocuments />}
+        {onglet === "documents" && <OngletDocuments showToast={showToast} />}
       </div>
     </div>
   );

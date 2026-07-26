@@ -208,6 +208,30 @@ const TABS_PAIE = ["Bulletins", "Masse salariale"];
 export default function PaiePage() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState(0);
+  const [toast, setToast] = useState("");
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3000);
+  }
+
+  function exportCNPS() {
+    const headers = ["nom", "matricule", "salaire_brut", "cotisation_cnps"];
+    const rows = bulletins.map((b) => [
+      `"${b.nom}"`,
+      b.id,
+      b.base + b.primes + b.hs,
+      b.cotisations,
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "cnps_juillet_2025.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   const filtered = bulletins.filter(
     (b) =>
@@ -219,6 +243,12 @@ export default function PaiePage() {
   return (
     <div>
       <Topbar title="Paie & Rémunérations" breadcrumb={["RH", "Paie"]} />
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-xl transition-all">
+          {toast}
+        </div>
+      )}
 
       <div className="p-4 sm:p-6 space-y-6">
 
@@ -287,7 +317,7 @@ export default function PaiePage() {
                 <span className="text-sm opacity-60 ml-2">· Virement prévu : 25/07/2025</span>
               </div>
             </div>
-            <button className="inline-flex items-center gap-2 bg-white text-green-800 font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-green-50 transition-colors self-start sm:self-auto shadow">
+            <button onClick={() => showToast("Génération des bulletins en cours...")} className="inline-flex items-center gap-2 bg-white text-green-800 font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-green-50 transition-colors self-start sm:self-auto shadow">
               <Zap className="w-4 h-4" />
               Générer tous les bulletins
             </button>
@@ -372,13 +402,13 @@ export default function PaiePage() {
                   className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-green-600 w-40"
                 />
               </div>
-              <button className="inline-flex items-center gap-1.5 bg-green-700 hover:bg-green-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+              <button onClick={() => showToast("Bulletins validés")} className="inline-flex items-center gap-1.5 bg-green-700 hover:bg-green-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
                 <CheckCircle className="w-3.5 h-3.5" /> Valider tous
               </button>
-              <button className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+              <button onClick={() => showToast("Fichier de virements généré")} className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
                 <Send className="w-3.5 h-3.5" /> Générer virements
               </button>
-              <button className="inline-flex items-center gap-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+              <button onClick={exportCNPS} className="inline-flex items-center gap-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
                 <Download className="w-3.5 h-3.5" /> Exporter CNPS
               </button>
             </div>
@@ -421,10 +451,10 @@ export default function PaiePage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <button className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 whitespace-nowrap">
+                        <button onClick={() => showToast("Ouverture du bulletin")} className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 whitespace-nowrap">
                           <Eye className="w-3.5 h-3.5" /> Voir
                         </button>
-                        <button className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 whitespace-nowrap">
+                        <button onClick={() => window.print()} className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 whitespace-nowrap">
                           <Download className="w-3.5 h-3.5" /> PDF
                         </button>
                       </div>

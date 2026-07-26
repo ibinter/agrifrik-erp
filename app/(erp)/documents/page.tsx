@@ -284,6 +284,7 @@ function KpiCard({ value, label, sub, color }: { value: string | number; label: 
 export default function DocumentsPage() {
   const [activeFilter, setActiveFilter] = useState("Tous");
   const [search, setSearch] = useState("");
+  const [toast, setToast] = useState<string | null>(null);
 
   const filteredDocs = RECENT_DOCS.filter((d) => {
     const matchSearch = search === "" || d.name.toLowerCase().includes(search.toLowerCase());
@@ -308,7 +309,7 @@ export default function DocumentsPage() {
             <h1 className="text-xl font-bold text-gray-900">Documents</h1>
             <p className="text-sm text-gray-500 mt-0.5">Gestion électronique des documents — EXP-001</p>
           </div>
-          <button className="flex items-center gap-2 px-3 py-2 text-xs bg-[#2E7D32] text-white rounded-xl hover:bg-[#1B5E20] transition-colors font-medium flex-shrink-0">
+          <button onClick={() => setToast("Upload de documents disponible prochainement")} className="flex items-center gap-2 px-3 py-2 text-xs bg-[#2E7D32] text-white rounded-xl hover:bg-[#1B5E20] transition-colors font-medium flex-shrink-0">
             <Upload size={13} />Déposer un document
           </button>
         </div>
@@ -388,10 +389,10 @@ export default function DocumentsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <button className="p-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" title="Voir">
+                        <button onClick={() => setToast("Visualisation disponible prochainement")} className="p-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" title="Voir">
                           <Eye size={11} />
                         </button>
-                        <button className="p-1.5 rounded-lg bg-[#E8F5E9] text-[#2E7D32] hover:bg-[#C8E6C9] transition-colors" title="Télécharger">
+                        <button onClick={() => setToast("Téléchargement disponible prochainement")} className="p-1.5 rounded-lg bg-[#E8F5E9] text-[#2E7D32] hover:bg-[#C8E6C9] transition-colors" title="Télécharger">
                           <Download size={11} />
                         </button>
                       </div>
@@ -490,6 +491,18 @@ export default function DocumentsPage() {
           </div>
         </div>
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-xs px-4 py-2.5 rounded-xl shadow-lg"
+          onAnimationEnd={() => setToast(null)}
+          style={{ animation: "fadeout 3s forwards" }}
+        >
+          {toast}
+          <style>{`@keyframes fadeout{0%{opacity:1}70%{opacity:1}100%{opacity:0}}`}</style>
+        </div>
+      )}
     </div>
   );
 }

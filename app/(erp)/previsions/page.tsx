@@ -78,7 +78,7 @@ export default function PrevisionsPage() {
             <span className="px-3 py-1.5 rounded-xl bg-[#E8F5E9] text-[#1B5E20] text-xs font-semibold">
               🤖 ARIA — Confiance 87%
             </span>
-            <button className="px-3 py-1.5 bg-[#2E7D32] text-white rounded-xl text-xs font-medium">
+            <button onClick={() => window.print()} className="px-3 py-1.5 bg-[#2E7D32] text-white rounded-xl text-xs font-medium">
               Exporter PDF
             </button>
           </div>
@@ -417,6 +417,7 @@ export default function PrevisionsPage() {
           </div>
         )}
       </main>
+      <style>{`@media print { .sidebar, nav { display:none!important; } }`}</style>
     </div>
   );
 }

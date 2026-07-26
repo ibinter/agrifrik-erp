@@ -42,9 +42,20 @@ const historique = [
 
 export default function RapportsPlanifiesPage() {
   const [onglet, setOnglet] = useState<"actifs" | "historique">("actifs");
+  const [toast, setToast] = useState(false);
+
+  const showToast = () => {
+    setToast(true);
+    setTimeout(() => setToast(false), 3000);
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FBF8]">
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-800 px-4 py-3 text-sm text-white shadow-lg">
+          Création de rapport planifié disponible prochainement
+        </div>
+      )}
       <Topbar
         title="Rapports Planifiés"
         breadcrumb={["Rapports", "Rapports Planifiés"]}
@@ -58,7 +69,7 @@ export default function RapportsPlanifiesPage() {
             <h1 className="text-xl font-bold text-gray-900">Rapports Planifiés</h1>
             <p className="text-sm text-gray-500 mt-0.5">Automatisation et planification des rapports récurrents</p>
           </div>
-          <button className="inline-flex items-center gap-2 rounded-xl bg-[#2E7D32] px-4 py-2 text-xs font-medium text-white hover:bg-[#1B5E20] transition-colors self-start sm:self-auto">
+          <button onClick={showToast} className="inline-flex items-center gap-2 rounded-xl bg-[#2E7D32] px-4 py-2 text-xs font-medium text-white hover:bg-[#1B5E20] transition-colors self-start sm:self-auto">
             <Plus className="h-4 w-4" />
             Nouveau rapport planifié
           </button>

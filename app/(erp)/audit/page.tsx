@@ -131,7 +131,7 @@ function RapportAudit() {
             <h2 className="font-bold text-gray-900 dark:text-white mb-1">Rapport d&apos;audit — AUD-2025-005</h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">Audit Terrain RA · Ibrahim S. · PAR-A1, A2, A3 · 15/06/2025</p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white bg-[#2E7D32] hover:bg-[#1B5E20] transition-colors">
+          <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white bg-[#2E7D32] hover:bg-[#1B5E20] transition-colors">
             <Download size={14} /> Télécharger PDF
           </button>
         </div>
@@ -418,6 +418,7 @@ function HistoriqueRA() {
 
 export default function AuditPage() {
   const [onglet, setOnglet] = useState<"audits" | "nc" | "rapport" | "plan" | "historique">("audits");
+  const [toast, setToast] = useState("");
 
   const onglets = [
     { key: "audits" as const, label: "Audits" },
@@ -438,7 +439,7 @@ export default function AuditPage() {
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Audits &amp; Conformité</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Historique des audits Rainforest Alliance, CNRA et internes</p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white bg-[#2E7D32] hover:bg-[#1B5E20] transition-colors self-start sm:self-auto">
+          <button onClick={() => setToast("Planification d'audit disponible prochainement")} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white bg-[#2E7D32] hover:bg-[#1B5E20] transition-colors self-start sm:self-auto">
             <Calendar size={14} /> + Planifier un audit
           </button>
         </div>
@@ -511,7 +512,7 @@ export default function AuditPage() {
                           <span className={`px-2 py-0.5 rounded-full ${a.ncMineures > 0 ? "bg-yellow-100 text-yellow-700" : "text-gray-400 dark:text-gray-600"}`}>{a.ncMineures}</span>
                         </td>
                         <td className="px-4 py-3">
-                          <button className="flex items-center gap-1 text-xs text-[#2E7D32] hover:underline">
+                          <button onClick={() => window.print()} className="flex items-center gap-1 text-xs text-[#2E7D32] hover:underline">
                             <Download size={12} /> PDF
                           </button>
                         </td>
@@ -685,6 +686,15 @@ export default function AuditPage() {
           </div>
         )}
       </div>
+
+      {toast && (
+        <div
+          className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-sm shadow-lg"
+          onClick={() => setToast("")}
+        >
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

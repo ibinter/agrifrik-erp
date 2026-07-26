@@ -157,12 +157,26 @@ export default function CooperativePage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const perPage = 8;
+  const [filterVillage, setFilterVillage] = useState("");
+  const [filterStatut, setFilterStatut] = useState("");
+  const [filterCert, setFilterCert] = useState("");
+  const [toast, setToast] = useState("");
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3000);
+  };
 
   const filteredMembres = membres.filter(
     (m) =>
       m.nom.toLowerCase().includes(search.toLowerCase()) ||
       m.village.toLowerCase().includes(search.toLowerCase()) ||
       m.id.toLowerCase().includes(search.toLowerCase())
+  ).filter(
+    (m) =>
+      (!filterVillage || m.village === filterVillage) &&
+      (!filterStatut || m.statut === filterStatut) &&
+      (!filterCert || m.cert === filterCert)
   );
   const totalPages = Math.ceil(filteredMembres.length / perPage);
   const paginated = filteredMembres.slice((page - 1) * perPage, page * perPage);
@@ -170,6 +184,12 @@ export default function CooperativePage() {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-[#F8FBF8]">
       <Topbar title="Coopérative Agricole" breadcrumb={["RH & Social", "Coopérative"]} />
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 bg-gray-800 text-white text-xs rounded-xl shadow-lg animate-fade-in">
+          {toast}
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* KPIs */}
@@ -297,14 +317,44 @@ export default function CooperativePage() {
                   className="w-full pl-8 pr-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/20"
                 />
               </div>
-              <button className="flex items-center gap-1.5 px-3 py-2 text-xs border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
-                <Filter className="w-3.5 h-3.5" /> Village
+              <button
+                onClick={() => {
+                  const vals = ["", ...villages.map((v) => v.name)];
+                  const idx = vals.indexOf(filterVillage);
+                  const next = vals[(idx + 1) % vals.length];
+                  setFilterVillage(next);
+                  setPage(1);
+                  showToast(next ? `Filtre village : ${next}` : "Filtre village retiré");
+                }}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs border rounded-xl hover:bg-gray-50 ${filterVillage ? "border-[#2E7D32] text-[#2E7D32] bg-green-50" : "border-gray-200 text-gray-600"}`}
+              >
+                <Filter className="w-3.5 h-3.5" /> {filterVillage || "Village"}
               </button>
-              <button className="flex items-center gap-1.5 px-3 py-2 text-xs border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
-                <Filter className="w-3.5 h-3.5" /> Statut
+              <button
+                onClick={() => {
+                  const vals = ["", "Actif", "Inactif"];
+                  const idx = vals.indexOf(filterStatut);
+                  const next = vals[(idx + 1) % vals.length];
+                  setFilterStatut(next);
+                  setPage(1);
+                  showToast(next ? `Filtre statut : ${next}` : "Filtre statut retiré");
+                }}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs border rounded-xl hover:bg-gray-50 ${filterStatut ? "border-[#2E7D32] text-[#2E7D32] bg-green-50" : "border-gray-200 text-gray-600"}`}
+              >
+                <Filter className="w-3.5 h-3.5" /> {filterStatut || "Statut"}
               </button>
-              <button className="flex items-center gap-1.5 px-3 py-2 text-xs border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
-                <Filter className="w-3.5 h-3.5" /> Certification
+              <button
+                onClick={() => {
+                  const vals = ["", "RA", "En cours"];
+                  const idx = vals.indexOf(filterCert);
+                  const next = vals[(idx + 1) % vals.length];
+                  setFilterCert(next);
+                  setPage(1);
+                  showToast(next ? `Filtre certification : ${next}` : "Filtre certification retiré");
+                }}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs border rounded-xl hover:bg-gray-50 ${filterCert ? "border-[#2E7D32] text-[#2E7D32] bg-green-50" : "border-gray-200 text-gray-600"}`}
+              >
+                <Filter className="w-3.5 h-3.5" /> {filterCert || "Certification"}
               </button>
             </div>
 
@@ -501,7 +551,13 @@ export default function CooperativePage() {
                         <td className="px-3 py-2.5 text-gray-600">{a.points} points</td>
                         <td className="px-3 py-2.5">
                           {a.pv && (
-                            <button className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-green-700 bg-green-50 rounded-lg hover:bg-green-100">
+                            <button
+                              onClick={() => {
+                                showToast(`Impression du PV ${a.type} du ${a.date}…`);
+                                window.print();
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-green-700 bg-green-50 rounded-lg hover:bg-green-100"
+                            >
                               <FileText className="w-3 h-3" /> ✅ PDF
                             </button>
                           )}

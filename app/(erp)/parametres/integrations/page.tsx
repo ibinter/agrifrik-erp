@@ -150,8 +150,16 @@ function SectionCard({ title, icon, children }: { title: string; icon?: React.Re
 /* ------------------------------------------------------------------ */
 
 export default function IntegrationsPage() {
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      {toast && (
+        <div className="fixed bottom-5 right-5 z-50 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg">
+          {toast}
+        </div>
+      )}
       <Topbar title="Intégrations" breadcrumb={["Paramètres", "Intégrations"]} />
 
       <main className="flex-1 p-6 max-w-6xl mx-auto w-full">
@@ -288,9 +296,12 @@ export default function IntegrationsPage() {
                   </div>
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-xs text-gray-400 shrink-0">Documentation</span>
-                    <a href="#" className="text-xs text-[#2E7D32] font-medium flex items-center gap-1 hover:underline">
+                    <button
+                      onClick={() => showToast("Lien disponible prochainement")}
+                      className="text-xs text-[#2E7D32] font-medium flex items-center gap-1 hover:underline"
+                    >
                       Voir la doc API <ExternalLink size={11} />
-                    </a>
+                    </button>
                   </div>
                 </div>
 

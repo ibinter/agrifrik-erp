@@ -265,6 +265,12 @@ function PlanAmortissement() {
 /* ─── PAGE ─── */
 export default function ActifsPage() {
   const [filtre, setFiltre] = useState("Tous");
+  const [toast, setToast] = useState("");
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3000);
+  }
 
   const lignes = filtre === "Tous"
     ? immobilisations
@@ -283,7 +289,10 @@ export default function ActifsPage() {
               Immobilisations et amortissements — Plan comptable SYSCOHADA — EXP-001
             </p>
           </div>
-          <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors">
+          <button
+            onClick={() => showToast("Ajout d'immobilisation disponible prochainement")}
+            className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors"
+          >
             + Nouvelle immobilisation
           </button>
         </div>
@@ -413,6 +422,12 @@ export default function ActifsPage() {
           </div>
         </div>
       </main>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-lg">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

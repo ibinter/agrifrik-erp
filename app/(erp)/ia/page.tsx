@@ -117,6 +117,17 @@ export default function IAPage() {
   const [msgs, setMsgs] = useState<Msg[]>([...INIT_MSGS]);
   const [input, setInput] = useState("");
   const [activeConv, setActiveConv] = useState(1);
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  function newConversation() {
+    setMsgs([]);
+    setActiveConv(0);
+  }
 
   function sendMsg() {
     if (!input.trim()) return;
@@ -209,6 +220,7 @@ export default function IAPage() {
               </div>
               <div className="p-3 border-t border-gray-100">
                 <button
+                  onClick={newConversation}
                   className="w-full text-xs py-2 rounded-xl font-semibold text-white"
                   style={{ backgroundColor: "#2E7D32" }}
                 >
@@ -295,7 +307,7 @@ export default function IAPage() {
                     <p><strong>Action recommandée :</strong> Cypercal 50 EC 15/07 entre 6h et 9h</p>
                     <p style={{ color: "#B71C1C" }}><strong>Impact si ignoré :</strong> Risque atteindre SIE avant 25/07 → traitement d&apos;urgence + perte potentielle 8-12% récolte</p>
                   </div>
-                  <button className="mt-3 text-xs px-4 py-2 rounded-xl text-white font-semibold" style={{ backgroundColor: "#B71C1C" }}>
+                  <button onClick={() => showToast("Recommandation appliquée au planning")} className="mt-3 text-xs px-4 py-2 rounded-xl text-white font-semibold" style={{ backgroundColor: "#B71C1C" }}>
                     Appliquer la recommandation
                   </button>
                 </div>
@@ -314,7 +326,7 @@ export default function IAPage() {
                     <p><strong>Analyse :</strong> Déficit K détecté (0,18 meq/100g vs optimal 0,20). Grande récolte Oct → opportunité avant fermeture canopée</p>
                     <p><strong>Action recommandée :</strong> 2 sacs KCl/ha × 4,5ha = 9 sacs — enfouissement superficiel 10 cm</p>
                   </div>
-                  <button className="mt-3 text-xs px-4 py-2 rounded-xl text-white font-semibold" style={{ backgroundColor: "#92400E" }}>
+                  <button onClick={() => showToast("Intervention planifiée")} className="mt-3 text-xs px-4 py-2 rounded-xl text-white font-semibold" style={{ backgroundColor: "#92400E" }}>
                     Planifier
                   </button>
                 </div>
@@ -333,7 +345,7 @@ export default function IAPage() {
                     <p><strong>Analyse :</strong> FCR actuel 1,72. Passage Grower 4mm recommandé à partir de Lot poids &gt;300g (atteint le 12/07)</p>
                     <p><strong>Action :</strong> Changer aliment Tilapia Grower 3mm → 4mm dès le 12/07. Gain estimé FCR : 1,72 → 1,65</p>
                   </div>
-                  <button className="mt-3 text-xs px-4 py-2 rounded-xl text-white font-semibold" style={{ backgroundColor: "#166534" }}>
+                  <button onClick={() => showToast("Changement confirmé")} className="mt-3 text-xs px-4 py-2 rounded-xl text-white font-semibold" style={{ backgroundColor: "#166534" }}>
                     Confirmer le changement
                   </button>
                 </div>
@@ -419,6 +431,17 @@ export default function IAPage() {
         )}
 
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 rounded-2xl text-white text-xs font-semibold shadow-lg"
+          style={{ backgroundColor: "#2E7D32" }}
+        >
+          <CheckCircle size={14} />
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

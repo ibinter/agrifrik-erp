@@ -158,6 +158,12 @@ function niveauStyle(niveau: string) {
 export default function AlertesPage() {
   const [alertes, setAlertes] = useState<Alerte[]>(ALERTES_INITIALES);
   const [lues, setLues] = useState<Set<number>>(new Set());
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const marquerLue = (id: number) => setLues((prev) => new Set([...prev, id]));
   const toutMarquerLu = () => setLues(new Set(alertes.map((a) => a.id)));
@@ -186,7 +192,10 @@ export default function AlertesPage() {
               >
                 Tout marquer comme lu
               </button>
-              <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
+              <button
+                onClick={() => showToast("Configuration des alertes disponible dans Paramètres")}
+                className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors"
+              >
                 Configurer les alertes
               </button>
             </div>
@@ -261,6 +270,11 @@ export default function AlertesPage() {
                       {alerte.actions.map((action, j) => (
                         <button
                           key={j}
+                          onClick={() =>
+                            action.primary
+                              ? showToast(`Action "${action.label}" effectuée`)
+                              : showToast("Action secondaire enregistrée")
+                          }
                           className={`text-[11px] font-medium px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80 ${
                             action.primary
                               ? "bg-[#2E7D32] text-white"
@@ -364,6 +378,13 @@ export default function AlertesPage() {
           </div>
         </div>
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-xs font-medium px-5 py-3 rounded-2xl shadow-lg animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

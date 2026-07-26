@@ -166,6 +166,7 @@ const STATUT_LABELS: Record<StatutType, { label: string; cls: string }> = {
 
 function RapportsTab() {
   const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState("Tous");
   const filtered = RAPPORTS.filter(r =>
     r.operateur.toLowerCase().includes(search.toLowerCase()) ||
     r.type.toLowerCase().includes(search.toLowerCase()) ||
@@ -188,7 +189,15 @@ function RapportsTab() {
         </div>
         <div className="flex gap-2 flex-wrap">
           {["Tous", "Par parcelle", "Par opérateur", "Par type"].map(f => (
-            <button key={f} className="text-xs px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 hover:border-[#2E7D32] hover:text-[#2E7D32] transition-colors flex items-center gap-1">
+            <button
+              key={f}
+              onClick={() => setFilterType(f)}
+              className={`text-xs px-3 py-1.5 rounded-xl border transition-colors flex items-center gap-1 ${
+                filterType === f
+                  ? "border-[#2E7D32] text-[#2E7D32] bg-green-50"
+                  : "border-gray-200 text-gray-600 hover:border-[#2E7D32] hover:text-[#2E7D32]"
+              }`}
+            >
               <Filter size={11} />{f}
             </button>
           ))}
@@ -257,6 +266,12 @@ function FormulaireTab() {
   const [typeRapport, setTypeRapport] = useState("");
   const [meteo, setMeteo] = useState("");
   const [epi, setEpi] = useState<Record<string, boolean>>({});
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
   const [coords, setCoords] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -461,13 +476,27 @@ function FormulaireTab() {
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-5 py-2.5 hover:bg-[#1B5E20] transition-colors">
+        <button
+          onClick={() => showToast("Rapport enregistré avec succès")}
+          className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-5 py-2.5 hover:bg-[#1B5E20] transition-colors"
+        >
           Enregistrer le rapport
         </button>
-        <button className="bg-gray-100 text-gray-600 rounded-xl text-xs font-medium px-5 py-2.5 hover:bg-gray-200 transition-colors">
+        <button
+          onClick={() => showToast("Brouillon sauvegardé")}
+          className="bg-gray-100 text-gray-600 rounded-xl text-xs font-medium px-5 py-2.5 hover:bg-gray-200 transition-colors"
+        >
           Enregistrer brouillon
         </button>
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#2E7D32] text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
+          <CheckCircle size={14} />
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
@@ -601,6 +630,12 @@ function TableauxDeBordTab() {
 
 export default function RapportsTerrainPage() {
   const [tab, setTab] = useState<Tab>("Rapports");
+  const [pageToast, setPageToast] = useState<string | null>(null);
+
+  const showPageToast = (msg: string) => {
+    setPageToast(msg);
+    setTimeout(() => setPageToast(null), 3000);
+  };
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-gray-50">
@@ -612,10 +647,21 @@ export default function RapportsTerrainPage() {
             <h1 className="text-lg font-bold text-gray-800">Rapports Terrain</h1>
             <p className="text-xs text-gray-500 mt-0.5">Rapports quotidiens des équipes terrain — Semaine 29</p>
           </div>
-          <button className="flex items-center gap-2 text-xs bg-[#2E7D32] text-white px-4 py-2 rounded-xl font-medium hover:bg-[#1B5E20] transition-colors">
+          <button
+            onClick={() => showPageToast("Nouveau rapport disponible prochainement")}
+            className="flex items-center gap-2 text-xs bg-[#2E7D32] text-white px-4 py-2 rounded-xl font-medium hover:bg-[#1B5E20] transition-colors"
+          >
             <FileText size={13} /> Nouveau rapport
           </button>
         </div>
+
+        {/* Page-level Toast */}
+        {pageToast && (
+          <div className="fixed bottom-6 right-6 z-50 bg-[#2E7D32] text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
+            <Clock size={14} />
+            {pageToast}
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1.5 w-fit">

@@ -12,6 +12,7 @@ import {
   CheckSquare,
   Square,
   CheckCircle2,
+  X,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -246,7 +247,7 @@ function ProgressBar({ value }: { value: number }) {
   );
 }
 
-function TaskCard({ task, actionLabel }: { task: Task; actionLabel: string }) {
+function TaskCard({ task, actionLabel, onAction }: { task: Task; actionLabel: string; onAction: () => void }) {
   const ps = PRIORITY_STYLE[task.priority];
   return (
     <div className={`bg-white rounded-2xl border p-4 shadow-sm hover:shadow-md transition-shadow ${task.priority === "critique" ? "border-l-4 border-l-red-500 border-gray-100" : "border-gray-100"}`}>
@@ -301,7 +302,10 @@ function TaskCard({ task, actionLabel }: { task: Task; actionLabel: string }) {
           <span className="flex items-center gap-1 text-xs"><User size={11} />{task.assignee}</span>
           <span className="flex items-center gap-1 text-xs"><Calendar size={11} />{task.due}</span>
         </div>
-        <button className="px-3 py-1 text-xs bg-[#2E7D32] text-white rounded-xl font-medium hover:bg-[#1B5E20] transition-colors">
+        <button
+          onClick={onAction}
+          className="px-3 py-1 text-xs bg-[#2E7D32] text-white rounded-xl font-medium hover:bg-[#1B5E20] transition-colors"
+        >
           {actionLabel}
         </button>
       </div>
@@ -322,7 +326,7 @@ function PrioritySection({ label, dotColor, count, children }: { label: string; 
   );
 }
 
-function TodoCard({ task }: { task: TodoTask }) {
+function TodoCard({ task, onAction }: { task: TodoTask; onAction: () => void }) {
   const ps = PRIORITY_STYLE[task.priority];
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -339,7 +343,10 @@ function TodoCard({ task }: { task: TodoTask }) {
           <span className="flex items-center gap-1 text-xs"><User size={11} />{task.assignee}</span>
           <span className="flex items-center gap-1 text-xs"><Calendar size={11} />{task.due}</span>
         </div>
-        <button className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+        <button
+          onClick={onAction}
+          className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+        >
           Prendre en charge
         </button>
       </div>
@@ -349,28 +356,28 @@ function TodoCard({ task }: { task: TodoTask }) {
 
 // ─── Tab views ────────────────────────────────────────────────────────────────
 
-function EnCoursTab() {
+function EnCoursTab({ onAction }: { onAction: () => void }) {
   return (
     <div>
       <PrioritySection label="Critiques" dotColor="bg-red-500" count={EN_COURS_CRITIQUE.length}>
-        {EN_COURS_CRITIQUE.map((t) => <TaskCard key={t.id} task={t} actionLabel="Démarrer" />)}
+        {EN_COURS_CRITIQUE.map((t) => <TaskCard key={t.id} task={t} actionLabel="Démarrer" onAction={onAction} />)}
       </PrioritySection>
       <PrioritySection label="Importantes" dotColor="bg-yellow-400" count={EN_COURS_IMPORTANTE.length}>
-        {EN_COURS_IMPORTANTE.map((t) => <TaskCard key={t.id} task={t} actionLabel="Mettre à jour" />)}
+        {EN_COURS_IMPORTANTE.map((t) => <TaskCard key={t.id} task={t} actionLabel="Mettre à jour" onAction={onAction} />)}
       </PrioritySection>
       <PrioritySection label="Normales" dotColor="bg-green-500" count={EN_COURS_NORMALE.length}>
-        {EN_COURS_NORMALE.map((t) => <TaskCard key={t.id} task={t} actionLabel="Mettre à jour" />)}
+        {EN_COURS_NORMALE.map((t) => <TaskCard key={t.id} task={t} actionLabel="Mettre à jour" onAction={onAction} />)}
       </PrioritySection>
     </div>
   );
 }
 
-function AFaireTab() {
+function AFaireTab({ onAction }: { onAction: () => void }) {
   return (
     <div>
       <p className="text-sm text-gray-500 mb-5">{A_FAIRE.length} tâches programmées — Semaine S3 juillet 2025</p>
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-        {A_FAIRE.map((t) => <TodoCard key={t.id} task={t} />)}
+        {A_FAIRE.map((t) => <TodoCard key={t.id} task={t} onAction={onAction} />)}
       </div>
     </div>
   );
@@ -437,6 +444,12 @@ type TabKey = "encours" | "afaire" | "terminees";
 
 export default function TachesPage() {
   const [tab, setTab] = useState<TabKey>("encours");
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const totalEnCours = EN_COURS_CRITIQUE.length + EN_COURS_IMPORTANTE.length + EN_COURS_NORMALE.length;
 
@@ -451,6 +464,16 @@ export default function TachesPage() {
       <Topbar breadcrumb={["Collaboration", "Tâches"]} />
       <div className="flex-1 overflow-auto p-6 bg-[#F4F6F4]">
 
+        {/* Toast */}
+        {toast && (
+          <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-gray-900 text-white text-sm px-4 py-3 rounded-2xl shadow-lg">
+            <span>{toast}</span>
+            <button onClick={() => setToast(null)} className="text-gray-400 hover:text-white transition-colors">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-start justify-between mb-6 gap-4">
           <div>
@@ -460,10 +483,16 @@ export default function TachesPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button className="flex items-center gap-2 px-3 py-2 text-xs bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors">
+            <button
+              onClick={() => showToast("Vue Kanban disponible prochainement")}
+              className="flex items-center gap-2 px-3 py-2 text-xs bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"
+            >
               <Columns size={13} />Vue Kanban
             </button>
-            <button className="flex items-center gap-2 px-3 py-2 text-xs bg-[#2E7D32] text-white rounded-xl hover:bg-[#1B5E20] transition-colors font-medium">
+            <button
+              onClick={() => showToast("Création de tâche disponible prochainement")}
+              className="flex items-center gap-2 px-3 py-2 text-xs bg-[#2E7D32] text-white rounded-xl hover:bg-[#1B5E20] transition-colors font-medium"
+            >
               <Plus size={13} />Nouvelle tâche
             </button>
           </div>
@@ -498,8 +527,8 @@ export default function TachesPage() {
         </div>
 
         {/* Content */}
-        {tab === "encours" && <EnCoursTab />}
-        {tab === "afaire" && <AFaireTab />}
+        {tab === "encours" && <EnCoursTab onAction={() => showToast("Statut mis à jour")} />}
+        {tab === "afaire" && <AFaireTab onAction={() => showToast("Tâche assignée")} />}
         {tab === "terminees" && <TermineesTab />}
       </div>
     </div>

@@ -157,18 +157,33 @@ export default function RapportBuilderPage() {
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   const toggleSection = (id: string) => {
     setSections((prev) => prev.map((s) => s.id === id ? { ...s, checked: !s.checked } : s));
   };
 
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleGenerate = () => {
+    if (selectedCount === 0) {
+      showToast("Veuillez sélectionner au moins une section.");
+      return;
+    }
     setGenerating(true);
     setGenerated(false);
     setTimeout(() => {
       setGenerating(false);
       setGenerated(true);
-    }, 2000);
+      showToast("Rapport généré avec succès !");
+    }, 500);
+  };
+
+  const handleDownload = () => {
+    window.print();
   };
 
   const handleTemplate = (t: typeof TEMPLATES[0]) => {
@@ -184,6 +199,13 @@ export default function RapportBuilderPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Topbar breadcrumb={["Rapports", "Rapport Builder"]} />
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg animate-pulse">
+          {toast}
+        </div>
+      )}
 
       <div className="flex-1 p-6 max-w-7xl mx-auto w-full">
         {/* En-tête */}
@@ -303,7 +325,7 @@ export default function RapportBuilderPage() {
               )}
               {generated && (
                 <div className="mb-3 bg-green-50 border border-green-200 rounded-xl px-4 py-2 text-center text-xs text-green-700 font-semibold">
-                  ✅ Rapport généré ! Téléchargement en cours…
+                  ✅ Rapport généré avec succès !
                 </div>
               )}
               <button
@@ -313,6 +335,14 @@ export default function RapportBuilderPage() {
               >
                 {generating ? "Génération…" : "🚀 Générer le rapport"}
               </button>
+              {generated && (
+                <button
+                  onClick={handleDownload}
+                  className="w-full mt-2 py-3 rounded-xl text-white text-sm font-semibold bg-[#E65100] hover:bg-[#BF360C] transition-all"
+                >
+                  📥 Télécharger PDF
+                </button>
+              )}
             </div>
           </div>
         </div>

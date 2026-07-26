@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Topbar from "../../../components/Topbar";
 import {
@@ -92,8 +93,16 @@ function KpiCard({ label, value, sub }: { label: string; value: string; sub?: st
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function FacturationPage() {
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      {toast && (
+        <div className="fixed bottom-5 right-5 z-50 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg">
+          {toast}
+        </div>
+      )}
       <Topbar title="Facturation" breadcrumb={["Paramètres", "Facturation"]} />
 
       <main className="flex-1 p-6">
@@ -267,6 +276,7 @@ export default function FacturationPage() {
                         <td className="px-3 py-3">
                           {inv.status === "paid" && (
                             <button
+                              onClick={() => window.print()}
                               className="flex items-center gap-1 text-[#2E7D32] hover:text-[#1B5E20] text-xs font-medium transition-colors"
                               title="Télécharger PDF"
                             >
@@ -293,7 +303,10 @@ export default function FacturationPage() {
                 ou appelez le{" "}
                 <span className="font-medium text-gray-700">+225 27 XX XX XX</span>.
               </p>
-              <button className="flex items-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-xs font-medium px-4 py-2.5 rounded-xl transition-colors">
+              <button
+                onClick={() => showToast("Export ZIP disponible prochainement")}
+                className="flex items-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-xs font-medium px-4 py-2.5 rounded-xl transition-colors"
+              >
                 <Download size={14} />
                 Télécharger toutes les factures (ZIP)
               </button>
@@ -315,7 +328,10 @@ export default function FacturationPage() {
                     contactez notre équipe avant le{" "}
                     <strong className="text-gray-900">15/12/2025</strong>.
                   </p>
-                  <button className="flex items-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-xs font-medium px-4 py-2.5 rounded-xl transition-colors mt-2">
+                  <button
+                    onClick={() => showToast("Configuration du renouvellement disponible prochainement")}
+                    className="flex items-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-xs font-medium px-4 py-2.5 rounded-xl transition-colors mt-2"
+                  >
                     <RefreshCw size={13} />
                     Configurer le renouvellement automatique
                   </button>

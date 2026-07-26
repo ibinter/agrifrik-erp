@@ -204,12 +204,41 @@ function HoursBarChart() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+const BASE_WEEK_YEAR = 2025;
+const BASE_WEEK_NUM = 28;
+const BASE_WEEK_START = new Date(2025, 6, 7); // Mon 07 Jul 2025
+
+function getWeekLabel(offset: number): string {
+  const weekNum = BASE_WEEK_NUM + offset;
+  const start = new Date(BASE_WEEK_START);
+  start.setDate(start.getDate() + offset * 7);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const months = ["jan", "fév", "mar", "avr", "mai", "jun", "jul", "aoû", "sep", "oct", "nov", "déc"];
+  const year = start.getFullYear();
+  return `Sem. ${weekNum} — ${months[start.getMonth()]} ${year}`;
+}
+
 export default function PlanningRHPage() {
-  const [week] = useState("Sem. 28 — Jul 2025");
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [toast, setToast] = useState("");
+
+  const week = getWeekLabel(weekOffset);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3000);
+  }
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-gray-50">
       <Topbar breadcrumb={["RH", "Planning RH"]} />
+
+      {toast && (
+        <div className="fixed bottom-4 right-4 z-50 bg-gray-800 text-white text-sm px-4 py-2.5 rounded-xl shadow-lg">
+          {toast}
+        </div>
+      )}
 
       <main className="flex-1 p-6 space-y-6">
 
@@ -221,12 +250,30 @@ export default function PlanningRHPage() {
           </div>
           {/* Week navigation */}
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+            <button
+              onClick={() => setWeekOffset(w => w - 1)}
+              className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            >
               <ChevronLeft size={14} /> Sem. précédente
             </button>
             <span className="px-4 py-2 rounded-xl bg-[#2E7D32] text-white text-xs font-semibold">{week}</span>
-            <button className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+            <button
+              onClick={() => setWeekOffset(w => w + 1)}
+              className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            >
               Sem. suivante <ChevronRight size={14} />
+            </button>
+            <button
+              onClick={() => showToast("Ajout d'un élément — fonctionnalité à venir")}
+              className="flex items-center gap-1 rounded-xl bg-[#2E7D32] text-white px-3 py-2 text-xs font-medium hover:bg-[#1B5E20] transition-colors"
+            >
+              + Nouvel élément
+            </button>
+            <button
+              onClick={() => { showToast("Export en cours…"); window.print(); }}
+              className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Exporter
             </button>
           </div>
         </div>

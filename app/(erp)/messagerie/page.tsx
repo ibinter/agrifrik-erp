@@ -247,10 +247,17 @@ function ConvItem({
 }
 
 export default function MessageriePage() {
-  const [activeId, setActiveId] = useState("1");
+  const [activeId, setActiveId] = useState<string | null>("1");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [search, setSearch] = useState("");
+  const [toast, setToast] = useState<string | null>(null);
+  const [notifsEnabled, setNotifsEnabled] = useState(true);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -277,6 +284,13 @@ export default function MessageriePage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Topbar breadcrumb={breadcrumb} />
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-xs px-4 py-2.5 rounded-xl shadow-lg pointer-events-none">
+          {toast}
+        </div>
+      )}
 
       <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
         {/* Colonne gauche — 260px */}
@@ -314,7 +328,10 @@ export default function MessageriePage() {
 
           {/* Nouvelle conversation */}
           <div className="p-3 border-t border-gray-200">
-            <button className="w-full flex items-center justify-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-xs font-medium rounded-xl py-2 transition-colors">
+            <button
+              onClick={() => setActiveId(null)}
+              className="w-full flex items-center justify-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-xs font-medium rounded-xl py-2 transition-colors"
+            >
               <Plus size={13} />
               Nouvelle conversation
             </button>
@@ -335,13 +352,13 @@ export default function MessageriePage() {
               <p className="text-[10px] text-green-600">3 membres en ligne</p>
             </div>
             <div className="flex items-center gap-1">
-              <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" title="Appel">
+              <button onClick={() => showToast("Appel vocal disponible prochainement")} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" title="Appel">
                 <Phone size={15} />
               </button>
-              <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" title="Vidéo">
+              <button onClick={() => showToast("Appel vidéo disponible prochainement")} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" title="Vidéo">
                 <Video size={15} />
               </button>
-              <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" title="Infos">
+              <button onClick={() => showToast("Infos de la conversation")} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" title="Infos">
                 <Info size={15} />
               </button>
             </div>
@@ -397,13 +414,13 @@ export default function MessageriePage() {
           {/* Barre de saisie */}
           <div className="px-4 py-3 border-t border-gray-100 flex-shrink-0">
             <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-200">
-              <button className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0" title="Pièce jointe">
+              <button onClick={() => showToast("Pièce jointe disponible prochainement")} className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0" title="Pièce jointe">
                 <Paperclip size={16} />
               </button>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0" title="Emoji">
+              <button onClick={() => showToast("Émojis disponibles prochainement")} className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0" title="Emoji">
                 <Smile size={16} />
               </button>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0" title="Photo">
+              <button onClick={() => showToast("Partage photo disponible prochainement")} className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0" title="Photo">
                 <Camera size={16} />
               </button>
               <input
@@ -497,17 +514,20 @@ export default function MessageriePage() {
               Actions rapides
             </p>
             <div className="space-y-1.5">
-              <button className="w-full flex items-center gap-2 text-[11px] text-gray-600 hover:text-[#2E7D32] hover:bg-green-50 rounded-xl px-3 py-2 transition-colors text-left">
+              <button onClick={() => showToast("Liaison de tâche disponible prochainement")} className="w-full flex items-center gap-2 text-[11px] text-gray-600 hover:text-[#2E7D32] hover:bg-green-50 rounded-xl px-3 py-2 transition-colors text-left">
                 <ClipboardList size={13} className="flex-shrink-0" />
                 Lier une tâche
               </button>
-              <button className="w-full flex items-center gap-2 text-[11px] text-gray-600 hover:text-[#2E7D32] hover:bg-green-50 rounded-xl px-3 py-2 transition-colors text-left">
+              <button onClick={() => showToast("Gestion de fichiers disponible prochainement")} className="w-full flex items-center gap-2 text-[11px] text-gray-600 hover:text-[#2E7D32] hover:bg-green-50 rounded-xl px-3 py-2 transition-colors text-left">
                 <FolderOpen size={13} className="flex-shrink-0" />
                 Voir tous les fichiers
               </button>
-              <button className="w-full flex items-center gap-2 text-[11px] text-green-700 hover:text-[#2E7D32] hover:bg-green-50 rounded-xl px-3 py-2 transition-colors text-left">
+              <button
+                onClick={() => setNotifsEnabled((v) => !v)}
+                className="w-full flex items-center gap-2 text-[11px] text-green-700 hover:text-[#2E7D32] hover:bg-green-50 rounded-xl px-3 py-2 transition-colors text-left"
+              >
                 <Bell size={13} className="flex-shrink-0" />
-                Notifications : Activées
+                Notifications : {notifsEnabled ? "Activées" : "Désactivées"}
               </button>
             </div>
           </div>

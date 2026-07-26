@@ -121,6 +121,12 @@ function radarPolygon(cx: number, cy: number, maxR: number, values: number[]) {
 
 export default function FormationsPage() {
   const [tab, setTab] = useState<"formations" | "calendrier" | "competences">("formations");
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }
 
   const weeksJuillet = buildWeeks(2025, 6, calJuillet);
   const weeksAout = buildWeeks(2025, 7, calAout);
@@ -144,7 +150,10 @@ export default function FormationsPage() {
             <h1 className="text-2xl font-bold text-gray-900">Gestion des Formations</h1>
             <p className="text-sm text-gray-500 mt-0.5">Plan de formation 2025 — Suivi, calendrier et compétences</p>
           </div>
-          <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2">
+          <button
+            className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2"
+            onClick={() => showToast("Fonctionnalité à venir : création de formation")}
+          >
             + Nouvelle formation
           </button>
         </div>
@@ -389,7 +398,10 @@ export default function FormationsPage() {
               <div className="xl:col-span-2 rounded-2xl border border-gray-100 bg-white overflow-hidden">
                 <div className="p-5 border-b border-gray-100 flex items-center justify-between">
                   <h2 className="font-semibold text-gray-900">Matrice de compétences</h2>
-                  <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2">
+                  <button
+                    className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2"
+                    onClick={() => window.print()}
+                  >
                     Exporter matrice
                   </button>
                 </div>
@@ -493,6 +505,12 @@ export default function FormationsPage() {
           </div>
         )}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

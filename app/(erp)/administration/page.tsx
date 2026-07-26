@@ -64,7 +64,6 @@ const SECURITY_PARAMS = [
 // ── SVG Système — Line chart utilisation 30 jours ──────────────────────────────
 
 function ChartSystemUsage() {
-  // Lundi–Vendredi élevés, weekends creux, pic le 11/07 (début de semaine)
   const days = ["L","M","M","J","V","S","D","L","M","M","J","V","S","D","L","M","M","J","V","S","D","L","M","M","J","V","S","D","L","V"];
   const values = [72,68,74,71,76,28,18,80,75,77,73,79,25,15,78,74,76,72,80,22,12,82,78,80,75,83,20,14,85,60];
   const W = 640, H = 160, PL = 36, PR = 12, PT = 16, PB = 28;
@@ -96,10 +95,8 @@ function ChartSystemUsage() {
           })}
           <polygon points={area} fill="#2E7D32" fillOpacity={0.08} />
           <polyline points={poly} fill="none" stroke="#2E7D32" strokeWidth={2} strokeLinejoin="round" />
-          {/* Pic 11/07 = dernier lundi (index 28) */}
           <circle cx={PL + (28 / (values.length - 1)) * w} cy={PT + h - (85 / max) * h} r={4} fill="#2E7D32" />
           <text x={PL + (28 / (values.length - 1)) * w} y={PT + h - (85 / max) * h - 7} textAnchor="middle" fontSize={8} fill="#2E7D32" fontWeight="600">85 — 11/07</text>
-          {/* Axe X : quelques labels */}
           {[0, 7, 14, 21, 28].map((i) => (
             <text key={i} x={PL + (i / (values.length - 1)) * w} y={H - 6} textAnchor="middle" fontSize={8} fill="#9ca3af">{days[i]}</text>
           ))}
@@ -111,14 +108,17 @@ function ChartSystemUsage() {
 
 // ── Tabs ───────────────────────────────────────────────────────────────────────
 
-function TabUtilisateurs() {
+function TabUtilisateurs({ showToast }: { showToast: (msg: string) => void }) {
   return (
     <div className="space-y-6">
       {/* Tableau utilisateurs */}
       <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h3 className="text-sm font-semibold text-gray-800">Utilisateurs ({USERS.length})</h3>
-          <button className="flex items-center gap-1.5 bg-[#2E7D32] text-white text-xs font-medium px-3 py-2 rounded-xl hover:bg-[#1B5E20] transition-colors">
+          <button
+            onClick={() => showToast("Invitation envoyée par email")}
+            className="flex items-center gap-1.5 bg-[#2E7D32] text-white text-xs font-medium px-3 py-2 rounded-xl hover:bg-[#1B5E20] transition-colors"
+          >
             <Plus size={13} /> Inviter un utilisateur
           </button>
         </div>
@@ -158,11 +158,19 @@ function TabUtilisateurs() {
                   </td>
                   <td className="px-4 py-3">
                     {u.statut === "actif" ? (
-                      <button className="flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium">
+                      <button
+                        onClick={() => showToast("Modification de l'utilisateur disponible prochainement")}
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium"
+                      >
                         <Edit2 size={11} /> Modifier
                       </button>
                     ) : (
-                      <button className="text-xs text-emerald-600 hover:underline font-medium">Réactiver</button>
+                      <button
+                        onClick={() => showToast("Utilisateur réactivé")}
+                        className="text-xs text-emerald-600 hover:underline font-medium"
+                      >
+                        Réactiver
+                      </button>
                     )}
                   </td>
                 </tr>
@@ -206,7 +214,7 @@ function TabUtilisateurs() {
   );
 }
 
-function TabSysteme() {
+function TabSysteme({ showToast }: { showToast: (msg: string) => void }) {
   return (
     <div className="space-y-6">
       {/* Infos système */}
@@ -269,7 +277,10 @@ function TabSysteme() {
                   </td>
                   <td className="px-4 py-3 text-gray-600 text-xs">{u.changes}</td>
                   <td className="px-4 py-3">
-                    <button className="text-xs bg-[#2E7D32] text-white px-3 py-1 rounded-lg hover:bg-[#1B5E20] transition-colors font-medium">
+                    <button
+                      onClick={() => showToast("Mise à jour planifiée")}
+                      className="text-xs bg-[#2E7D32] text-white px-3 py-1 rounded-lg hover:bg-[#1B5E20] transition-colors font-medium"
+                    >
                       Mettre à jour
                     </button>
                   </td>
@@ -283,7 +294,7 @@ function TabSysteme() {
   );
 }
 
-function TabDonnees() {
+function TabDonnees({ showToast }: { showToast: (msg: string) => void }) {
   return (
     <div className="space-y-6">
       {/* Cards actions */}
@@ -302,7 +313,10 @@ function TabDonnees() {
               <p className="text-sm font-semibold text-gray-800">{c.title}</p>
               <p className="text-xs text-gray-400 mt-0.5">{c.desc}</p>
             </div>
-            <button className={`mt-auto text-xs text-white font-medium px-3 py-2 rounded-xl ${c.color} hover:opacity-90 transition-opacity`}>
+            <button
+              onClick={() => showToast("Intégration en cours de configuration")}
+              className={`mt-auto text-xs text-white font-medium px-3 py-2 rounded-xl ${c.color} hover:opacity-90 transition-opacity`}
+            >
               {c.label}
             </button>
           </div>
@@ -512,7 +526,7 @@ function TabPaiements() {
   );
 }
 
-function TabSecurite() {
+function TabSecurite({ showToast }: { showToast: (msg: string) => void }) {
   return (
     <div className="space-y-6">
       {/* Logs */}
@@ -577,11 +591,14 @@ function TabSecurite() {
                   <td className="px-4 py-3 text-gray-600 text-xs">{p.valeur}</td>
                   <td className="px-4 py-3">
                     {p.action ? (
-                      <button className={`text-xs font-medium px-3 py-1 rounded-lg transition-colors ${
-                        p.danger
-                          ? "bg-emerald-600 text-white hover:bg-[#1B5E20]"
-                          : "border border-gray-200 text-gray-600 hover:border-[#2E7D32] hover:text-[#2E7D32]"
-                      }`}>
+                      <button
+                        onClick={() => showToast("Permission mise à jour")}
+                        className={`text-xs font-medium px-3 py-1 rounded-lg transition-colors ${
+                          p.danger
+                            ? "bg-emerald-600 text-white hover:bg-[#1B5E20]"
+                            : "border border-gray-200 text-gray-600 hover:border-[#2E7D32] hover:text-[#2E7D32]"
+                        }`}
+                      >
                         {p.action}
                       </button>
                     ) : (
@@ -610,10 +627,23 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 
 export default function AdministrationPage() {
   const [activeTab, setActiveTab] = useState<Tab>("utilisateurs");
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Topbar title="Administration Système" breadcrumb={["Admin", "Administration"]} />
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg animate-fade-in">
+          {toast}
+        </div>
+      )}
 
       <main className="flex-1 p-6 space-y-6">
         {/* En-tête */}
@@ -623,7 +653,7 @@ export default function AdministrationPage() {
             <p className="text-sm text-gray-500 mt-0.5">Configuration, utilisateurs, sécurité et données</p>
           </div>
           <span className="inline-flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold px-3 py-1.5 rounded-full self-start">
-            🔒 Accès administrateur uniquement
+            Acces administrateur uniquement
           </span>
         </div>
 
@@ -646,10 +676,10 @@ export default function AdministrationPage() {
         </div>
 
         {/* Contenu */}
-        {activeTab === "utilisateurs" && <TabUtilisateurs />}
-        {activeTab === "systeme"      && <TabSysteme />}
-        {activeTab === "donnees"      && <TabDonnees />}
-        {activeTab === "securite"     && <TabSecurite />}
+        {activeTab === "utilisateurs" && <TabUtilisateurs showToast={showToast} />}
+        {activeTab === "systeme"      && <TabSysteme showToast={showToast} />}
+        {activeTab === "donnees"      && <TabDonnees showToast={showToast} />}
+        {activeTab === "securite"     && <TabSecurite showToast={showToast} />}
         {activeTab === "paiements"    && <TabPaiements />}
       </main>
     </div>

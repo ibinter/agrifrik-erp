@@ -182,6 +182,20 @@ function matchFilter(log: LogEntry, filter: FilterType): boolean {
   return true;
 }
 
+// â”€â”€â”€ Export CSV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function exportCSV() {
+  const headers = [“date”, “utilisateur”, “module”, “action”, “objet”, “ip”];
+  const rows = LOGS.map((l) => [l.date, l.user, l.module, l.action, l.objet, l.ip].join(“;”));
+  const csv = [headers.join(“;”), ...rows].join(“\n”);
+  const blob = new Blob([“﻿” + csv], { type: “text/csv;charset=utf-8;” });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement(“a”);
+  a.href = url;
+  a.download = “logs-agrifrik.csv”;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function LogsPage() {
   const [filter, setFilter] = useState<FilterType>("Tous");
@@ -213,7 +227,7 @@ export default function LogsPage() {
               <h1 className="text-xl font-bold text-gray-800">Journal des Actions</h1>
               <p className="text-sm text-gray-500 mt-0.5">Audit trail complet â€” TraÃ§abilitÃ© de toutes les opÃ©rations AGRIFRIK</p>
             </div>
-            <button className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
+            <button onClick={exportCSV} className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
               TÃ©lÃ©charger CSV
             </button>
           </div>

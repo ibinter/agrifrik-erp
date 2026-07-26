@@ -218,6 +218,13 @@ export default function StocksPage() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [toast, setToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState("Mouvement enregistré");
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setToast(true);
+    setTimeout(() => setToast(false), 3000);
+  };
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
 
   const load = () => { dbGet<Record<string, unknown>>("stocks").then(setRows); };
@@ -245,8 +252,7 @@ export default function StocksPage() {
       load();
     }
     setModalOpen(false);
-    setToast(true);
-    setTimeout(() => setToast(false), 3000);
+    showToast("Mouvement enregistré");
   }
 
   return (
@@ -255,7 +261,7 @@ export default function StocksPage() {
 
       {toast && (
         <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-sm font-medium shadow-lg">
-          Mouvement enregistré
+          {toastMsg}
         </div>
       )}
 
@@ -273,7 +279,8 @@ export default function StocksPage() {
           </div>
           <div className="flex gap-2 flex-wrap">
             <ExportButton data={exportData} filename="stocks-export" label="Exporter" />
-            <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50">
+            <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              onClick={() => showToast("Rapport de valorisation disponible prochainement")}>
               <BarChart2 size={14} /> Valorisation
             </button>
             <button
@@ -537,7 +544,8 @@ export default function StocksPage() {
                         <span className="text-sm font-bold text-red-800">{a.produit}</span>
                       </div>
                       <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-white shrink-0"
-                        style={{ backgroundColor: "#2E7D32" }}>
+                        style={{ backgroundColor: "#2E7D32" }}
+                        onClick={() => window.location.href = "/achats"}>
                         <ShoppingCart size={12} /> {a.fournisseur}
                       </button>
                     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Topbar from "../../components/Topbar";
 import { CheckCircle, MapPin, FileText, Download } from "lucide-react";
 
@@ -71,6 +72,7 @@ const eudrCriteres = [
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function TracabilitePage() {
+  const [toast, setToast] = useState("");
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Topbar />
@@ -85,7 +87,10 @@ export default function TracabilitePage() {
               Chaîne de contrôle masse — Lot par lot — Certification RA COC
             </p>
           </div>
-          <button className="mt-2 sm:mt-0 self-start bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
+          <button
+            onClick={() => setToast("Création de lot disponible prochainement")}
+            className="mt-2 sm:mt-0 self-start bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors"
+          >
             + Nouveau lot
           </button>
         </div>
@@ -207,7 +212,10 @@ export default function TracabilitePage() {
           </div>
 
           {/* Bouton rapport */}
-          <button className="inline-flex items-center gap-2 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors">
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors"
+          >
             <Download size={14} />
             Générer rapport EUDR complet
           </button>
@@ -215,6 +223,14 @@ export default function TracabilitePage() {
         </div>
 
       </div>
+
+      {/* ── Toast ── */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm rounded-xl px-5 py-3 shadow-lg animate-fade-in">
+          {toast}
+          <button onClick={() => setToast("")} className="ml-4 text-gray-400 hover:text-white font-bold">✕</button>
+        </div>
+      )}
     </div>
   );
 }
