@@ -190,6 +190,36 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
     }
   }
 
+  // === SMTP nodemailer ===
+  const smtpHost = process.env.SMTP_HOST;
+  if (smtpHost) {
+    try {
+      const nodemailer = await import("nodemailer");
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: Number(process.env.SMTP_PORT ?? 465),
+        secure: process.env.SMTP_SECURE !== "false",
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM ?? process.env.SMTP_USER,
+        to,
+        subject: sujet,
+        text: corps,
+      });
+      await logEmail(to, template, sujet, "envoye", null, idempotencyKey);
+      return { success: true };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erreur SMTP";
+      console.error("[EMAIL SMTP]", msg);
+      await logEmail(to, template, sujet, "echec", msg, idempotencyKey);
+      return { success: false, error: msg };
+    }
+  }
+
   // === Mode démo / SMTP non configuré ===
   console.log(`[EMAIL DEMO] To: ${to} | Sujet: ${sujet}\n${corps}`);
   await logEmail(to, template, sujet, "demo", null, idempotencyKey);
