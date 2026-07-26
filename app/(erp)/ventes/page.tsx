@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { TrendingUp, ShoppingBag, Package, Clock, Plus, Download, Search } from "lucide-react";
@@ -6,7 +6,7 @@ import Topbar from "../../components/Topbar";
 import ModalCommande from "../../components/modals/ModalCommande";
 import ExportButton from "../../components/ui/ExportButton";
 
-type Filtre = "Toutes" | "En attente" | "Livrées" | "Réglées";
+type Filtre = "Toutes" | "En attente" | "LivrÃ©es" | "RÃ©glÃ©es";
 
 interface Vente {
   id: string;
@@ -16,24 +16,24 @@ interface Vente {
   volume: number;
   prixKg: number;
   montant: number;
-  statut: "Réglée" | "BL émis" | "En attente";
+  statut: "RÃ©glÃ©e" | "BL Ã©mis" | "En attente";
 }
 
 const VENTES: Vente[] = [
-  { id: "VNT-2025-001", date: "12/01", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3200, prixKg: 1087, montant: 3478400, statut: "Réglée" },
-  { id: "VNT-2025-002", date: "10/02", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "Réglée" },
-  { id: "VNT-2025-003", date: "12/03", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3200, prixKg: 1087, montant: 3478400, statut: "Réglée" },
-  { id: "VNT-2025-004", date: "15/04", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3600, prixKg: 1087, montant: 3913200, statut: "Réglée" },
-  { id: "VNT-2025-005", date: "13/05", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "Réglée" },
-  { id: "VNT-2025-006", date: "02/06", client: "Cargill CI",          produit: "Anacarde WW240", volume: 1600, prixKg: 1525, montant: 2440000, statut: "Réglée" },
-  { id: "VNT-2025-007", date: "22/06", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 964,  prixKg: 1087, montant: 1047768, statut: "Réglée" },
-  { id: "VNT-2025-008", date: "22/06", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "Réglée" },
-  { id: "VNT-2025-009", date: "11/07", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "BL émis" },
+  { id: "VNT-2025-001", date: "12/01", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3200, prixKg: 1087, montant: 3478400, statut: "RÃ©glÃ©e" },
+  { id: "VNT-2025-002", date: "10/02", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "RÃ©glÃ©e" },
+  { id: "VNT-2025-003", date: "12/03", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3200, prixKg: 1087, montant: 3478400, statut: "RÃ©glÃ©e" },
+  { id: "VNT-2025-004", date: "15/04", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3600, prixKg: 1087, montant: 3913200, statut: "RÃ©glÃ©e" },
+  { id: "VNT-2025-005", date: "13/05", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "RÃ©glÃ©e" },
+  { id: "VNT-2025-006", date: "02/06", client: "Cargill CI",          produit: "Anacarde WW240", volume: 1600, prixKg: 1525, montant: 2440000, statut: "RÃ©glÃ©e" },
+  { id: "VNT-2025-007", date: "22/06", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 964,  prixKg: 1087, montant: 1047768, statut: "RÃ©glÃ©e" },
+  { id: "VNT-2025-008", date: "22/06", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "RÃ©glÃ©e" },
+  { id: "VNT-2025-009", date: "11/07", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "BL Ã©mis" },
 ];
 
 const CA_DATA = [
   { mois: "Jan", v2024: 3.2, v2025: 3.5 },
-  { mois: "Fév", v2024: 3.4, v2025: 3.7 },
+  { mois: "FÃ©v", v2024: 3.4, v2025: 3.7 },
   { mois: "Mar", v2024: 3.1, v2025: 3.5 },
   { mois: "Avr", v2024: 3.5, v2025: 3.9 },
   { mois: "Mai", v2024: 3.3, v2025: 3.7 },
@@ -54,9 +54,9 @@ function formatXOF(n: number) {
 }
 
 function statutStyle(s: Vente["statut"]) {
-  if (s === "Réglée")   return { bg: "#E8F5E9", color: "#2E7D32", label: "✅ Réglée" };
-  if (s === "BL émis")  return { bg: "#E3F2FD", color: "#1565C0", label: "🔵 BL émis" };
-  return                       { bg: "#FFF9C4", color: "#F57F17", label: "⏳ En attente" };
+  if (s === "RÃ©glÃ©e")   return { bg: "#E8F5E9", color: "#2E7D32", label: "âœ… RÃ©glÃ©e" };
+  if (s === "BL Ã©mis")  return { bg: "#E3F2FD", color: "#1565C0", label: "ðŸ”µ BL Ã©mis" };
+  return                       { bg: "#FFF9C4", color: "#F57F17", label: "â³ En attente" };
 }
 
 export default function VentesPage() {
@@ -67,8 +67,8 @@ export default function VentesPage() {
 
   const filtrees = VENTES.filter((v) => {
     if (filtre === "En attente" && v.statut !== "En attente") return false;
-    if (filtre === "Livrées"   && v.statut !== "BL émis")    return false;
-    if (filtre === "Réglées"   && v.statut !== "Réglée")     return false;
+    if (filtre === "LivrÃ©es"   && v.statut !== "BL Ã©mis")    return false;
+    if (filtre === "RÃ©glÃ©es"   && v.statut !== "RÃ©glÃ©e")     return false;
     if (search && !v.client.toLowerCase().includes(search.toLowerCase()) &&
         !v.id.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
@@ -76,7 +76,7 @@ export default function VentesPage() {
 
   const totalVolume  = VENTES.reduce((s, v) => s + v.volume, 0);
   const totalMontant = VENTES.reduce((s, v) => s + v.montant, 0);
-  const reglees      = VENTES.filter((v) => v.statut === "Réglée").length;
+  const reglees      = VENTES.filter((v) => v.statut === "RÃ©glÃ©e").length;
 
   const exportData = VENTES.map((v) => ({
     client: v.client,
@@ -133,10 +133,10 @@ export default function VentesPage() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { icon: TrendingUp,  label: "CA 2025 YTD",              value: "30,4 M XOF", sub: "9 ventes réalisées",      color: "#2E7D32", bg: "#E8F5E9" },
-            { icon: ShoppingBag, label: "Nombre de ventes",          value: "9",          sub: "dont 8 réglées",          color: "#1565C0", bg: "#E3F2FD" },
+            { icon: TrendingUp,  label: "CA 2025 YTD",              value: "30,4 M XOF", sub: "9 ventes rÃ©alisÃ©es",      color: "#2E7D32", bg: "#E8F5E9" },
+            { icon: ShoppingBag, label: "Nombre de ventes",          value: "9",          sub: "dont 8 rÃ©glÃ©es",          color: "#1565C0", bg: "#E3F2FD" },
             { icon: Package,     label: "Volume total",              value: "30,3 t",     sub: "Cacao AA + Anacarde",     color: "#E65100", bg: "#FFF3E0" },
-            { icon: Clock,       label: "Délai moyen règlement",     value: "13 j",       sub: "vs 18j cible",            color: "#6A1B9A", bg: "#F3E5F5" },
+            { icon: Clock,       label: "DÃ©lai moyen rÃ¨glement",     value: "13 j",       sub: "vs 18j cible",            color: "#6A1B9A", bg: "#F3E5F5" },
           ].map(({ icon: Icon, label, value, sub, color, bg }) => (
             <div key={label} className="rounded-2xl border border-gray-100 bg-white p-5 flex items-start gap-3">
               <div className="rounded-xl p-2.5 shrink-0 mt-0.5" style={{ background: bg }}>
@@ -153,7 +153,7 @@ export default function VentesPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1">
-            {(["Toutes", "En attente", "Livrées", "Réglées"] as Filtre[]).map((f) => (
+            {(["Toutes", "En attente", "LivrÃ©es", "RÃ©glÃ©es"] as Filtre[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFiltre(f)}
@@ -182,7 +182,7 @@ export default function VentesPage() {
             <table className="w-full text-xs min-w-[780px]">
               <thead>
                 <tr className="bg-[#F8FBF8]">
-                  {["N°", "Date", "Client", "Produit", "Volume (kg)", "Prix/kg", "Montant", "Statut"].map((h) => (
+                  {["NÂ°", "Date", "Client", "Produit", "Volume (kg)", "Prix/kg", "Montant", "Statut"].map((h) => (
                     <th key={h} className="px-4 py-3 text-left font-semibold text-gray-500 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -225,9 +225,9 @@ export default function VentesPage() {
                 <tr className="bg-[#F8FBF8] font-bold text-gray-800 border-t-2 border-gray-200">
                   <td colSpan={4} className="px-4 py-3 text-right text-xs uppercase tracking-wide text-gray-500">Total</td>
                   <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{totalVolume.toLocaleString("fr-FR")} kg</td>
-                  <td className="px-4 py-3 text-gray-400">—</td>
+                  <td className="px-4 py-3 text-gray-400">â€”</td>
                   <td className="px-4 py-3 text-[#2E7D32] whitespace-nowrap">{formatXOF(totalMontant)}</td>
-                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">✅ {reglees}/{VENTES.length} réglées</td>
+                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">âœ… {reglees}/{VENTES.length} rÃ©glÃ©es</td>
                 </tr>
               </tfoot>
             </table>
@@ -286,9 +286,9 @@ export default function VentesPage() {
           </div>
 
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h2 className="text-sm font-semibold text-gray-900 mb-4">Répartition par client et produit</h2>
+            <h2 className="text-sm font-semibold text-gray-900 mb-4">RÃ©partition par client et produit</h2>
             <div className="flex flex-col items-center gap-4">
-              <svg viewBox="0 0 280 280" className="w-full max-w-[220px]" aria-label="Répartition ventes par client">
+              <svg viewBox="0 0 280 280" className="w-full max-w-[220px]" aria-label="RÃ©partition ventes par client">
                 {donutPath(DONUT_SEGMENTS)}
                 <text x={140} y={134} textAnchor="middle" fontSize={13} fontWeight="700" fill="#212121">30,4 M</text>
                 <text x={140} y={150} textAnchor="middle" fontSize={9} fill="#9E9E9E">XOF CA</text>
@@ -318,11 +318,11 @@ export default function VentesPage() {
       </main>
 
       <ModalCommande
-        open={modalOpen}
+        isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={() => {
           setModalOpen(false);
-          setToast("Vente enregistrée avec succès");
+          setToast("Vente enregistrÃ©e avec succÃ¨s");
           setTimeout(() => setToast(null), 3000);
         }}
       />

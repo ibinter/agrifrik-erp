@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -17,9 +17,9 @@ import {
 
 const kpis = [
   { label: "Valeur totale stock", value: "28,7 M XOF", sub: "valorisation FIFO", icon: Package, color: "#2E7D32", bg: "#E8F5E9" },
-  { label: "Catégories", value: "4", sub: "agricole · intrants · matières · piscicole", icon: BarChart2, color: "#1565C0", bg: "#E3F2FD" },
-  { label: "Alertes rupture", value: "2", sub: "action requise immédiate", icon: AlertTriangle, color: "#B71C1C", bg: "#FFEBEE" },
-  { label: "Rotation stock", value: "4,2×/trim", sub: "vs 3,8× trim précédent", icon: RotateCcw, color: "#6A1B9A", bg: "#F3E5F5" },
+  { label: "CatÃ©gories", value: "4", sub: "agricole Â· intrants Â· matiÃ¨res Â· piscicole", icon: BarChart2, color: "#1565C0", bg: "#E3F2FD" },
+  { label: "Alertes rupture", value: "2", sub: "action requise immÃ©diate", icon: AlertTriangle, color: "#B71C1C", bg: "#FFEBEE" },
+  { label: "Rotation stock", value: "4,2Ã—/trim", sub: "vs 3,8Ã— trim prÃ©cÃ©dent", icon: RotateCcw, color: "#6A1B9A", bg: "#F3E5F5" },
 ];
 
 const agricoles = [
@@ -36,16 +36,16 @@ const intrants = [
 ];
 
 const matieres = [
-  { code: "STK-MAT-001", produit: "Sacs jute 65 kg", localisation: "ENT-001 Zone E", qte: "124 sacs", unite: "unités", valeur: "31 000 XOF", statut: "Normal" as const },
-  { code: "STK-MAT-002", produit: "Gasoil (fûts 200L)", localisation: "Hangar matériels", qte: "3 fûts", unite: "fûts", valeur: "516 000 XOF", statut: "Normal" as const },
-  { code: "STK-MAT-003", produit: "Huile moteur 15W40 (bidon 5L)", localisation: "Hangar matériels", qte: "6 bidons", unite: "bidons", valeur: "54 000 XOF", statut: "Normal" as const },
+  { code: "STK-MAT-001", produit: "Sacs jute 65 kg", localisation: "ENT-001 Zone E", qte: "124 sacs", unite: "unitÃ©s", valeur: "31 000 XOF", statut: "Normal" as const },
+  { code: "STK-MAT-002", produit: "Gasoil (fÃ»ts 200L)", localisation: "Hangar matÃ©riels", qte: "3 fÃ»ts", unite: "fÃ»ts", valeur: "516 000 XOF", statut: "Normal" as const },
+  { code: "STK-MAT-003", produit: "Huile moteur 15W40 (bidon 5L)", localisation: "Hangar matÃ©riels", qte: "6 bidons", unite: "bidons", valeur: "54 000 XOF", statut: "Normal" as const },
 ];
 
 const STOCKS = [
-  { id: "S1", produit: "Cacao Grade A", categorie: "Production", quantite: 2400, unite: "kg", seuilCritique: 500, entrepot: "Entrepôt Principal", valeur: 3600000 },
-  { id: "S2", produit: "Anacarde Brut", categorie: "Production", quantite: 850, unite: "kg", seuilCritique: 200, entrepot: "Entrepôt 2", valeur: 1275000 },
+  { id: "S1", produit: "Cacao Grade A", categorie: "Production", quantite: 2400, unite: "kg", seuilCritique: 500, entrepot: "EntrepÃ´t Principal", valeur: 3600000 },
+  { id: "S2", produit: "Anacarde Brut", categorie: "Production", quantite: 850, unite: "kg", seuilCritique: 200, entrepot: "EntrepÃ´t 2", valeur: 1275000 },
   { id: "S3", produit: "Engrais NPK", categorie: "Intrants", quantite: 120, unite: "sacs", seuilCritique: 30, entrepot: "Magasin Intrants", valeur: 480000 },
-  { id: "S4", produit: "Emballages carton", categorie: "Emballage", quantite: 45, unite: "boîtes", seuilCritique: 20, entrepot: "Entrepôt Principal", valeur: 67500 },
+  { id: "S4", produit: "Emballages carton", categorie: "Emballage", quantite: 45, unite: "boÃ®tes", seuilCritique: 20, entrepot: "EntrepÃ´t Principal", valeur: 67500 },
 ];
 
 const exportData = STOCKS.map(s => ({
@@ -61,8 +61,8 @@ type Statut = "Normal" | "Bas";
 
 function StatutBadge({ statut }: { statut: Statut }) {
   const cfg = statut === "Bas"
-    ? { bg: "#FFEBEE", color: "#B71C1C", label: "🔴 Stock bas" }
-    : { bg: "#E8F5E9", color: "#2E7D32", label: "✅ Normal" };
+    ? { bg: "#FFEBEE", color: "#B71C1C", label: "ðŸ”´ Stock bas" }
+    : { bg: "#E8F5E9", color: "#2E7D32", label: "âœ… Normal" };
   return (
     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap"
       style={{ backgroundColor: cfg.bg, color: cfg.color }}>
@@ -82,7 +82,7 @@ function InventaireTable({ titre, rows }: { titre: string; rows: StockRow[] }) {
       <table className="w-full text-sm">
         <thead>
           <tr style={{ backgroundColor: "#F8FBF8" }}>
-            {["Code", "Produit", "Localisation", "Qté", "Unité", "Valeur", "Statut"].map(h => (
+            {["Code", "Produit", "Localisation", "QtÃ©", "UnitÃ©", "Valeur", "Statut"].map(h => (
               <th key={h} className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
             ))}
           </tr>
@@ -105,24 +105,24 @@ function InventaireTable({ titre, rows }: { titre: string; rows: StockRow[] }) {
   );
 }
 
-type MvtFilter = "Tous" | "Entrées" | "Sorties";
+type MvtFilter = "Tous" | "EntrÃ©es" | "Sorties";
 
 const mouvements = [
   { date: "11/07", type: "Sortie" as const, article: "Cacao Grade AA (BL-008)", qte: "-3 400 kg", valeur: "-3 695 800 XOF", motif: "Export BC", ref: "VNT-2025-009" },
-  { date: "08/07", type: "Entrée" as const, article: "Cacao Grade AA (LOT-046)", qte: "+964 kg", valeur: "+884 952 XOF", motif: "Transformation", ref: "LOT-2025-046" },
+  { date: "08/07", type: "EntrÃ©e" as const, article: "Cacao Grade AA (LOT-046)", qte: "+964 kg", valeur: "+884 952 XOF", motif: "Transformation", ref: "LOT-2025-046" },
   { date: "02/07", type: "Sortie" as const, article: "Super Cupravit", qte: "-1,8 kg", valeur: "-15 120 XOF", motif: "Traitement PAR-A1", ref: "PCT-2025-030" },
   { date: "01/07", type: "Sortie" as const, article: "Cacao Grade AA (BL-007)", qte: "-4 000 kg", valeur: "-4 348 000 XOF", motif: "Export BC", ref: "VNT-2025-007/008" },
-  { date: "28/06", type: "Entrée" as const, article: "KCl 60% (ACH-2025-020)", qte: "+6 sacs", valeur: "+480 000 XOF", motif: "Achat", ref: "ACH-2025-020" },
-  { date: "25/06", type: "Sortie" as const, article: "Gasoil (fût 200L)", qte: "-1 fût", valeur: "-172 000 XOF", motif: "Tracteur PAR-A3", ref: "CSO-2025-018" },
-  { date: "22/06", type: "Entrée" as const, article: "Sacs jute 65 kg", qte: "+50 sacs", valeur: "+12 500 XOF", motif: "Achat emballages", ref: "ACH-2025-019" },
+  { date: "28/06", type: "EntrÃ©e" as const, article: "KCl 60% (ACH-2025-020)", qte: "+6 sacs", valeur: "+480 000 XOF", motif: "Achat", ref: "ACH-2025-020" },
+  { date: "25/06", type: "Sortie" as const, article: "Gasoil (fÃ»t 200L)", qte: "-1 fÃ»t", valeur: "-172 000 XOF", motif: "Tracteur PAR-A3", ref: "CSO-2025-018" },
+  { date: "22/06", type: "EntrÃ©e" as const, article: "Sacs jute 65 kg", qte: "+50 sacs", valeur: "+12 500 XOF", motif: "Achat emballages", ref: "ACH-2025-019" },
   { date: "20/06", type: "Sortie" as const, article: "Confidor 350 SC", qte: "-1,2 L", valeur: "-36 000 XOF", motif: "Traitement PAR-B2", ref: "PCT-2025-027" },
-  { date: "18/06", type: "Entrée" as const, article: "Cacao sec Grade AA", qte: "+2 100 kg", valeur: "+2 278 500 XOF", motif: "Récolte séchée", ref: "LOT-2025-043" },
-  { date: "15/06", type: "Entrée" as const, article: "Super Cupravit OB 50 WP", qte: "+4 kg", valeur: "+33 600 XOF", motif: "Achat SCPA", ref: "ACH-2025-022" },
+  { date: "18/06", type: "EntrÃ©e" as const, article: "Cacao sec Grade AA", qte: "+2 100 kg", valeur: "+2 278 500 XOF", motif: "RÃ©colte sÃ©chÃ©e", ref: "LOT-2025-043" },
+  { date: "15/06", type: "EntrÃ©e" as const, article: "Super Cupravit OB 50 WP", qte: "+4 kg", valeur: "+33 600 XOF", motif: "Achat SCPA", ref: "ACH-2025-022" },
   { date: "12/06", type: "Sortie" as const, article: "Ridomil Gold 48 WP", qte: "-1,2 kg", valeur: "-28 800 XOF", motif: "Traitement PAR-C1", ref: "PCT-2025-025" },
   { date: "10/06", type: "Sortie" as const, article: "KCl 60%", qte: "-8 sacs", valeur: "-640 000 XOF", motif: "Fertilisation PAR-B1", ref: "INT-2025-041" },
-  { date: "07/06", type: "Entrée" as const, article: "Tilapia (vivant)", qte: "+440 kg", valeur: "+308 000 XOF", motif: "Récolte bassin PSC-001", ref: "PSC-2025-012" },
+  { date: "07/06", type: "EntrÃ©e" as const, article: "Tilapia (vivant)", qte: "+440 kg", valeur: "+308 000 XOF", motif: "RÃ©colte bassin PSC-001", ref: "PSC-2025-012" },
   { date: "04/06", type: "Sortie" as const, article: "Anacarde WW240", qte: "-500 kg", valeur: "-762 500 XOF", motif: "Export lot Korhogo", ref: "VNT-2025-006" },
-  { date: "01/06", type: "Entrée" as const, article: "Cacao Grade AA", qte: "+1 534 kg", valeur: "+1 664 391 XOF", motif: "Transformation lot-039", ref: "LOT-2025-039" },
+  { date: "01/06", type: "EntrÃ©e" as const, article: "Cacao Grade AA", qte: "+1 534 kg", valeur: "+1 664 391 XOF", motif: "Transformation lot-039", ref: "LOT-2025-039" },
 ];
 
 const barData = [
@@ -133,10 +133,10 @@ const barData = [
 ];
 const maxBar = Math.max(...barData.flatMap(d => [d.entrees, d.sorties]));
 
-function MvtBadge({ type }: { type: "Entrée" | "Sortie" }) {
-  const cfg = type === "Entrée"
-    ? { bg: "#E8F5E9", color: "#2E7D32", label: "↑ Entrée" }
-    : { bg: "#FFEBEE", color: "#B71C1C", label: "↓ Sortie" };
+function MvtBadge({ type }: { type: "EntrÃ©e" | "Sortie" }) {
+  const cfg = type === "EntrÃ©e"
+    ? { bg: "#E8F5E9", color: "#2E7D32", label: "â†‘ EntrÃ©e" }
+    : { bg: "#FFEBEE", color: "#B71C1C", label: "â†“ Sortie" };
   return (
     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap"
       style={{ backgroundColor: cfg.bg, color: cfg.color }}>
@@ -149,7 +149,7 @@ const donutData = [
   { label: "Cacao Grade AA", pct: 89.4, valeur: "25,7M", color: "#1B5E20" },
   { label: "Anacarde WW240", pct: 4.5, valeur: "1,28M", color: "#2E7D32" },
   { label: "Pisciculture", pct: 3.0, valeur: "0,87M", color: "#00897B" },
-  { label: "Gasoil + matières", pct: 2.1, valeur: "0,60M", color: "#E65100" },
+  { label: "Gasoil + matiÃ¨res", pct: 2.1, valeur: "0,60M", color: "#E65100" },
   { label: "Intrants", pct: 1.0, valeur: "0,29M", color: "#9E9E9E" },
 ];
 
@@ -219,7 +219,7 @@ export default function StocksPage() {
   const [toast, setToast] = useState(false);
 
   const filteredMvts = mouvements.filter(m => {
-    if (mvtFilter === "Entrées" && m.type !== "Entrée") return false;
+    if (mvtFilter === "EntrÃ©es" && m.type !== "EntrÃ©e") return false;
     if (mvtFilter === "Sorties" && m.type !== "Sortie") return false;
     if (search && !m.article.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
@@ -237,12 +237,12 @@ export default function StocksPage() {
 
       {toast && (
         <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-sm font-medium shadow-lg">
-          Mouvement enregistré
+          Mouvement enregistrÃ©
         </div>
       )}
 
       <ModalDepenseStock
-        open={modalOpen}
+        isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleModalSubmit}
       />
@@ -251,7 +251,7 @@ export default function StocksPage() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Gestion des Stocks</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Inventaire en temps réel — Cacao, Anacarde, Intrants, Matières</p>
+            <p className="text-sm text-gray-500 mt-0.5">Inventaire en temps rÃ©el â€” Cacao, Anacarde, Intrants, MatiÃ¨res</p>
           </div>
           <div className="flex gap-2 flex-wrap">
             <ExportButton data={exportData} filename="stocks-export" label="Exporter" />
@@ -291,7 +291,7 @@ export default function StocksPage() {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: "#F8FBF8" }}>
-                {["Produit", "Catégorie", "Quantité", "Unité", "Entrepôt", "Valeur (XOF)", "Statut"].map(h => (
+                {["Produit", "CatÃ©gorie", "QuantitÃ©", "UnitÃ©", "EntrepÃ´t", "Valeur (XOF)", "Statut"].map(h => (
                   <th key={h} className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -313,7 +313,7 @@ export default function StocksPage() {
                         style={critique
                           ? { backgroundColor: "#FFEBEE", color: "#B71C1C" }
                           : { backgroundColor: "#E8F5E9", color: "#2E7D32" }}>
-                        {critique ? "🔴 Critique" : "✅ Normal"}
+                        {critique ? "ðŸ”´ Critique" : "âœ… Normal"}
                       </span>
                     </td>
                   </tr>
@@ -346,7 +346,7 @@ export default function StocksPage() {
             <div className="overflow-x-auto">
               <InventaireTable titre="Produits agricoles" rows={agricoles} />
               <InventaireTable titre="Intrants phytosanitaires" rows={intrants} />
-              <InventaireTable titre="Consommables et matières" rows={matieres} />
+              <InventaireTable titre="Consommables et matiÃ¨res" rows={matieres} />
               <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100"
                 style={{ backgroundColor: "#F0F7F0" }}>
                 <span className="text-sm font-bold text-gray-700">TOTAL STOCKS</span>
@@ -359,7 +359,7 @@ export default function StocksPage() {
             <div className="p-5 space-y-5">
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex rounded-xl border border-gray-200 overflow-hidden">
-                  {(["Tous", "Entrées", "Sorties"] as MvtFilter[]).map(f => (
+                  {(["Tous", "EntrÃ©es", "Sorties"] as MvtFilter[]).map(f => (
                     <button key={f} onClick={() => setMvtFilter(f)}
                       className="px-3 py-1.5 text-xs font-medium transition-colors"
                       style={mvtFilter === f
@@ -373,7 +373,7 @@ export default function StocksPage() {
                   <Search size={13} className="text-gray-400" />
                   <input
                     className="text-xs outline-none w-36 placeholder:text-gray-400"
-                    placeholder="Rechercher un article…"
+                    placeholder="Rechercher un articleâ€¦"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                   />
@@ -381,7 +381,7 @@ export default function StocksPage() {
               </div>
 
               <div className="rounded-xl border border-gray-100 p-4 overflow-x-auto">
-                <div className="text-xs font-semibold text-gray-700 mb-3">Entrées vs Sorties — 30 derniers jours (XOF)</div>
+                <div className="text-xs font-semibold text-gray-700 mb-3">EntrÃ©es vs Sorties â€” 30 derniers jours (XOF)</div>
                 <svg viewBox="0 0 640 200" width="100%" style={{ minWidth: 400 }} xmlns="http://www.w3.org/2000/svg">
                   {[0, 1, 2, 3, 4].map(i => {
                     const y = 20 + i * 36;
@@ -403,7 +403,7 @@ export default function StocksPage() {
                     );
                   })}
                   <rect x="440" y="8" width="10" height="10" fill="#2E7D32" rx="2" />
-                  <text x="454" y="17" fontSize="9" fill="#374151">Entrées</text>
+                  <text x="454" y="17" fontSize="9" fill="#374151">EntrÃ©es</text>
                   <rect x="500" y="8" width="10" height="10" fill="#E65100" rx="2" />
                   <text x="514" y="17" fontSize="9" fill="#374151">Sorties</text>
                 </svg>
@@ -413,7 +413,7 @@ export default function StocksPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr style={{ backgroundColor: "#F8FBF8" }}>
-                      {["Date", "Type", "Article", "Qté", "Valeur", "Motif", "Référence"].map(h => (
+                      {["Date", "Type", "Article", "QtÃ©", "Valeur", "Motif", "RÃ©fÃ©rence"].map(h => (
                         <th key={h} className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
@@ -425,15 +425,15 @@ export default function StocksPage() {
                         <td className="px-4 py-2.5"><MvtBadge type={m.type} /></td>
                         <td className="px-4 py-2.5 text-xs font-medium text-gray-800 whitespace-nowrap">{m.article}</td>
                         <td className="px-4 py-2.5 text-xs font-bold whitespace-nowrap"
-                          style={{ color: m.type === "Entrée" ? "#2E7D32" : "#B71C1C" }}>{m.qte}</td>
+                          style={{ color: m.type === "EntrÃ©e" ? "#2E7D32" : "#B71C1C" }}>{m.qte}</td>
                         <td className="px-4 py-2.5 text-xs whitespace-nowrap"
-                          style={{ color: m.type === "Entrée" ? "#2E7D32" : "#B71C1C" }}>{m.valeur}</td>
+                          style={{ color: m.type === "EntrÃ©e" ? "#2E7D32" : "#B71C1C" }}>{m.valeur}</td>
                         <td className="px-4 py-2.5 text-xs text-gray-600 whitespace-nowrap">{m.motif}</td>
                         <td className="px-4 py-2.5 text-xs font-mono text-gray-400 whitespace-nowrap">{m.ref}</td>
                       </tr>
                     ))}
                     {filteredMvts.length === 0 && (
-                      <tr><td colSpan={7} className="px-4 py-8 text-center text-xs text-gray-400">Aucun mouvement trouvé</td></tr>
+                      <tr><td colSpan={7} className="px-4 py-8 text-center text-xs text-gray-400">Aucun mouvement trouvÃ©</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -445,26 +445,26 @@ export default function StocksPage() {
             <div className="p-5 space-y-6">
               <div className="flex flex-col md:flex-row items-start gap-8">
                 <div className="flex flex-col items-center gap-4">
-                  <div className="text-xs font-semibold text-gray-700">Répartition de la valeur stock par catégorie</div>
+                  <div className="text-xs font-semibold text-gray-700">RÃ©partition de la valeur stock par catÃ©gorie</div>
                   <Donut />
                   <div className="space-y-1.5">
                     {donutData.map(d => (
                       <div key={d.label} className="flex items-center gap-2 text-xs text-gray-700">
                         <span className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: d.color }} />
                         <span className="font-medium">{d.label}</span>
-                        <span className="text-gray-400 ml-auto pl-4">{d.pct}% · {d.valeur} XOF</span>
+                        <span className="text-gray-400 ml-auto pl-4">{d.pct}% Â· {d.valeur} XOF</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold text-gray-700 mb-3">Valorisation FIFO vs cours marché</div>
+                  <div className="text-xs font-semibold text-gray-700 mb-3">Valorisation FIFO vs cours marchÃ©</div>
                   <div className="overflow-x-auto rounded-xl border border-gray-100">
                     <table className="w-full text-sm">
                       <thead>
                         <tr style={{ backgroundColor: "#F8FBF8" }}>
-                          {["Produit", "Qté", "Valeur FIFO", "Cours marché", "Plus-value latente"].map(h => (
+                          {["Produit", "QtÃ©", "Valeur FIFO", "Cours marchÃ©", "Plus-value latente"].map(h => (
                             <th key={h} className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
                           ))}
                         </tr>
@@ -477,7 +477,7 @@ export default function StocksPage() {
                             <td className="px-4 py-3 text-xs font-medium text-gray-800 whitespace-nowrap">{row.fifo}</td>
                             <td className="px-4 py-3 text-xs font-medium whitespace-nowrap" style={{ color: "#1B5E20" }}>{row.marche}</td>
                             <td className="px-4 py-3">
-                              <span className="text-xs font-bold" style={{ color: "#2E7D32" }}>{row.plusvalue} ✅</span>
+                              <span className="text-xs font-bold" style={{ color: "#2E7D32" }}>{row.plusvalue} âœ…</span>
                             </td>
                           </tr>
                         ))}
@@ -485,8 +485,8 @@ export default function StocksPage() {
                     </table>
                   </div>
                   <div className="mt-4 rounded-xl p-4 text-xs text-gray-500" style={{ backgroundColor: "#F8FBF8", border: "1px solid #E5E7EB" }}>
-                    <strong className="text-gray-700">Méthode FIFO :</strong> Premier entré, premier sorti. La plus-value latente représente
-                    la différence entre la valeur au cours du marché actuel et le coût d&apos;acquisition FIFO. Non réalisée tant que le stock n&apos;est pas vendu.
+                    <strong className="text-gray-700">MÃ©thode FIFO :</strong> Premier entrÃ©, premier sorti. La plus-value latente reprÃ©sente
+                    la diffÃ©rence entre la valeur au cours du marchÃ© actuel et le coÃ»t d&apos;acquisition FIFO. Non rÃ©alisÃ©e tant que le stock n&apos;est pas vendu.
                   </div>
                 </div>
               </div>
@@ -497,7 +497,7 @@ export default function StocksPage() {
             <div className="p-5 space-y-6">
               <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
                 <Bell size={15} style={{ color: "#B71C1C" }} />
-                2 alertes critiques — action requise
+                2 alertes critiques â€” action requise
               </div>
 
               <div className="space-y-4">
@@ -528,7 +528,7 @@ export default function StocksPage() {
                         <div className="font-semibold text-gray-700">{a.besoin}</div>
                       </div>
                       <div>
-                        <div className="text-gray-500">Déficit</div>
+                        <div className="text-gray-500">DÃ©ficit</div>
                         <div className="font-bold text-red-700">{a.deficit}</div>
                       </div>
                     </div>
@@ -537,12 +537,12 @@ export default function StocksPage() {
               </div>
 
               <div>
-                <div className="text-xs font-semibold text-gray-700 mb-3">Paramétrage des seuils</div>
+                <div className="text-xs font-semibold text-gray-700 mb-3">ParamÃ©trage des seuils</div>
                 <div className="overflow-x-auto rounded-xl border border-gray-100">
                   <table className="w-full text-sm">
                     <thead>
                       <tr style={{ backgroundColor: "#F8FBF8" }}>
-                        {["Article", "Seuil alerte", "Seuil commande auto", "Qté min commande"].map(h => (
+                        {["Article", "Seuil alerte", "Seuil commande auto", "QtÃ© min commande"].map(h => (
                           <th key={h} className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
                         ))}
                       </tr>

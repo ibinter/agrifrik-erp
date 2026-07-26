@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 interface ModalDepenseStockProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit?: () => void;
 }
 
 type TypeMouvement = "Entrée" | "Sortie" | "Transfert";

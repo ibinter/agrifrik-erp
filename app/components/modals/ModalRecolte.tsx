@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 interface ModalRecolteProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit?: () => void;
 }
 
 const PARCELLES = [
