@@ -1,24 +1,25 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Topbar from "../../components/Topbar";
 import ModalCommande from "../../components/modals/ModalCommande";
 import ExportButton from "../../components/ui/ExportButton";
 import { Search, Plus, ShoppingCart, Package, CheckCircle2, Clock } from "lucide-react";
+import { dbGet, dbPost, DEMO_ORG_ID } from "@/lib/db";
 
 const COMMANDES = [
-  { num: "ACH-2025-001", date: "04/01", fournisseur: "KCl Distribution", produit: "KCl 60% 15 sacs",           montant: 720000,  livraison: "07/01", delai: "3j", statut: "LivrÃ©e" },
-  { num: "ACH-2025-002", date: "15/01", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 8 kg",        montant: 79296,   livraison: "19/01", delai: "4j", statut: "LivrÃ©e" },
-  { num: "ACH-2025-003", date: "03/02", fournisseur: "Tractafric",       produit: "Filtre huile JD5055E Ã—3",   montant: 75000,   livraison: "05/02", delai: "2j", statut: "LivrÃ©e" },
-  { num: "ACH-2025-004", date: "05/02", fournisseur: "SCPA Afrique",     produit: "Confidor 350 SC 4L",         montant: 141600,  livraison: "09/02", delai: "4j", statut: "LivrÃ©e" },
-  { num: "ACH-2025-005", date: "20/03", fournisseur: "Petro Ivoire",     produit: "Gasoil 200L (1 fÃ»t)",       montant: 147000,  livraison: "21/03", delai: "1j", statut: "LivrÃ©e" },
-  { num: "ACH-2025-006", date: "28/03", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 8 kg",        montant: 79296,   livraison: "01/04", delai: "4j", statut: "LivrÃ©e" },
-  { num: "ACH-2025-007", date: "10/04", fournisseur: "KCl Distribution", produit: "KCl 60% 10 sacs",           montant: 480000,  livraison: "13/04", delai: "3j", statut: "LivrÃ©e" },
-  { num: "ACH-2025-008", date: "25/04", fournisseur: "Tractafric",       produit: "Huile moteur 15W40 Ã—6",     montant: 54000,   livraison: "27/04", delai: "2j", statut: "LivrÃ©e" },
-  { num: "ACH-2025-017", date: "02/06", fournisseur: "SCPA Afrique",     produit: "Ridomil Gold 4 kg",          montant: 89208,   livraison: "05/06", delai: "3j", statut: "LivrÃ©e" },
-  { num: "ACH-2025-020", date: "28/06", fournisseur: "KCl Distribution", produit: "KCl 60% 6 sacs",            montant: 288000,  livraison: "01/07", delai: "3j", statut: "LivrÃ©e" },
-  { num: "ACH-2025-021", date: "01/07", fournisseur: "Petro Ivoire",     produit: "Gasoil 200L",               montant: 147000,  livraison: "02/07", delai: "1j", statut: "LivrÃ©e" },
-  { num: "ACH-2025-022", date: "09/06", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 4 kg",        montant: 39648,   livraison: "14/06", delai: "5j", statut: "LivrÃ©e" },
+  { num: "ACH-2025-001", date: "04/01", fournisseur: "KCl Distribution", produit: "KCl 60% 15 sacs",           montant: 720000,  livraison: "07/01", delai: "3j", statut: "Livrée" },
+  { num: "ACH-2025-002", date: "15/01", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 8 kg",        montant: 79296,   livraison: "19/01", delai: "4j", statut: "Livrée" },
+  { num: "ACH-2025-003", date: "03/02", fournisseur: "Tractafric",       produit: "Filtre huile JD5055E Ã-3",   montant: 75000,   livraison: "05/02", delai: "2j", statut: "Livrée" },
+  { num: "ACH-2025-004", date: "05/02", fournisseur: "SCPA Afrique",     produit: "Confidor 350 SC 4L",         montant: 141600,  livraison: "09/02", delai: "4j", statut: "Livrée" },
+  { num: "ACH-2025-005", date: "20/03", fournisseur: "Petro Ivoire",     produit: "Gasoil 200L (1 fût)",       montant: 147000,  livraison: "21/03", delai: "1j", statut: "Livrée" },
+  { num: "ACH-2025-006", date: "28/03", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 8 kg",        montant: 79296,   livraison: "01/04", delai: "4j", statut: "Livrée" },
+  { num: "ACH-2025-007", date: "10/04", fournisseur: "KCl Distribution", produit: "KCl 60% 10 sacs",           montant: 480000,  livraison: "13/04", delai: "3j", statut: "Livrée" },
+  { num: "ACH-2025-008", date: "25/04", fournisseur: "Tractafric",       produit: "Huile moteur 15W40 Ã-6",     montant: 54000,   livraison: "27/04", delai: "2j", statut: "Livrée" },
+  { num: "ACH-2025-017", date: "02/06", fournisseur: "SCPA Afrique",     produit: "Ridomil Gold 4 kg",          montant: 89208,   livraison: "05/06", delai: "3j", statut: "Livrée" },
+  { num: "ACH-2025-020", date: "28/06", fournisseur: "KCl Distribution", produit: "KCl 60% 6 sacs",            montant: 288000,  livraison: "01/07", delai: "3j", statut: "Livrée" },
+  { num: "ACH-2025-021", date: "01/07", fournisseur: "Petro Ivoire",     produit: "Gasoil 200L",               montant: 147000,  livraison: "02/07", delai: "1j", statut: "Livrée" },
+  { num: "ACH-2025-022", date: "09/06", fournisseur: "SCPA Afrique",     produit: "Super Cupravit 4 kg",        montant: 39648,   livraison: "14/06", delai: "5j", statut: "Livrée" },
 ];
 
 const DONUT_DATA = [
@@ -30,7 +31,7 @@ const DONUT_DATA = [
 
 const BAR_DATA = [
   { mois: "Jan", val: 720000 },
-  { mois: "FÃ©v", val: 220896 },
+  { mois: "Fév", val: 220896 },
   { mois: "Mar", val: 147000 },
   { mois: "Avr", val: 612504 },
   { mois: "Mai", val: 0 },
@@ -38,7 +39,7 @@ const BAR_DATA = [
   { mois: "Jul", val: 147000 },
 ];
 
-const FILTRES = ["Toutes", "En attente", "LivrÃ©es", "En cours"] as const;
+const FILTRES = ["Toutes", "En attente", "Livrées", "En cours"] as const;
 
 function DonutChart() {
   const R = 90; const CX = 140; const CY = 140;
@@ -111,20 +112,38 @@ export default function AchatsPage() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [toast, setToast] = useState(false);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
 
-  const lignes = COMMANDES.filter((c) => {
+  const load = () => { dbGet<Record<string, unknown>>("achats").then(setRows); };
+  useEffect(() => { load(); }, []);
+
+  // Normalise DB rows into the same shape used by the table
+  const displayRows = rows.length > 0
+    ? rows.map((r) => ({
+        num: String(r.reference ?? ""),
+        date: String(r.date_achat ?? "").slice(0, 10),
+        fournisseur: String(r.fournisseur ?? ""),
+        produit: String(r.notes ?? ""),
+        montant: Number(r.montant_ttc ?? 0),
+        livraison: "",
+        delai: "",
+        statut: String(r.statut ?? ""),
+      }))
+    : COMMANDES;
+
+  const lignes = displayRows.filter((c) => {
     const matchFiltre =
       filtre === "Toutes" ||
-      (filtre === "LivrÃ©es" && c.statut === "LivrÃ©e") ||
+      (filtre === "Livrées" && c.statut === "Livrée") ||
       (filtre === "En attente" && c.statut === "En attente") ||
       (filtre === "En cours" && c.statut === "En cours");
     const matchSearch = search === "" || c.fournisseur.toLowerCase().includes(search.toLowerCase());
     return matchFiltre && matchSearch;
   });
 
-  const total = COMMANDES.reduce((s, c) => s + c.montant, 0);
+  const total = displayRows.reduce((s, c) => s + c.montant, 0);
 
-  const exportData = COMMANDES.map((c) => ({
+  const exportData = displayRows.map((c) => ({
     numero: c.num,
     date: c.date,
     fournisseur: c.fournisseur,
@@ -135,7 +154,18 @@ export default function AchatsPage() {
     statut: c.statut,
   }));
 
-  function handleCommandeSubmit() {
+  async function handleCommandeSubmit() {
+    await dbPost("achats", {
+      reference: "CMD-" + Date.now(),
+      date_achat: new Date().toISOString().split("T")[0],
+      montant_ht: 0,
+      tva: 18,
+      montant_ttc: 0,
+      statut: "En attente",
+      notes: "",
+      organisation_id: DEMO_ORG_ID,
+    });
+    load();
     setModalOpen(false);
     setToast(true);
     setTimeout(() => setToast(false), 3000);
@@ -151,7 +181,7 @@ export default function AchatsPage() {
           <div>
             <h1 className="text-xl font-bold text-gray-900">Achats</h1>
             <p className="text-sm text-gray-500 mt-0.5">
-              Bons de commande â€“ Intrants, matÃ©riels, consommables â€“ EXP-001
+              Bons de commande - Intrants, matériels, consommables - EXP-001
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -169,8 +199,8 @@ export default function AchatsPage() {
           {[
             { label: "Commandes 2025",   val: "12 commandes",                Icon: ShoppingCart },
             { label: "Montant total",     val: `${(total / 1000).toFixed(0)} k XOF`, Icon: Package },
-            { label: "LivrÃ©es",           val: "12 livrÃ©es",                 Icon: CheckCircle2 },
-            { label: "DÃ©lai moyen",       val: "4,2 jours",                  Icon: Clock },
+            { label: "Livrées",           val: "12 livrées",                 Icon: CheckCircle2 },
+            { label: "Délai moyen",       val: "4,2 jours",                  Icon: Clock },
           ].map((k) => (
             <div key={k.label} className="rounded-2xl border border-gray-100 bg-white p-4 flex items-center gap-3 shadow-sm">
               <k.Icon size={20} className="text-[#2E7D32] shrink-0" />
@@ -202,7 +232,7 @@ export default function AchatsPage() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Recherche fournisseurâ€¦"
+              placeholder="Recherche fournisseur-¦"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-8 pr-4 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#2E7D32] w-52"
@@ -215,7 +245,7 @@ export default function AchatsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#F8FBF8] text-left">
-                  {["NÂ°","Date","Fournisseur","Produit","Montant TTC","Livraison","DÃ©lai","Statut"].map((h) => (
+                  {["NÂ°","Date","Fournisseur","Produit","Montant TTC","Livraison","Délai","Statut"].map((h) => (
                     <th key={h} className="px-3 py-2.5 text-xs text-gray-500 font-medium whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -223,22 +253,22 @@ export default function AchatsPage() {
               <tbody className="divide-y divide-gray-50">
                 {lignes.map((c) => (
                   <tr key={c.num} className="hover:bg-gray-50">
-                    <td className="px-3 py-2 font-mono text-xs text-[#2E7D32] font-medium whitespace-nowrap">{c.num}</td>
-                    <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{c.date}</td>
-                    <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">{c.fournisseur}</td>
-                    <td className="px-3 py-2 text-gray-700">{c.produit}</td>
+                    <td className="px-3 py-2 font-mono text-xs text-[#2E7D32] font-medium whitespace-nowrap">{String(c.num ?? "")}</td>
+                    <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{String(c.date ?? "")}</td>
+                    <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">{String(c.fournisseur ?? "")}</td>
+                    <td className="px-3 py-2 text-gray-700">{String(c.produit ?? "")}</td>
                     <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">
-                      {c.montant.toLocaleString("fr-FR")} XOF
+                      {Number(c.montant ?? 0).toLocaleString("fr-FR")} XOF
                     </td>
-                    <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{c.livraison}</td>
+                    <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{String(c.livraison ?? "")}</td>
                     <td className="px-3 py-2">
                       <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-green-50 text-green-700">
-                        <CheckCircle2 size={11} /> {c.delai}
+                        <CheckCircle2 size={11} /> {String(c.delai ?? "")}
                       </span>
                     </td>
                     <td className="px-3 py-2">
                       <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-800 font-medium">
-                        âœ… {c.statut}
+                        {String(c.statut ?? "")}
                       </span>
                     </td>
                   </tr>
@@ -247,7 +277,7 @@ export default function AchatsPage() {
             </table>
           </div>
           {lignes.length === 0 && (
-            <p className="py-8 text-center text-sm text-gray-400">Aucune commande trouvÃ©e.</p>
+            <p className="py-8 text-center text-sm text-gray-400">Aucune commande trouvée.</p>
           )}
         </div>
 
@@ -289,7 +319,7 @@ export default function AchatsPage() {
 
       {toast && (
         <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-sm font-medium shadow-lg">
-          Bon de commande crÃ©Ã©
+          Bon de commande créé
         </div>
       )}
     </div>

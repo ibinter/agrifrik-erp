@@ -1,29 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Topbar from "../../components/Topbar";
 import ExportButton from "../../components/ui/ExportButton";
+import { dbGet, dbPost, DEMO_ORG_ID } from "@/lib/db";
 
 type Tab = "journaux" | "balance" | "grandlivre" | "plancomptable";
 type JournalFilter = "Tous" | "VTE" | "ACH" | "BNQ" | "CAI" | "OD";
 type ClasseFilter = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8";
 
 const journalEntries = [
-  { date: "10/07", piece: "FAC-2025-048", journal: "VTE", compteD: "411000 Clients", libelle: "Vente cacao — Barry Callebaut LOT-045", debit: 27_390_000, compteC: "701000 Ventes cacao", credit: 27_390_000 },
-  { date: "08/07", piece: "ACH-2025-088", journal: "ACH", compteD: "601000 Achats intrants", libelle: "Livraison KCl 4t — SCPA", debit: 2_400_000, compteC: "401000 Fournisseurs", credit: 2_400_000 },
+  { date: "10/07", piece: "FAC-2025-048", journal: "VTE", compteD: "411000 Clients", libelle: "Vente cacao - Barry Callebaut LOT-045", debit: 27_390_000, compteC: "701000 Ventes cacao", credit: 27_390_000 },
+  { date: "08/07", piece: "ACH-2025-088", journal: "ACH", compteD: "601000 Achats intrants", libelle: "Livraison KCl 4t - SCPA", debit: 2_400_000, compteC: "401000 Fournisseurs", credit: 2_400_000 },
   { date: "07/07", piece: "BNQ-2025-147", journal: "BNQ", compteD: "521000 BICICI", libelle: "Encaissement client Olam", debit: 18_240_000, compteC: "411000 Clients", credit: 18_240_000 },
   { date: "05/07", piece: "BNQ-2025-146", journal: "BNQ", compteD: "641000 Salaires", libelle: "Virement salaires Juin 2025", debit: 3_840_000, compteC: "521000 BICICI", credit: 3_840_000 },
   { date: "01/07", piece: "OD-2025-028", journal: "OD", compteD: "681000 Amortissements", libelle: "Dotation amort. Juin 2025", debit: 1_533_000, compteC: "281000 Amort. Immo", credit: 1_533_000 },
-  { date: "30/06", piece: "FAC-2025-047", journal: "VTE", compteD: "411000 Clients", libelle: "Vente cacao — Nestlé LOT-046", debit: 32_818_000, compteC: "701000 Ventes", credit: 32_818_000 },
+  { date: "30/06", piece: "FAC-2025-047", journal: "VTE", compteD: "411000 Clients", libelle: "Vente cacao - Nestlé LOT-046", debit: 32_818_000, compteC: "701000 Ventes", credit: 32_818_000 },
   { date: "28/06", piece: "BNQ-2025-145", journal: "BNQ", compteD: "521000 BICICI", libelle: "Paiement prime RA coop.", debit: 4_200_000, compteC: "411100 Coop.", credit: 4_200_000 },
   { date: "25/06", piece: "ACH-2025-085", journal: "ACH", compteD: "601000 Achats intrants", libelle: "Engrais YARA 2t", debit: 1_840_000, compteC: "401000 Fournisseurs", credit: 1_840_000 },
   { date: "20/06", piece: "CAI-2025-042", journal: "CAI", compteD: "531000 Caisse Soubré", libelle: "Frais déplacement terrain", debit: 240_000, compteC: "625000 Déplacements", credit: 240_000 },
-  { date: "15/06", piece: "FAC-2025-044", journal: "VTE", compteD: "411000 Clients", libelle: "Vente anacarde — Olam LOT-038", debit: 18_400_000, compteC: "702000 Ventes anacarde", credit: 18_400_000 },
+  { date: "15/06", piece: "FAC-2025-044", journal: "VTE", compteD: "411000 Clients", libelle: "Vente anacarde - Olam LOT-038", debit: 18_400_000, compteC: "702000 Ventes anacarde", credit: 18_400_000 },
   { date: "10/06", piece: "BNQ-2025-140", journal: "BNQ", compteD: "521000 BICICI", libelle: "Remboursement emprunt BIC", debit: 2_000_000, compteC: "161000 Emprunts", credit: 2_000_000 },
   { date: "05/06", piece: "OD-2025-025", journal: "OD", compteD: "681000 Amortissements", libelle: "Dotation amort. Mai 2025", debit: 1_533_000, compteC: "281000 Amort. Immo", credit: 1_533_000 },
   { date: "02/06", piece: "ACH-2025-079", journal: "ACH", compteD: "601000 Achats intrants", libelle: "Semences certifiées ANADER", debit: 980_000, compteC: "401000 Fournisseurs", credit: 980_000 },
   { date: "28/05", piece: "BNQ-2025-136", journal: "BNQ", compteD: "741000 Subventions", libelle: "Réception subvention AFD Tranche 2", debit: 12_100_000, compteC: "521000 BICICI", credit: 12_100_000 },
-  { date: "15/05", piece: "FAC-2025-038", journal: "VTE", compteD: "411000 Clients", libelle: "Vente cacao — Barry Callebaut LOT-040", debit: 24_600_000, compteC: "701000 Ventes cacao", credit: 24_600_000 },
+  { date: "15/05", piece: "FAC-2025-038", journal: "VTE", compteD: "411000 Clients", libelle: "Vente cacao - Barry Callebaut LOT-040", debit: 24_600_000, compteC: "701000 Ventes cacao", credit: 24_600_000 },
 ];
 
 const balanceData = [
@@ -41,7 +42,7 @@ const balanceData = [
   { compte: "411000", intitule: "Clients", classe: "4", debit: 24_600_000, credit: 0, soldeDt: 24_600_000, soldeCr: 0 },
   { compte: "421000", intitule: "Personnel", classe: "4", debit: 0, credit: 3_840_000, soldeDt: 0, soldeCr: 3_840_000 },
   { compte: "431000", intitule: "CNPS", classe: "4", debit: 0, credit: 1_240_000, soldeDt: 0, soldeCr: 1_240_000 },
-  { compte: "441000", intitule: "État — impôts", classe: "4", debit: 0, credit: 2_840_000, soldeDt: 0, soldeCr: 2_840_000 },
+  { compte: "441000", intitule: "État - impôts", classe: "4", debit: 0, credit: 2_840_000, soldeDt: 0, soldeCr: 2_840_000 },
   { compte: "521000", intitule: "BICICI c/c", classe: "5", debit: 34_200_000, credit: 0, soldeDt: 34_200_000, soldeCr: 0 },
   { compte: "531000", intitule: "Caisse Soubré", classe: "5", debit: 1_240_000, credit: 0, soldeDt: 1_240_000, soldeCr: 0 },
   { compte: "532000", intitule: "Orange Money CI", classe: "5", debit: 480_000, credit: 0, soldeDt: 480_000, soldeCr: 0 },
@@ -76,28 +77,28 @@ const planComptable: Record<string, { num: string; intitule: string; utilise: bo
     { num: "101000", intitule: "Capital social", utilise: true, solde: "50 000 000 Cr" },
     { num: "111000", intitule: "Réserves légales", utilise: true, solde: "4 200 000 Cr" },
     { num: "121000", intitule: "Report à nouveau", utilise: true, solde: "18 200 000 Cr" },
-    { num: "131000", intitule: "Résultat de l'exercice", utilise: false, solde: "—" },
-    { num: "141000", intitule: "Subventions d'équipement", utilise: false, solde: "—" },
-    { num: "151000", intitule: "Provisions réglementées", utilise: false, solde: "—" },
+    { num: "131000", intitule: "Résultat de l'exercice", utilise: false, solde: "-" },
+    { num: "141000", intitule: "Subventions d'équipement", utilise: false, solde: "-" },
+    { num: "151000", intitule: "Provisions réglementées", utilise: false, solde: "-" },
     { num: "161000", intitule: "Emprunts à LT", utilise: true, solde: "24 000 000 Cr" },
-    { num: "162000", intitule: "Crédits de campagne", utilise: false, solde: "—" },
-    { num: "181000", intitule: "Comptes de liaison", utilise: false, solde: "—" },
+    { num: "162000", intitule: "Crédits de campagne", utilise: false, solde: "-" },
+    { num: "181000", intitule: "Comptes de liaison", utilise: false, solde: "-" },
   ],
   "2": [
-    { num: "211000", intitule: "Frais d'établissement", utilise: false, solde: "—" },
+    { num: "211000", intitule: "Frais d'établissement", utilise: false, solde: "-" },
     { num: "221000", intitule: "Terres et terrains", utilise: true, solde: "42 000 000 Dt" },
     { num: "231000", intitule: "Bâtiments sur sol propre", utilise: true, solde: "18 400 000 Dt" },
     { num: "241000", intitule: "Matériels & outillage", utilise: true, solde: "68 200 000 Dt" },
-    { num: "244000", intitule: "Matériels de transport", utilise: false, solde: "—" },
-    { num: "248000", intitule: "Autres immobilisations corp.", utilise: false, solde: "—" },
+    { num: "244000", intitule: "Matériels de transport", utilise: false, solde: "-" },
+    { num: "248000", intitule: "Autres immobilisations corp.", utilise: false, solde: "-" },
     { num: "281000", intitule: "Amort. frais d'établ.", utilise: true, solde: "28 400 000 Cr" },
   ],
   "3": [
     { num: "311000", intitule: "Marchandises (cacao)", utilise: true, solde: "18 420 000 Dt" },
-    { num: "312000", intitule: "Marchandises (anacarde)", utilise: false, solde: "—" },
+    { num: "312000", intitule: "Marchandises (anacarde)", utilise: false, solde: "-" },
     { num: "321000", intitule: "Matières premières (intrants)", utilise: true, solde: "6 840 000 Dt" },
-    { num: "331000", intitule: "Produits en cours", utilise: false, solde: "—" },
-    { num: "381000", intitule: "Marchandises en transit", utilise: false, solde: "—" },
+    { num: "331000", intitule: "Produits en cours", utilise: false, solde: "-" },
+    { num: "381000", intitule: "Marchandises en transit", utilise: false, solde: "-" },
   ],
   "4": [
     { num: "401000", intitule: "Fournisseurs, dettes en compte", utilise: true, solde: "8 240 000 Cr" },
@@ -105,38 +106,38 @@ const planComptable: Record<string, { num: string; intitule: string; utilise: bo
     { num: "421000", intitule: "Personnel, avances et acomptes", utilise: true, solde: "3 840 000 Cr" },
     { num: "431000", intitule: "Organismes sociaux (CNPS)", utilise: true, solde: "1 240 000 Cr" },
     { num: "441000", intitule: "État, impôts et taxes", utilise: true, solde: "2 840 000 Cr" },
-    { num: "471000", intitule: "Débiteurs divers", utilise: false, solde: "—" },
+    { num: "471000", intitule: "Débiteurs divers", utilise: false, solde: "-" },
   ],
   "5": [
     { num: "521000", intitule: "Banque BICICI c/c", utilise: true, solde: "34 200 000 Dt" },
-    { num: "522000", intitule: "Banque SGBCI c/c", utilise: false, solde: "—" },
+    { num: "522000", intitule: "Banque SGBCI c/c", utilise: false, solde: "-" },
     { num: "531000", intitule: "Caisse Soubré", utilise: true, solde: "1 240 000 Dt" },
     { num: "532000", intitule: "Orange Money CI", utilise: true, solde: "480 000 Dt" },
   ],
   "6": [
     { num: "601000", intitule: "Achats marchandises (intrants)", utilise: true, solde: "29 400 000 Dt" },
-    { num: "602000", intitule: "Achats matières premières", utilise: false, solde: "—" },
-    { num: "621000", intitule: "Sous-traitance générale", utilise: false, solde: "—" },
+    { num: "602000", intitule: "Achats matières premières", utilise: false, solde: "-" },
+    { num: "621000", intitule: "Sous-traitance générale", utilise: false, solde: "-" },
     { num: "641000", intitule: "Rémunérations du personnel", utilise: true, solde: "21 200 000 Dt" },
-    { num: "661000", intitule: "Charges d'intérêts", utilise: false, solde: "—" },
+    { num: "661000", intitule: "Charges d'intérêts", utilise: false, solde: "-" },
     { num: "681000", intitule: "Dotations amortissements", utilise: true, solde: "9 200 000 Dt" },
   ],
   "7": [
     { num: "701000", intitule: "Ventes cacao", utilise: true, solde: "101 200 000 Cr" },
     { num: "702000", intitule: "Ventes anacarde", utilise: true, solde: "31 400 000 Cr" },
     { num: "703000", intitule: "Subventions d'exploitation", utilise: true, solde: "24 200 000 Cr" },
-    { num: "704000", intitule: "Ventes vivrières", utilise: false, solde: "—" },
-    { num: "756000", intitule: "Produits divers", utilise: false, solde: "—" },
+    { num: "704000", intitule: "Ventes vivrières", utilise: false, solde: "-" },
+    { num: "756000", intitule: "Produits divers", utilise: false, solde: "-" },
   ],
   "8": [
-    { num: "801000", intitule: "Résultat d'exploitation", utilise: false, solde: "—" },
-    { num: "802000", intitule: "Résultat hors activités ordinaires", utilise: false, solde: "—" },
-    { num: "891000", intitule: "Impôt sur le bénéfice (BIC)", utilise: false, solde: "—" },
+    { num: "801000", intitule: "Résultat d'exploitation", utilise: false, solde: "-" },
+    { num: "802000", intitule: "Résultat hors activités ordinaires", utilise: false, solde: "-" },
+    { num: "891000", intitule: "Impôt sur le bénéfice (BIC)", utilise: false, solde: "-" },
   ],
 };
 
 function fmtXOF(n: number) {
-  if (n === 0) return "—";
+  if (n === 0) return "-";
   return n.toLocaleString("fr-FR");
 }
 
@@ -149,14 +150,14 @@ const journalBadge: Record<string, string> = {
 };
 
 const classeLabels: Record<string, string> = {
-  "1": "Classe 1 — Ressources durables",
-  "2": "Classe 2 — Actif immobilisé",
-  "3": "Classe 3 — Stocks",
-  "4": "Classe 4 — Tiers",
-  "5": "Classe 5 — Trésorerie",
-  "6": "Classe 6 — Charges",
-  "7": "Classe 7 — Produits",
-  "8": "Classe 8 — Résultats",
+  "1": "Classe 1 - Ressources durables",
+  "2": "Classe 2 - Actif immobilisé",
+  "3": "Classe 3 - Stocks",
+  "4": "Classe 4 - Tiers",
+  "5": "Classe 5 - Trésorerie",
+  "6": "Classe 6 - Charges",
+  "7": "Classe 7 - Produits",
+  "8": "Classe 8 - Résultats",
 };
 
 const journalExportData = journalEntries.map((e) => ({
@@ -195,6 +196,10 @@ export default function ComptabilitePage() {
   const [glSearch, setGlSearch] = useState("411000 Clients");
   const [modalEcritureOpen, setModalEcritureOpen] = useState(false);
   const [toast, setToast] = useState(false);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+
+  const load = () => { dbGet<Record<string, unknown>>("ecritures").then(setRows); };
+  useEffect(() => { load(); }, []);
 
   const [form, setForm] = useState({
     date: "",
@@ -206,8 +211,19 @@ export default function ComptabilitePage() {
     piece: "",
   });
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    await dbPost("ecritures", {
+      date_ecriture: form.date,
+      journal: form.journal,
+      libelle: form.libelle,
+      compte_debit: form.compteDebit,
+      compte_credit: form.compteCredit,
+      montant: Number(form.montant),
+      piece: form.piece,
+      organisation_id: DEMO_ORG_ID,
+    });
+    load();
     setModalEcritureOpen(false);
     setForm({ date: "", journal: "Achats", libelle: "", compteDebit: "", compteCredit: "", montant: "", piece: "" });
     setToast(true);
@@ -223,10 +239,23 @@ export default function ComptabilitePage() {
 
   const journalFilters: JournalFilter[] = ["Tous", "VTE", "ACH", "BNQ", "CAI", "OD"];
 
+  const activeJournalEntries = rows.length > 0
+    ? rows.map((r) => ({
+        date: String(r.date_ecriture ?? r.date ?? ""),
+        piece: String(r.piece ?? ""),
+        journal: String(r.journal ?? ""),
+        compteD: String(r.compte_debit ?? ""),
+        libelle: String(r.libelle ?? ""),
+        debit: Number(r.montant ?? 0),
+        compteC: String(r.compte_credit ?? ""),
+        credit: Number(r.montant ?? 0),
+      }))
+    : journalEntries;
+
   const filteredEntries =
     journalFilter === "Tous"
-      ? journalEntries
-      : journalEntries.filter((e) => e.journal === journalFilter);
+      ? activeJournalEntries
+      : activeJournalEntries.filter((e) => e.journal === journalFilter);
 
   const totalDebit = balanceData.reduce((a, r) => a + r.debit, 0);
   const totalCredit = balanceData.reduce((a, r) => a + r.credit, 0);
@@ -298,7 +327,7 @@ export default function ComptabilitePage() {
 
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
-                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Journal général — 15 dernières écritures</h2>
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Journal général - 15 dernières écritures</h2>
                 <p className="text-xs text-gray-400 mt-0.5">Conforme SYSCOHADA Révisé · AUDCIF 2017</p>
               </div>
               <div className="overflow-x-auto">
@@ -376,10 +405,10 @@ export default function ComptabilitePage() {
                             <tr key={r.compte} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                               <td className="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400">{r.compte}</td>
                               <td className="px-4 py-2.5 text-gray-800 dark:text-gray-200">{r.intitule}</td>
-                              <td className="px-4 py-2.5 text-right text-blue-700 dark:text-blue-400">{r.debit ? fmtXOF(r.debit) : "—"}</td>
-                              <td className="px-4 py-2.5 text-right text-emerald-700 dark:text-emerald-400">{r.credit ? fmtXOF(r.credit) : "—"}</td>
-                              <td className="px-4 py-2.5 text-right font-semibold text-gray-800 dark:text-gray-200">{r.soldeDt ? fmtXOF(r.soldeDt) : "—"}</td>
-                              <td className="px-4 py-2.5 text-right font-semibold text-gray-800 dark:text-gray-200">{r.soldeCr ? fmtXOF(r.soldeCr) : "—"}</td>
+                              <td className="px-4 py-2.5 text-right text-blue-700 dark:text-blue-400">{r.debit ? fmtXOF(r.debit) : "-"}</td>
+                              <td className="px-4 py-2.5 text-right text-emerald-700 dark:text-emerald-400">{r.credit ? fmtXOF(r.credit) : "-"}</td>
+                              <td className="px-4 py-2.5 text-right font-semibold text-gray-800 dark:text-gray-200">{r.soldeDt ? fmtXOF(r.soldeDt) : "-"}</td>
+                              <td className="px-4 py-2.5 text-right font-semibold text-gray-800 dark:text-gray-200">{r.soldeCr ? fmtXOF(r.soldeCr) : "-"}</td>
                             </tr>
                           ))}
                         </>
@@ -456,8 +485,8 @@ export default function ComptabilitePage() {
                         <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400 whitespace-nowrap">{e.date}</td>
                         <td className="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400 whitespace-nowrap">{e.piece}</td>
                         <td className="px-4 py-2.5 text-gray-700 dark:text-gray-300 max-w-[260px] truncate">{e.libelle}</td>
-                        <td className="px-4 py-2.5 text-right text-blue-700 dark:text-blue-400 font-semibold">{e.debit ? fmtXOF(e.debit) : "—"}</td>
-                        <td className="px-4 py-2.5 text-right text-emerald-700 dark:text-emerald-400 font-semibold">{e.credit ? fmtXOF(e.credit) : "—"}</td>
+                        <td className="px-4 py-2.5 text-right text-blue-700 dark:text-blue-400 font-semibold">{e.debit ? fmtXOF(e.debit) : "-"}</td>
+                        <td className="px-4 py-2.5 text-right text-emerald-700 dark:text-emerald-400 font-semibold">{e.credit ? fmtXOF(e.credit) : "-"}</td>
                         <td className={`px-4 py-2.5 text-right font-bold ${e.solde >= 0 ? "text-gray-900 dark:text-white" : "text-red-600"}`}>
                           {fmtXOF(Math.abs(e.solde))}{e.solde < 0 ? " Cr" : " Dt"}
                         </td>
@@ -498,7 +527,7 @@ export default function ComptabilitePage() {
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
                 <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-                  {classeLabels[classeFilter]} — Plan comptable SYSCOHADA révisé
+                  {classeLabels[classeFilter]} - Plan comptable SYSCOHADA révisé
                 </h2>
                 <p className="text-xs text-gray-400 mt-0.5">Comptes AGRIFRIK · AUDCIF 2017</p>
               </div>
@@ -520,7 +549,7 @@ export default function ComptabilitePage() {
                         <td className="px-4 py-3 text-center">
                           {r.utilise
                             ? <span className="inline-flex items-center justify-center w-6 h-6 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-bold">✓</span>
-                            : <span className="inline-flex items-center justify-center w-6 h-6 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full text-xs">—</span>
+                            : <span className="inline-flex items-center justify-center w-6 h-6 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full text-xs">-</span>
                           }
                         </td>
                         <td className={`px-4 py-3 text-right font-semibold text-sm ${r.utilise ? "text-gray-900 dark:text-white" : "text-gray-400"}`}>

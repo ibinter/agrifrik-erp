@@ -1,27 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Topbar from "../../components/Topbar";
 import ExportButton from "../../components/ui/ExportButton";
+import { dbGet, dbPost, DEMO_ORG_ID } from "@/lib/db";
 
 type Statut = "Sain" | "Traitement" | "Quarantaine";
-
-type Animal = {
-  id: string;
-  espece: string;
-  lot: string;
-  effectif: number;
-  poidsMoyen: number;
-  statut: Statut;
-  zone: string;
-  dateEntree: string;
-};
-
-const CHEPTEL: Animal[] = [
-  { id: "E1", espece: "Bovin", lot: "BV-2025-01", effectif: 45, poidsMoyen: 280, statut: "Sain", zone: "Enclos A", dateEntree: "2025-01-15" },
-  { id: "E2", espece: "Ovin", lot: "OV-2025-03", effectif: 120, poidsMoyen: 38, statut: "Sain", zone: "Enclos B", dateEntree: "2025-03-10" },
-  { id: "E3", espece: "Volaille", lot: "VOL-2026-01", effectif: 850, poidsMoyen: 1.8, statut: "Traitement", zone: "Poulailler", dateEntree: "2026-01-20" },
-];
 
 const STATUT_COLORS: Record<Statut, string> = {
   Sain: "bg-green-100 text-green-800",
@@ -53,45 +37,52 @@ const FORM_INIT: FormData = {
 export default function ElevagePage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<FormData>(FORM_INIT);
-  const [cheptel, setCheptel] = useState<Animal[]>(CHEPTEL);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [toast, setToast] = useState(false);
 
-  const effectifTotal = cheptel.reduce((s, a) => s + a.effectif, 0);
-  const poidsTotal = cheptel.reduce((s, a) => s + a.effectif * a.poidsMoyen, 0);
-  const lotsTraitement = cheptel.filter((a) => a.statut === "Traitement").length;
+  const load = () => {
+    dbGet<Record<string, unknown>>("elevages").then(setRows);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const effectifTotal = rows.reduce((s, a) => s + (Number(a.effectif) || 0), 0);
+  const poidsTotal = rows.reduce((s, a) => s + (Number(a.effectif) || 0) * (Number(a.poids_moyen) || 0), 0);
+  const lotsTraitement = rows.filter((a) => a.statut === "Traitement").length;
 
   function showToast() {
     setToast(true);
     setTimeout(() => setToast(false), 3000);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const nouvel: Animal = {
-      id: `E${Date.now()}`,
-      espece: form.espece,
-      lot: `${form.espece.slice(0, 2).toUpperCase()}-${new Date().getFullYear()}-${String(cheptel.length + 1).padStart(2, "0")}`,
-      effectif: Number(form.effectif),
-      poidsMoyen: Number(form.poidsMoyen),
+    await dbPost("elevages", {
+      nom: `${form.espece}-${Date.now()}`,
+      type_animal: form.espece,
+      race: form.espece,
+      effectif: parseInt(form.effectif),
+      poids_moyen: Number(form.poidsMoyen),
       statut: form.statut,
       zone: form.zone,
-      dateEntree: form.dateEntree,
-    };
-    setCheptel((prev) => [...prev, nouvel]);
+      date_entree: form.dateEntree,
+      organisation_id: DEMO_ORG_ID,
+    });
     setModalOpen(false);
     setForm(FORM_INIT);
+    load();
     showToast();
   }
 
-  const exportData = cheptel.map((a) => ({
-    ID: a.id,
-    Espece: a.espece,
-    Lot: a.lot,
-    Effectif: a.effectif,
-    "Poids moyen (kg)": a.poidsMoyen,
-    Statut: a.statut,
-    Zone: a.zone,
-    "Date entree": a.dateEntree,
+  const exportData = rows.map((a) => ({
+    ID: String(a.id ?? ""),
+    Espece: String(a.type_animal ?? a.espece ?? ""),
+    Lot: String(a.nom ?? ""),
+    Effectif: Number(a.effectif ?? 0),
+    "Poids moyen (kg)": Number(a.poids_moyen ?? 0),
+    Statut: String(a.statut ?? ""),
+    Zone: String(a.zone ?? ""),
+    "Date entree": String(a.date_entree ?? ""),
   }));
 
   return (
@@ -150,22 +141,26 @@ export default function ElevagePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {cheptel.map((a) => (
-                  <tr key={a.id} className="hover:bg-gray-50/60 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs font-semibold text-gray-700">{a.lot}</td>
-                    <td className="px-4 py-3 font-medium text-gray-800">{a.espece}</td>
-                    <td className="px-4 py-3 text-gray-700 font-semibold">{a.effectif.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-gray-700">{a.poidsMoyen}</td>
-                    <td className="px-4 py-3 text-gray-600 text-xs">{a.zone}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{a.dateEntree}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUT_COLORS[a.statut]}`}>
-                        {a.statut}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                {cheptel.length === 0 && (
+                {rows.map((a, idx) => {
+                  const statut = String(a.statut ?? "Sain") as Statut;
+                  const statutColor = STATUT_COLORS[statut] ?? "bg-gray-100 text-gray-700";
+                  return (
+                    <tr key={String(a.id ?? idx)} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="px-4 py-3 font-mono text-xs font-semibold text-gray-700">{String(a.nom ?? "")}</td>
+                      <td className="px-4 py-3 font-medium text-gray-800">{String(a.type_animal ?? a.espece ?? "")}</td>
+                      <td className="px-4 py-3 text-gray-700 font-semibold">{Number(a.effectif ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-gray-700">{String(a.poids_moyen ?? "")}</td>
+                      <td className="px-4 py-3 text-gray-600 text-xs">{String(a.zone ?? "")}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{String(a.date_entree ?? "")}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statutColor}`}>
+                          {statut}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {rows.length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-gray-400 text-sm">
                       Aucun animal enregistré

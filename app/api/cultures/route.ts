@@ -1,23 +1,37 @@
-import { NextResponse } from "next/server";
-import { cultures } from "@/lib/data";
-import type { Culture } from "@/lib/types";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@/lib/supabase/server";
 
-export async function GET(): Promise<NextResponse<Culture[]>> {
-  return NextResponse.json(cultures);
+export async function GET(req: NextRequest) {
+  try {
+    const org = req.nextUrl.searchParams.get("org");
+    const sb = createServerClient() as any;
+    const { data, error } = await sb
+      .from("cultures")
+      .select("*")
+      .eq("organisation_id", org ?? "")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) throw error;
+    return NextResponse.json({ data: data ?? [] });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message, data: [] }, { status: 500 });
+  }
 }
 
-export async function POST(request: Request): Promise<NextResponse<{ success: boolean; id: string } | { success: boolean; message: string }>> {
-  const body: Omit<Culture, "id"> = await request.json();
-
-  if (!body.nom || !body.parcelle || !body.surface) {
-    return NextResponse.json(
-      { success: false, message: "Champs obligatoires manquants : nom, parcelle, surface" },
-      { status: 400 }
-    );
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const sb = createServerClient() as any;
+    const { data, error } = await sb
+      .from("cultures")
+      .insert([body])
+      .select()
+      .single();
+    if (error) throw error;
+    return NextResponse.json({ data });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const newId = `cul-${String(cultures.length + 1).padStart(3, "0")}`;
-
-  // En production, persister en base de données
-  return NextResponse.json({ success: true, id: newId }, { status: 201 });
 }

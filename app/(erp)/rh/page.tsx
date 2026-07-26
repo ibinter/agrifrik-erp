@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Topbar from "../../components/Topbar";
+import { dbGet, dbPost, DEMO_ORG_ID } from "@/lib/db";
 import ModalEmploye from "../../components/modals/ModalEmploye";
 import ExportButton from "../../components/ui/ExportButton";
 import {
@@ -23,32 +24,24 @@ const kpis = [
 ];
 
 const employes = [
-  { id: "EMP-001", nom: "Admin AGRIFRIK", poste: "Directeur GÃ©nÃ©ral", type: "CDI cadre", entree: "01/03/2023", salaire: "580 000", dept: "Direction", statut: "Actif" },
+  { id: "EMP-001", nom: "Admin AGRIFRIK", poste: "Directeur Général", type: "CDI cadre", entree: "01/03/2023", salaire: "580 000", dept: "Direction", statut: "Actif" },
   { id: "EMP-002", nom: "Jean-Baptiste Kouassi", poste: "DAF", type: "CDI cadre", entree: "01/03/2023", salaire: "420 000", dept: "Finance", statut: "Actif" },
-  { id: "EMP-003", nom: "Mariam KouyatÃ©", poste: "DRH", type: "CDI cadre", entree: "15/04/2023", salaire: "380 000", dept: "RH", statut: "Actif" },
-  { id: "EMP-004", nom: "Adjoua Messou", poste: "Responsable qualitÃ©", type: "CDI", entree: "01/06/2023", salaire: "280 000", dept: "Commerce", statut: "Actif" },
-  { id: "EMP-005", nom: "Ibrahim Sawadogo", poste: "Chef d'Ã©quipe terrain", type: "CDI", entree: "01/03/2023", salaire: "260 000", dept: "Production", statut: "Actif" },
+  { id: "EMP-003", nom: "Mariam Kouyaté", poste: "DRH", type: "CDI cadre", entree: "15/04/2023", salaire: "380 000", dept: "RH", statut: "Actif" },
+  { id: "EMP-004", nom: "Adjoua Messou", poste: "Responsable qualité", type: "CDI", entree: "01/06/2023", salaire: "280 000", dept: "Commerce", statut: "Actif" },
+  { id: "EMP-005", nom: "Ibrahim Sawadogo", poste: "Chef d'équipe terrain", type: "CDI", entree: "01/03/2023", salaire: "260 000", dept: "Production", statut: "Actif" },
   { id: "EMP-006", nom: "Konan Yao", poste: "Technicien agricole", type: "CDI", entree: "01/06/2023", salaire: "210 000", dept: "Production", statut: "Actif" },
-  { id: "EMP-007", nom: "Bamba Oumar", poste: "Chef mÃ©canicien", type: "CDI", entree: "01/08/2023", salaire: "200 000", dept: "Logistique", statut: "Actif" },
-  { id: "EMP-008", nom: "TraorÃ© Moussa", poste: "Chauffeur camion", type: "CDI", entree: "01/09/2023", salaire: "180 000", dept: "Logistique", statut: "Actif" },
-  { id: "EMP-009", nom: "Coulibaly RasmanÃ©", poste: "Chauffeur pick-up", type: "CDI", entree: "01/09/2023", salaire: "165 000", dept: "Logistique", statut: "Actif" },
-  { id: "EMP-010", nom: "Diallo Fatoumata", poste: "SecrÃ©taire comptable", type: "CDI", entree: "01/10/2023", salaire: "185 000", dept: "Finance", statut: "Actif" },
+  { id: "EMP-007", nom: "Bamba Oumar", poste: "Chef mécanicien", type: "CDI", entree: "01/08/2023", salaire: "200 000", dept: "Logistique", statut: "Actif" },
+  { id: "EMP-008", nom: "Traoré Moussa", poste: "Chauffeur camion", type: "CDI", entree: "01/09/2023", salaire: "180 000", dept: "Logistique", statut: "Actif" },
+  { id: "EMP-009", nom: "Coulibaly Rasmané", poste: "Chauffeur pick-up", type: "CDI", entree: "01/09/2023", salaire: "165 000", dept: "Logistique", statut: "Actif" },
+  { id: "EMP-010", nom: "Diallo Fatoumata", poste: "Secrétaire comptable", type: "CDI", entree: "01/10/2023", salaire: "185 000", dept: "Finance", statut: "Actif" },
   { id: "EMP-011", nom: "Soro Ladji", poste: "Magasinier", type: "CDI", entree: "15/11/2023", salaire: "160 000", dept: "Logistique", statut: "Actif" },
-  { id: "EMP-012", nom: "OuÃ©draogo AÃ¯ssata", poste: "Technicienne terrain", type: "CDD 2 ans", entree: "01/01/2024", salaire: "180 000", dept: "Production", statut: "Actif" },
-  { id: "EMP-013", nom: "KouyatÃ© Laurent", poste: "Comptable junior", type: "CDD 1 an", entree: "01/03/2025", salaire: "165 000", dept: "Finance", statut: "Actif" },
-  { id: "EMP-014", nom: "Bi IriÃ©", poste: "Agent logistique", type: "CDD 6 mois", entree: "01/04/2025", salaire: "150 000", dept: "Logistique", statut: "Actif" },
-  { id: "EMP-015", nom: "DembÃ©lÃ© Mariam", poste: "Assistante RH", type: "CDD 6 mois", entree: "01/05/2025", salaire: "145 000", dept: "RH", statut: "Actif" },
+  { id: "EMP-012", nom: "Ouédraogo Aïssata", poste: "Technicienne terrain", type: "CDD 2 ans", entree: "01/01/2024", salaire: "180 000", dept: "Production", statut: "Actif" },
+  { id: "EMP-013", nom: "Kouyaté Laurent", poste: "Comptable junior", type: "CDD 1 an", entree: "01/03/2025", salaire: "165 000", dept: "Finance", statut: "Actif" },
+  { id: "EMP-014", nom: "Bi Irié", poste: "Agent logistique", type: "CDD 6 mois", entree: "01/04/2025", salaire: "150 000", dept: "Logistique", statut: "Actif" },
+  { id: "EMP-015", nom: "Dembélé Mariam", poste: "Assistante RH", type: "CDD 6 mois", entree: "01/05/2025", salaire: "145 000", dept: "RH", statut: "Actif" },
 ];
 
-const exportRows = employes.map((e) => ({
-  nom: e.nom,
-  prenom: "",
-  poste: e.poste,
-  typeContrat: e.type,
-  salaireBase: e.salaire + " XOF",
-  dateEmbauche: e.entree,
-  zone: e.dept,
-}));
+// exportRows is computed dynamically inside the component using activeRows
 
 function initials(nom: string) {
   return nom.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
@@ -75,20 +68,20 @@ function OrgChart() {
   type Box = { x: number; y: number; name: string; role: string; dark?: boolean };
 
   const boxes: Box[] = [
-    { x: 330, y: 20, name: "Admin AGRIFRIK", role: "Directeur GÃ©nÃ©ral", dark: true },
+    { x: 330, y: 20, name: "Admin AGRIFRIK", role: "Directeur Général", dark: true },
     { x: 40,  y: 120, name: "Jean-Baptiste K.", role: "DAF" },
-    { x: 200, y: 120, name: "Mariam KouyatÃ©", role: "DRH" },
+    { x: 200, y: 120, name: "Mariam Kouyaté", role: "DRH" },
     { x: 360, y: 120, name: "Ibrahim Sawadogo", role: "Dir. Production" },
     { x: 520, y: 120, name: "Adjoua Messou", role: "Dir. Commerce" },
-    { x: 0,   y: 230, name: "KouyatÃ© Laurent", role: "Comptable junior" },
-    { x: 80,  y: 230, name: "Diallo Fatoumata", role: "SecrÃ©t. comptable" },
-    { x: 200, y: 230, name: "DembÃ©lÃ© Mariam", role: "Assistante RH" },
+    { x: 0,   y: 230, name: "Kouyaté Laurent", role: "Comptable junior" },
+    { x: 80,  y: 230, name: "Diallo Fatoumata", role: "Secrét. comptable" },
+    { x: 200, y: 230, name: "Dembélé Mariam", role: "Assistante RH" },
     { x: 320, y: 230, name: "Konan Yao", role: "Tech. agricole" },
-    { x: 430, y: 230, name: "OuÃ©draogo AÃ¯ssata", role: "Tech. terrain" },
-    { x: 540, y: 230, name: "Bi IriÃ©", role: "Agent logistique" },
-    { x: 660, y: 120, name: "Bamba Oumar", role: "Chef mÃ©canicien" },
-    { x: 660, y: 200, name: "TraorÃ© Moussa", role: "Chauffeur camion" },
-    { x: 660, y: 280, name: "Coulibaly RasmanÃ©", role: "Chauffeur pick-up" },
+    { x: 430, y: 230, name: "Ouédraogo Aïssata", role: "Tech. terrain" },
+    { x: 540, y: 230, name: "Bi Irié", role: "Agent logistique" },
+    { x: 660, y: 120, name: "Bamba Oumar", role: "Chef mécanicien" },
+    { x: 660, y: 200, name: "Traoré Moussa", role: "Chauffeur camion" },
+    { x: 660, y: 280, name: "Coulibaly Rasmané", role: "Chauffeur pick-up" },
     { x: 660, y: 355, name: "Soro Ladji", role: "Magasinier" },
   ];
 
@@ -145,7 +138,7 @@ const recrutements = [
     poste: "Responsable exportation",
     dept: "Commerce",
     type: "CDI cadre",
-    salaire: "320 000 â€“ 380 000 XOF",
+    salaire: "320 000 - 380 000 XOF",
     ouvert: "01/06/2025",
     statut: "Entretiens en cours",
     statutColor: "#F59E0B",
@@ -153,7 +146,7 @@ const recrutements = [
     candidats: 12,
     shortlist: 3,
     entretienFinal: "18/07/2025",
-    recruteur: "Mariam KouyatÃ©",
+    recruteur: "Mariam Kouyaté",
   },
   {
     poste: "Technicien pisciculture",
@@ -161,7 +154,7 @@ const recrutements = [
     type: "CDD 1 an",
     salaire: "180 000 XOF",
     ouvert: "20/06/2025",
-    statut: "RÃ©ception candidatures",
+    statut: "Réception candidatures",
     statutColor: "#1565C0",
     statutBg: "#E3F2FD",
     candidats: 4,
@@ -172,10 +165,10 @@ const recrutements = [
 ];
 
 const evals = [
-  { nom: "Ibrahim Sawadogo", note: 96, points: "Leadership terrain, qualitÃ© cacao", obj: "Formation audit RA avancÃ©" },
-  { nom: "Adjoua Messou", note: 94, points: "Rigueur qualitÃ©, initiative NC", obj: "Responsable certif. ISO" },
-  { nom: "Jean-Baptiste Kouassi", note: 92, points: "Gestion financiÃ¨re, bailleurs", obj: "Formation SYSCOHADA avancÃ©" },
-  { nom: "Bamba Oumar", note: 88, points: "Maintenance pro, zÃ©ro panne", obj: "Certification mÃ©canique JD" },
+  { nom: "Ibrahim Sawadogo", note: 96, points: "Leadership terrain, qualité cacao", obj: "Formation audit RA avancé" },
+  { nom: "Adjoua Messou", note: 94, points: "Rigueur qualité, initiative NC", obj: "Responsable certif. ISO" },
+  { nom: "Jean-Baptiste Kouassi", note: 92, points: "Gestion financière, bailleurs", obj: "Formation SYSCOHADA avancé" },
+  { nom: "Bamba Oumar", note: 88, points: "Maintenance pro, zéro panne", obj: "Certification mécanique JD" },
   { nom: "Konan Yao", note: 86, points: "Technique agronomique", obj: "Formation drone DJI" },
 ];
 
@@ -191,26 +184,26 @@ function ScoreBar({ note }: { note: number }) {
 }
 
 const conges = [
-  { nom: "Ibrahim Sawadogo", acquis: 30, pris: 8, solde: 22, prochain: "Pas de congÃ© planifiÃ© (rÃ©colte oct)", alert: false },
-  { nom: "Mariam KouyatÃ©", acquis: 30, pris: 12, solde: 18, prochain: "CongÃ© annuel 1â†’15 AoÃ» 2025", alert: false },
-  { nom: "Adjoua Messou", acquis: 30, pris: 0, solde: 30, prochain: "Ã€ planifier avant dÃ©c 2025", alert: true },
-  { nom: "Jean-Baptiste Kouassi", acquis: 30, pris: 5, solde: 25, prochain: "Non planifiÃ©", alert: false },
+  { nom: "Ibrahim Sawadogo", acquis: 30, pris: 8, solde: 22, prochain: "Pas de congé planifié (récolte oct)", alert: false },
+  { nom: "Mariam Kouyaté", acquis: 30, pris: 12, solde: 18, prochain: "Congé annuel 1'15 Aoû 2025", alert: false },
+  { nom: "Adjoua Messou", acquis: 30, pris: 0, solde: 30, prochain: "Ã€ planifier avant déc 2025", alert: true },
+  { nom: "Jean-Baptiste Kouassi", acquis: 30, pris: 5, solde: 25, prochain: "Non planifié", alert: false },
   { nom: "Konan Yao", acquis: 30, pris: 10, solde: 20, prochain: "Sep 2025 (en discussion)", alert: false },
-  { nom: "Bamba Oumar", acquis: 30, pris: 6, solde: 24, prochain: "Non planifiÃ©", alert: false },
-  { nom: "TraorÃ© Moussa", acquis: 26, pris: 4, solde: 22, prochain: "AoÃ» S2 2025", alert: false },
-  { nom: "Coulibaly RasmanÃ©", acquis: 26, pris: 8, solde: 18, prochain: "Non planifiÃ©", alert: false },
+  { nom: "Bamba Oumar", acquis: 30, pris: 6, solde: 24, prochain: "Non planifié", alert: false },
+  { nom: "Traoré Moussa", acquis: 26, pris: 4, solde: 22, prochain: "Aoû S2 2025", alert: false },
+  { nom: "Coulibaly Rasmané", acquis: 26, pris: 8, solde: 18, prochain: "Non planifié", alert: false },
   { nom: "Diallo Fatoumata", acquis: 26, pris: 0, solde: 26, prochain: "Ã€ planifier", alert: true },
-  { nom: "Soro Ladji", acquis: 22, pris: 4, solde: 18, prochain: "Non planifiÃ©", alert: false },
-  { nom: "OuÃ©draogo AÃ¯ssata", acquis: 18, pris: 0, solde: 18, prochain: "Non planifiÃ©", alert: false },
-  { nom: "KouyatÃ© Laurent", acquis: 10, pris: 0, solde: 10, prochain: "Non planifiÃ©", alert: false },
-  { nom: "Bi IriÃ©", acquis: 8, pris: 0, solde: 8, prochain: "Non planifiÃ©", alert: false },
-  { nom: "DembÃ©lÃ© Mariam", acquis: 6, pris: 0, solde: 6, prochain: "Non planifiÃ©", alert: false },
-  { nom: "Admin AGRIFRIK", acquis: 30, pris: 15, solde: 15, prochain: "Non planifiÃ©", alert: false },
+  { nom: "Soro Ladji", acquis: 22, pris: 4, solde: 18, prochain: "Non planifié", alert: false },
+  { nom: "Ouédraogo Aïssata", acquis: 18, pris: 0, solde: 18, prochain: "Non planifié", alert: false },
+  { nom: "Kouyaté Laurent", acquis: 10, pris: 0, solde: 10, prochain: "Non planifié", alert: false },
+  { nom: "Bi Irié", acquis: 8, pris: 0, solde: 8, prochain: "Non planifié", alert: false },
+  { nom: "Dembélé Mariam", acquis: 6, pris: 0, solde: 6, prochain: "Non planifié", alert: false },
+  { nom: "Admin AGRIFRIK", acquis: 30, pris: 15, solde: 15, prochain: "Non planifié", alert: false },
 ];
 
 const planningPersonnes = [
-  { nom: "Mariam KouyatÃ©", conge: [2, 3], formation: [] },
-  { nom: "TraorÃ© Moussa", conge: [5, 6], formation: [] },
+  { nom: "Mariam Kouyaté", conge: [2, 3], formation: [] },
+  { nom: "Traoré Moussa", conge: [5, 6], formation: [] },
   { nom: "Ibrahim Sawadogo", conge: [], formation: [1] },
   { nom: "Adjoua Messou", conge: [], formation: [3, 4] },
   { nom: "Konan Yao", conge: [7], formation: [] },
@@ -227,7 +220,7 @@ function PlanningChart() {
   const H = padT + rowH * planningPersonnes.length + 10;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" aria-label="Planning absences Juil-AoÃ» 2025">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" aria-label="Planning absences Juil-Aoû 2025">
       {semaines.map((s, i) => (
         <text key={i} x={labelW + padL + i * colW + colW / 2} y={padT - 8} textAnchor="middle" fontSize="9" fill="#9CA3AF">
           {s.split("\n")[0]}
@@ -262,7 +255,7 @@ function PlanningChart() {
       })}
       <line x1={0} y1={H - 10} x2={W} y2={H - 10} stroke="#E5E7EB" strokeWidth="1" />
       <rect x={padL} y={H - 8} width={12} height={8} rx="2" fill="#FED7AA" stroke="#F97316" strokeWidth="1" />
-      <text x={padL + 16} y={H - 1} fontSize="9" fill="#9CA3AF">CongÃ©s</text>
+      <text x={padL + 16} y={H - 1} fontSize="9" fill="#9CA3AF">Congés</text>
       <rect x={padL + 70} y={H - 8} width={12} height={8} rx="2" fill="#BFDBFE" stroke="#3B82F6" strokeWidth="1" />
       <text x={padL + 86} y={H - 1} fontSize="9" fill="#9CA3AF">Formation</text>
     </svg>
@@ -271,19 +264,46 @@ function PlanningChart() {
 
 const filtresEff = ["Tous", "Permanent", "CDD", "Saisonniers", "Cadres"];
 
-const TABS = ["Effectifs", "Organigramme", "Recrutements", "Ã‰valuations", "CongÃ©s"];
+const TABS = ["Effectifs", "Organigramme", "Recrutements", "Ã‰valuations", "Congés"];
 
 export default function RHPage() {
   const [tab, setTab] = useState(0);
   const [filtreEff, setFiltreEff] = useState("Tous");
   const [modalEmployeOpen, setModalEmployeOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
 
-  const empFiltres = employes.filter((e) => {
+  const load = () => { dbGet<Record<string, unknown>>("employes").then(setRows); };
+  useEffect(() => { load(); }, []);
+
+  const activeRows: Record<string, unknown>[] = rows.length > 0 ? rows : employes.map((e) => ({
+    id: e.id,
+    nom: e.nom.split(" ").slice(1).join(" ") || e.nom,
+    prenom: e.nom.split(" ")[0],
+    poste: e.poste,
+    type_contrat: e.type,
+    salaire_base: parseFloat(e.salaire.replace(/\s/g, "")) || 0,
+    date_embauche: e.entree,
+    departement: e.dept,
+    actif: e.statut === "Actif",
+  }));
+
+  const exportRows = activeRows.map((e) => ({
+    nom: String(e.nom ?? ""),
+    prenom: String(e.prenom ?? ""),
+    poste: String(e.poste ?? ""),
+    typeContrat: String(e.type_contrat ?? ""),
+    salaireBase: String(e.salaire_base ?? "") + " XOF",
+    dateEmbauche: String(e.date_embauche ?? ""),
+    zone: String(e.departement ?? ""),
+  }));
+
+  const empFiltres = activeRows.filter((e) => {
+    const typeContrat = String(e.type_contrat ?? "");
     if (filtreEff === "Tous") return true;
-    if (filtreEff === "Permanent") return e.type === "CDI";
-    if (filtreEff === "CDD") return e.type.startsWith("CDD");
-    if (filtreEff === "Cadres") return e.type.includes("cadre");
+    if (filtreEff === "Permanent") return typeContrat === "CDI";
+    if (filtreEff === "CDD") return typeContrat.startsWith("CDD");
+    if (filtreEff === "Cadres") return typeContrat.includes("cadre");
     return true;
   });
 
@@ -305,9 +325,22 @@ export default function RHPage() {
       <ModalEmploye
         isOpen={modalEmployeOpen}
         onClose={() => setModalEmployeOpen(false)}
-        onSubmit={() => {
+        onSubmit={async ({ nomComplet, poste, typeContrat, dateEmbauche, salaire, telephone, zone }) => {
+          await dbPost("employes", {
+            nom: nomComplet.split(" ").slice(1).join(" ") || nomComplet,
+            prenom: nomComplet.split(" ")[0],
+            poste,
+            type_contrat: typeContrat,
+            salaire_base: parseFloat(salaire) || 0,
+            date_embauche: dateEmbauche,
+            telephone,
+            departement: zone,
+            actif: true,
+            organisation_id: DEMO_ORG_ID,
+          });
           setModalEmployeOpen(false);
-          showToast("EmployÃ© ajoutÃ© avec succÃ¨s");
+          showToast("Employé ajouté avec succès");
+          load();
         }}
       />
 
@@ -369,7 +402,7 @@ export default function RHPage() {
                   onClick={() => setModalEmployeOpen(true)}
                   className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-3 py-1.5 hover:bg-[#1B5E20] transition"
                 >
-                  + Ajouter un employÃ©
+                  + Ajouter un employé
                 </button>
               </div>
             </div>
@@ -379,31 +412,40 @@ export default function RHPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr style={{ backgroundColor: "#F8FBF8" }}>
-                      {["NÂ°", "EmployÃ©", "Poste", "Type contrat", "Date entrÃ©e", "Salaire brut", "DÃ©partement", "Statut", "Actions"].map((h) => (
+                      {["NÂ°", "Employé", "Poste", "Type contrat", "Date entrée", "Salaire brut", "Département", "Statut", "Actions"].map((h) => (
                         <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {empFiltres.map((e) => (
-                      <tr key={e.id} className="hover:bg-gray-50 transition">
-                        <td className="px-4 py-3 text-xs font-mono text-gray-400">{e.id}</td>
+                    {empFiltres.map((e, idx) => {
+                      const rowId = String(e.id ?? `row-${idx}`);
+                      const fullName = e.prenom ? `${String(e.prenom)} ${String(e.nom ?? "")}`.trim() : String(e.nom ?? "");
+                      const poste = String(e.poste ?? "");
+                      const typeContrat = String(e.type_contrat ?? "");
+                      const dateEmbauche = String(e.date_embauche ?? "");
+                      const salaire = e.salaire_base != null ? String(e.salaire_base) : "";
+                      const dept = String(e.departement ?? "");
+                      const actif = e.actif !== false;
+                      return (
+                      <tr key={rowId} className="hover:bg-gray-50 transition">
+                        <td className="px-4 py-3 text-xs font-mono text-gray-400">{rowId}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                               style={{ backgroundColor: "#2E7D32" }}>
-                              {initials(e.nom)}
+                              {initials(fullName)}
                             </div>
-                            <span className="font-medium text-gray-900 whitespace-nowrap">{e.nom}</span>
+                            <span className="font-medium text-gray-900 whitespace-nowrap">{fullName}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">{e.poste}</td>
-                        <td className="px-4 py-3"><ContratBadge type={e.type} /></td>
-                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{e.entree}</td>
-                        <td className="px-4 py-3 text-xs font-semibold text-gray-900 whitespace-nowrap">{e.salaire} XOF</td>
-                        <td className="px-4 py-3 text-xs text-gray-500">{e.dept}</td>
+                        <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">{poste}</td>
+                        <td className="px-4 py-3"><ContratBadge type={typeContrat} /></td>
+                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{dateEmbauche}</td>
+                        <td className="px-4 py-3 text-xs font-semibold text-gray-900 whitespace-nowrap">{salaire} XOF</td>
+                        <td className="px-4 py-3 text-xs text-gray-500">{dept}</td>
                         <td className="px-4 py-3">
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">âœ… {e.statut}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">✅ {actif ? "Actif" : "Inactif"}</span>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
@@ -412,10 +454,10 @@ export default function RHPage() {
                               className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition border border-gray-200"
                             >
                               <Pencil size={12} />
-                              Ã‰diter
+                              Éditer
                             </button>
                             <button
-                              onClick={() => showToast(`Fiche de ${e.nom} â€” en cours de dÃ©veloppement`)}
+                              onClick={() => showToast(`Fiche de ${fullName} - en cours de développement`)}
                               className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition border border-gray-200"
                             >
                               <FileText size={12} />
@@ -424,7 +466,8 @@ export default function RHPage() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -444,11 +487,11 @@ export default function RHPage() {
             <div className="flex items-center gap-6 mt-4 text-xs text-gray-500">
               <span className="flex items-center gap-2">
                 <span className="inline-block w-4 h-4 rounded" style={{ backgroundColor: "#1A2E1A" }} />
-                Direction gÃ©nÃ©rale
+                Direction générale
               </span>
               <span className="flex items-center gap-2">
                 <span className="inline-block w-4 h-4 rounded border border-[#2E7D32]" style={{ backgroundColor: "#E8F5E9" }} />
-                Encadrement & Ã©quipes
+                Encadrement & équipes
               </span>
             </div>
           </div>
@@ -476,7 +519,7 @@ export default function RHPage() {
                     <p className="font-semibold text-gray-800 mt-0.5">{r.ouvert}</p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-gray-400">Candidats reÃ§us</p>
+                    <p className="text-gray-400">Candidats reçus</p>
                     <p className="font-semibold text-gray-800 mt-0.5">{r.candidats}</p>
                   </div>
                   {r.shortlist != null && (
@@ -506,18 +549,18 @@ export default function RHPage() {
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-semibold text-gray-800">Campagne Ã©valuation annuelle 2025</h2>
-                <span className="text-xs text-gray-500">Avr â€“ Mai 2025 Â· 42/60 complÃ¨tes (70%)</span>
+                <h2 className="text-base font-semibold text-gray-800">Campagne évaluation annuelle 2025</h2>
+                <span className="text-xs text-gray-500">Avr -" Mai 2025 Â· 42/60 complètes (70%)</span>
               </div>
               <div className="w-full h-2 bg-gray-100 rounded-full mb-6 overflow-hidden">
                 <div className="h-full rounded-full bg-[#2E7D32]" style={{ width: "70%" }} />
               </div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Top 5 â€” Meilleures Ã©valuations</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Top 5 -" Meilleures évaluations</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr style={{ backgroundColor: "#F8FBF8" }}>
-                      {["EmployÃ©", "Note", "Points forts", "Objectifs 2026"].map((h) => (
+                      {["Employé", "Note", "Points forts", "Objectifs 2026"].map((h) => (
                         <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500">{h}</th>
                       ))}
                     </tr>
@@ -550,13 +593,13 @@ export default function RHPage() {
         {tab === 4 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-base font-semibold text-gray-800 mb-3">Soldes de congÃ©s (permanents)</h2>
+              <h2 className="text-base font-semibold text-gray-800 mb-3">Soldes de congés (permanents)</h2>
               <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr style={{ backgroundColor: "#F8FBF8" }}>
-                        {["EmployÃ©", "Droits acquis", "Jours pris", "Solde", "Prochain congÃ© prÃ©vu"].map((h) => (
+                        {["Employé", "Droits acquis", "Jours pris", "Solde", "Prochain congé prévu"].map((h) => (
                           <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
@@ -590,7 +633,7 @@ export default function RHPage() {
             </div>
 
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <h2 className="text-base font-semibold text-gray-800 mb-4">Calendrier des absences â€” Juilletâ€“AoÃ»t 2025</h2>
+              <h2 className="text-base font-semibold text-gray-800 mb-4">Calendrier des absences -" Juillet-"Août 2025</h2>
               <div className="overflow-x-auto">
                 <div style={{ minWidth: 680 }}>
                   <PlanningChart />

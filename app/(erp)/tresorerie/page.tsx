@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Topbar from "../../components/Topbar";
+import { dbGet, dbPost, DEMO_ORG_ID } from "@/lib/db";
 import ExportButton from "../../components/ui/ExportButton";
 import {
   Wallet,
@@ -32,7 +33,7 @@ const comptes = [
     numero: "n°0012-01847-00204847421-01",
     iban: "CI93 01 23456 01234567890 12",
     solde: "34 200 000 XOF",
-    detail1: "Dernière op. : 07/07/2025 — Encaissement Olam 18 240 000 XOF",
+    detail1: "Dernière op. : 07/07/2025 - Encaissement Olam 18 240 000 XOF",
     detail2: "Découvert autorisé : 10 000 000 XOF",
     accent: "#1565C0",
     bg: "#E3F2FD",
@@ -44,7 +45,7 @@ const comptes = [
     numero: "n°0012-01847-00912345678-01",
     iban: "",
     solde: "0 XOF",
-    detail1: "Non utilisé — prévu comme réserve de tréso 2026",
+    detail1: "Non utilisé - prévu comme réserve de tréso 2026",
     detail2: "",
     accent: "#6A1B9A",
     bg: "#F3E5F5",
@@ -158,25 +159,25 @@ const mouvementsMock = [
 
 // ─── MOUVEMENTS HISTORIQUES ─────────────────────────────────────────────────
 const mouvements = [
-  { date: "07/07", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Olam CI — FAC-044 partiel", ref: "V-OLA-202507", montant: "+18 240 000", solde: "34 200 000" },
-  { date: "05/07", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Nestlé — FAC-040", ref: "V-NES-202507", montant: "+5 440 000", solde: "15 960 000" },
-  { date: "05/07", compte: "BICICI c/c", type: "Sortie", libelle: "Virement salaires Juin 2025 — 18 employés", ref: "SAL-JUN-2025", montant: "-3 840 000", solde: "10 520 000" },
-  { date: "04/07", compte: "BICICI c/c", type: "Sortie", libelle: "Fournisseur SCPA Afrique — KCl 4t", ref: "ACH-2025-088", montant: "-2 400 000", solde: "14 360 000" },
+  { date: "07/07", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Olam CI - FAC-044 partiel", ref: "V-OLA-202507", montant: "+18 240 000", solde: "34 200 000" },
+  { date: "05/07", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Nestlé - FAC-040", ref: "V-NES-202507", montant: "+5 440 000", solde: "15 960 000" },
+  { date: "05/07", compte: "BICICI c/c", type: "Sortie", libelle: "Virement salaires Juin 2025 - 18 employés", ref: "SAL-JUN-2025", montant: "-3 840 000", solde: "10 520 000" },
+  { date: "04/07", compte: "BICICI c/c", type: "Sortie", libelle: "Fournisseur SCPA Afrique - KCl 4t", ref: "ACH-2025-088", montant: "-2 400 000", solde: "14 360 000" },
   { date: "03/07", compte: "Orange Money", type: "Sortie", libelle: "Paiement manœuvres terrain Jul S1", ref: "OM-2025-07-01", montant: "-320 000", solde: "480 000" },
   { date: "01/07", compte: "Caisse", type: "Sortie", libelle: "Carburant semaine 27", ref: "CAI-2025-027", montant: "-185 000", solde: "1 240 000" },
   { date: "30/06", compte: "BICICI c/c", type: "Sortie", libelle: "Prime qualité coopérative 2024", ref: "COOP-PRIME-2024", montant: "-4 200 000", solde: "16 760 000" },
   { date: "28/06", compte: "BICICI c/c", type: "Entrée", libelle: "Subvention WB tranche Q2", ref: "WB-2025-Q2", montant: "+9 000 000", solde: "20 960 000" },
-  { date: "25/06", compte: "BICICI c/c", type: "Sortie", libelle: "Assurances NSIA + SAHAM — S2 2025", ref: "ASS-S2-2025", montant: "-940 000", solde: "11 960 000" },
-  { date: "20/06", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Barry Callebaut — FAC-043", ref: "V-BC-202506", montant: "+18 720 000", solde: "12 900 000" },
-  { date: "18/06", compte: "BICICI c/c", type: "Sortie", libelle: "Achat engrais NPK — Yara CI", ref: "ACH-2025-081", montant: "-3 200 000", solde: "4 180 000" },
+  { date: "25/06", compte: "BICICI c/c", type: "Sortie", libelle: "Assurances NSIA + SAHAM - S2 2025", ref: "ASS-S2-2025", montant: "-940 000", solde: "11 960 000" },
+  { date: "20/06", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Barry Callebaut - FAC-043", ref: "V-BC-202506", montant: "+18 720 000", solde: "12 900 000" },
+  { date: "18/06", compte: "BICICI c/c", type: "Sortie", libelle: "Achat engrais NPK - Yara CI", ref: "ACH-2025-081", montant: "-3 200 000", solde: "4 180 000" },
   { date: "15/06", compte: "Orange Money", type: "Sortie", libelle: "Paiement manœuvres terrain Jun S2", ref: "OM-2025-06-02", montant: "-310 000", solde: "800 000" },
   { date: "12/06", compte: "Caisse", type: "Entrée", libelle: "Remboursement avance Konan Y.", ref: "CAI-2025-022", montant: "+45 000", solde: "1 425 000" },
-  { date: "10/06", compte: "BICICI c/c", type: "Sortie", libelle: "Acompte fret maritime — Sopromer CI", ref: "ACH-2025-078", montant: "-1 840 000", solde: "7 380 000" },
-  { date: "05/06", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Olam CI — FAC-041", ref: "V-OLA-202506", montant: "+12 600 000", solde: "9 220 000" },
+  { date: "10/06", compte: "BICICI c/c", type: "Sortie", libelle: "Acompte fret maritime - Sopromer CI", ref: "ACH-2025-078", montant: "-1 840 000", solde: "7 380 000" },
+  { date: "05/06", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Olam CI - FAC-041", ref: "V-OLA-202506", montant: "+12 600 000", solde: "9 220 000" },
   { date: "02/06", compte: "BICICI c/c", type: "Sortie", libelle: "Charges sociales CNPS Mai 2025", ref: "CNPS-MAI-2025", montant: "-680 000", solde: "3 380 000" },
-  { date: "30/05", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Cargill — FAC-039", ref: "V-CAR-202505", montant: "+14 400 000", solde: "4 060 000" },
+  { date: "30/05", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Cargill - FAC-039", ref: "V-CAR-202505", montant: "+14 400 000", solde: "4 060 000" },
   { date: "28/05", compte: "Caisse", type: "Sortie", libelle: "Petites fournitures bureau mai", ref: "CAI-2025-019", montant: "-82 000", solde: "1 380 000" },
-  { date: "25/05", compte: "BICICI c/c", type: "Sortie", libelle: "Réparation tracteur MF390 — Bamba O.", ref: "MAT-2025-047", montant: "-740 000", solde: "4 740 000" },
+  { date: "25/05", compte: "BICICI c/c", type: "Sortie", libelle: "Réparation tracteur MF390 - Bamba O.", ref: "MAT-2025-047", montant: "-740 000", solde: "4 740 000" },
   { date: "20/05", compte: "BICICI c/c", type: "Entrée", libelle: "Subvention FIRCA campagne 2025", ref: "FIRCA-2025-Q1", montant: "+6 000 000", solde: "5 480 000" },
 ];
 
@@ -252,7 +253,10 @@ export default function TresoreriePage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<MouvForm>(defaultForm);
   const [toast, setToast] = useState(false);
-  const [rows, setRows] = useState(mouvementsMock);
+  const [rows, setRows] = useState<Record<string, unknown>[]>(mouvementsMock);
+
+  const load = () => { dbGet<Record<string, unknown>>("transactions").then((data) => { if (data && data.length > 0) setRows(data); }); };
+  useEffect(() => { load(); }, []);
 
   const mouvFiltres = mouvements.filter((m) => {
     const okC = filtreCompte === "Tous" || m.compte.includes(filtreCompte);
@@ -269,35 +273,35 @@ export default function TresoreriePage() {
     setModalOpen(false);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const newRow = {
-      id: `T${rows.length + 1}`,
-      date: form.date,
-      libelle: form.libelle,
+    await dbPost("transactions", {
       type: form.type,
-      compte: form.compte,
+      libelle: form.libelle,
       montant: parseFloat(form.montant) || 0,
-      solde: 0,
-    };
-    setRows([newRow, ...rows]);
+      date_transaction: form.date,
+      statut: "Confirmé",
+      organisation_id: DEMO_ORG_ID,
+    });
     setModalOpen(false);
     setToast(true);
     setTimeout(() => setToast(false), 3000);
+    load();
   }
 
   const exportData = rows.map((r) => ({
-    ID: r.id,
-    Date: r.date,
-    Libellé: r.libelle,
-    Type: r.type,
-    Compte: r.compte,
-    Montant: r.montant,
-    Solde: r.solde,
+    ID: String(r.id ?? ""),
+    Date: String(r.date ?? r.date_transaction ?? ""),
+    Libellé: String(r.libelle ?? ""),
+    Type: String(r.type ?? ""),
+    Compte: String(r.compte ?? ""),
+    Montant: Number(r.montant ?? 0),
+    Solde: Number(r.solde ?? 0),
   }));
 
   const soldeCourant = rows.reduce((acc, r) => {
-    return r.type === "Encaissement" ? acc + r.montant : acc - r.montant;
+    const montant = Number(r.montant ?? 0);
+    return String(r.type) === "Encaissement" ? acc + montant : acc - montant;
   }, 8600000);
 
   return (
@@ -453,12 +457,19 @@ export default function TresoreriePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {rows.map((r) => {
-                  const isEnc = r.type === "Encaissement";
+                {rows.map((r, idx) => {
+                  const rType = String(r.type ?? "");
+                  const rDate = String(r.date ?? r.date_transaction ?? "");
+                  const rLibelle = String(r.libelle ?? "");
+                  const rCompte = String(r.compte ?? "");
+                  const rMontant = Number(r.montant ?? 0);
+                  const rSolde = Number(r.solde ?? 0);
+                  const rId = String(r.id ?? idx);
+                  const isEnc = rType === "Encaissement";
                   return (
-                    <tr key={r.id} className="hover:bg-gray-50 transition">
-                      <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{r.date}</td>
-                      <td className="px-4 py-3 text-sm text-gray-800">{r.libelle}</td>
+                    <tr key={rId} className="hover:bg-gray-50 transition">
+                      <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{rDate}</td>
+                      <td className="px-4 py-3 text-sm text-gray-800">{rLibelle}</td>
                       <td className="px-4 py-3">
                         <span
                           className="text-xs font-semibold px-2 py-0.5 rounded-full"
@@ -466,15 +477,15 @@ export default function TresoreriePage() {
                             ? { backgroundColor: "#E8F5E9", color: "#2E7D32" }
                             : { backgroundColor: "#FFEBEE", color: "#D32F2F" }}
                         >
-                          {r.type}
+                          {rType}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{r.compte}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600">{rCompte}</td>
                       <td className="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap" style={{ color: isEnc ? "#2E7D32" : "#D32F2F" }}>
-                        {isEnc ? "+" : "-"}{r.montant.toLocaleString("fr-FR")} XOF
+                        {isEnc ? "+" : "-"}{rMontant.toLocaleString("fr-FR")} XOF
                       </td>
                       <td className="px-4 py-3 text-right text-xs text-gray-500 whitespace-nowrap">
-                        {r.solde ? r.solde.toLocaleString("fr-FR") + " XOF" : "—"}
+                        {rSolde ? rSolde.toLocaleString("fr-FR") + " XOF" : "-"}
                       </td>
                     </tr>
                   );
@@ -547,7 +558,7 @@ export default function TresoreriePage() {
             </div>
 
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-              <h2 className="text-base font-semibold text-gray-800 mb-4">Flux du mois — Juillet 2025 (au 11/07)</h2>
+              <h2 className="text-base font-semibold text-gray-800 mb-4">Flux du mois - Juillet 2025 (au 11/07)</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {fluxMois.map((f) => (
                   <div key={f.label} className="rounded-xl bg-gray-50 p-4 flex flex-col gap-1">
@@ -649,9 +660,9 @@ export default function TresoreriePage() {
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-semibold text-gray-800">Rapprochement BICICI — Juin 2025</h2>
+                <h2 className="text-base font-semibold text-gray-800">Rapprochement BICICI - Juin 2025</h2>
                 <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-green-50 text-green-700">
-                  <CheckCircle2 size={13} /> Rapproché — Validé le 05/07/2025 par Jean-Baptiste Kouassi
+                  <CheckCircle2 size={13} /> Rapproché - Validé le 05/07/2025 par Jean-Baptiste Kouassi
                 </span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -707,7 +718,7 @@ export default function TresoreriePage() {
             <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
               <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-600" />
               <div>
-                <p className="text-sm font-semibold text-amber-800">Rapprochement Juillet 2025 — En cours</p>
+                <p className="text-sm font-semibold text-amber-800">Rapprochement Juillet 2025 - En cours</p>
                 <p className="text-xs text-amber-700 mt-0.5">Relevé bancaire non encore reçu. Disponible le 15/07/2025.</p>
               </div>
             </div>
@@ -760,14 +771,14 @@ export default function TresoreriePage() {
               <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
                 <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-600" />
                 <div>
-                  <p className="text-sm font-semibold text-amber-800">🟡 Septembre 2025 — Flux négatif prévu</p>
-                  <p className="text-xs text-amber-700 mt-0.5">Flux négatif prévu (-3,8 M) lié aux achats pré-récolte. Tréso reste à 35,5 M — pas d&apos;action requise.</p>
+                  <p className="text-sm font-semibold text-amber-800">🟡 Septembre 2025 - Flux négatif prévu</p>
+                  <p className="text-xs text-amber-700 mt-0.5">Flux négatif prévu (-3,8 M) lié aux achats pré-récolte. Tréso reste à 35,5 M - pas d&apos;action requise.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 rounded-2xl border border-green-200 bg-green-50 px-5 py-4">
                 <Star size={18} className="mt-0.5 shrink-0 text-green-700" />
                 <div>
-                  <p className="text-sm font-semibold text-green-800">🟢 Octobre-Novembre — Rentrée récolte cacao</p>
+                  <p className="text-sm font-semibold text-green-800">🟢 Octobre-Novembre - Rentrée récolte cacao</p>
                   <p className="text-xs text-green-700 mt-0.5">Rentrée massive récolte cacao. Trésorerie atteint 65,7 M XOF en novembre.</p>
                 </div>
               </div>

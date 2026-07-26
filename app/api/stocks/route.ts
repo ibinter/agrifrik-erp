@@ -1,43 +1,37 @@
-import { NextResponse } from "next/server";
-import { stocks } from "@/lib/data";
-import type { StockItem, MouvementStock } from "@/lib/types";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@/lib/supabase/server";
 
-export async function GET(): Promise<NextResponse<StockItem[]>> {
-  return NextResponse.json(stocks);
+export async function GET(req: NextRequest) {
+  try {
+    const org = req.nextUrl.searchParams.get("org");
+    const sb = createServerClient() as any;
+    const { data, error } = await sb
+      .from("stocks")
+      .select("*")
+      .eq("organisation_id", org ?? "")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) throw error;
+    return NextResponse.json({ data: data ?? [] });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message, data: [] }, { status: 500 });
+  }
 }
 
-export async function POST(
-  request: Request
-): Promise<NextResponse<{ success: boolean; mouvement: MouvementStock } | { success: boolean; message: string }>> {
-  const body: Omit<MouvementStock, "id"> = await request.json();
-
-  if (!body.stockId || !body.type || !body.quantite || body.quantite <= 0) {
-    return NextResponse.json(
-      { success: false, message: "Champs obligatoires manquants ou invalides : stockId, type, quantite" },
-      { status: 400 }
-    );
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const sb = createServerClient() as any;
+    const { data, error } = await sb
+      .from("stocks")
+      .insert([body])
+      .select()
+      .single();
+    if (error) throw error;
+    return NextResponse.json({ data });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const typesValides: MouvementStock["type"][] = ["Entrée", "Sortie", "Transfert"];
-  if (!typesValides.includes(body.type)) {
-    return NextResponse.json(
-      { success: false, message: `Type de mouvement invalide. Valeurs acceptées : ${typesValides.join(", ")}` },
-      { status: 400 }
-    );
-  }
-
-  const mouvement: MouvementStock = {
-    id: `mvt-${Date.now()}`,
-    stockId: body.stockId,
-    type: body.type,
-    quantite: body.quantite,
-    entrepotSource: body.entrepotSource,
-    entrepotDestination: body.entrepotDestination,
-    dateMouvement: body.dateMouvement ?? new Date().toISOString().split("T")[0],
-    operateur: body.operateur ?? "Système",
-    motif: body.motif,
-  };
-
-  // En production, persister en base de données et mettre à jour le stock
-  return NextResponse.json({ success: true, mouvement }, { status: 201 });
 }

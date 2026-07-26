@@ -3,10 +3,20 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 
+interface ModalEmployeFormData {
+  nomComplet: string;
+  poste: string;
+  typeContrat: string;
+  dateEmbauche: string;
+  salaire: string;
+  telephone: string;
+  zone: string;
+}
+
 interface ModalEmployeProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: () => void;
+  onSubmit?: (data: ModalEmployeFormData) => void | Promise<void>;
 }
 
 const POSTES = [
@@ -28,7 +38,7 @@ const ZONES = [
 
 type TypeContrat = "CDI" | "CDD" | "Saisonnier";
 
-export default function ModalEmploye({ isOpen, onClose }: ModalEmployeProps) {
+export default function ModalEmploye({ isOpen, onClose, onSubmit }: ModalEmployeProps) {
   const [nomComplet, setNomComplet] = useState("");
   const [poste, setPoste] = useState("");
   const [typeContrat, setTypeContrat] = useState<TypeContrat>("CDI");
@@ -37,10 +47,13 @@ export default function ModalEmploye({ isOpen, onClose }: ModalEmployeProps) {
   const [telephone, setTelephone] = useState("");
   const [zone, setZone] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: envoyer les données
-    onClose();
+    if (onSubmit) {
+      await onSubmit({ nomComplet, poste, typeContrat, dateEmbauche, salaire, telephone, zone });
+    } else {
+      onClose();
+    }
   }
 
   if (!isOpen) return null;

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Topbar from "../../components/Topbar";
 import ExportButton from "../../components/ui/ExportButton";
+import { dbGet, dbPost, DEMO_ORG_ID } from "@/lib/db";
 
 type Filtre = "Tous" | "Tracteurs" | "Véhicules" | "Équipements" | "Outils";
 const FILTRES: Filtre[] = ["Tous", "Tracteurs", "Véhicules", "Équipements", "Outils"];
@@ -52,7 +53,7 @@ const MAINTENANCE = [
   { materiel: "JD5055E", type: "Vidange 250h + filtre", date: "15/04/2025", cout: "142 000 XOF", prochain: "Avr 2026 (250h)" },
   { materiel: "Toyota HiLux", type: "Vidange + 4 pneus", date: "20/02/2025", cout: "215 000 XOF", prochain: "Fév 2026" },
   { materiel: "Pompe PSC", type: "Remplacement joint", date: "10/05/2025", cout: "28 000 XOF", prochain: "Mai 2026" },
-  { materiel: "Claies séchage", type: "Réparation toile (en cours)", date: "11/07/2025", cout: "~35 000 XOF", prochain: "—" },
+  { materiel: "Claies séchage", type: "Réparation toile (en cours)", date: "11/07/2025", cout: "~35 000 XOF", prochain: "-" },
 ];
 
 const DONUT_DATA = [
@@ -133,20 +134,37 @@ export default function MaterielsPage() {
   const [formAjout, setFormAjout] = useState<FormAjout>(FORM_AJOUT_INIT);
   const [formMaint, setFormMaint] = useState<FormMaintenance>(FORM_MAINT_INIT);
   const [toast, setToast] = useState<string | null>(null);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+
+  const load = () => { dbGet<Record<string, unknown>>("materiels").then(setRows); };
+  useEffect(() => { load(); }, []);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   }
 
-  const filtered = MATERIELS.filter((m) => {
+  const source = rows.length > 0
+    ? rows.map((r) => ({
+        code: String(r.nom ?? ""),
+        designation: String(r.nom ?? ""),
+        type: String(r.type ?? "") as Filtre,
+        marque: String(r.marque ?? ""),
+        service: String(r.date_acquisition ?? ""),
+        valeurNette: r.valeur_acquisition ? `${Number(r.valeur_acquisition).toLocaleString("fr-FR")} XOF` : "",
+        statut: (String(r.statut ?? "") === "Opérationnel" ? "ok" : "maintenance") as "ok" | "maintenance",
+        statutLabel: String(r.statut ?? ""),
+      }))
+    : MATERIELS;
+
+  const filtered = source.filter((m) => {
     const matchType = filtre === "Tous" || m.type === filtre;
     const q = recherche.toLowerCase();
     const matchQ = !q || m.code.toLowerCase().includes(q) || m.designation.toLowerCase().includes(q) || m.marque.toLowerCase().includes(q);
     return matchType && matchQ;
   });
 
-  const exportData = MATERIELS.map((m) => ({
+  const exportData = source.map((m) => ({
     Code: m.code,
     Designation: m.designation,
     Type: m.type,
@@ -156,11 +174,23 @@ export default function MaterielsPage() {
     Statut: m.statutLabel,
   }));
 
-  function handleAjout(e: React.FormEvent) {
+  async function handleAjout(e: React.FormEvent) {
     e.preventDefault();
+    await dbPost("materiels", {
+      nom: formAjout.designation,
+      type: formAjout.categorie,
+      marque: formAjout.numero,
+      modele: formAjout.numero,
+      date_acquisition: formAjout.dateAcquisition,
+      valeur_acquisition: parseFloat(formAjout.valeur) || 0,
+      statut: "Opérationnel",
+      prochaine_maintenance: "",
+      organisation_id: DEMO_ORG_ID,
+    });
     setModalAjout(false);
     setFormAjout(FORM_AJOUT_INIT);
     showToast("Matériel enregistré avec succès");
+    load();
   }
 
   function handleMaint(e: React.FormEvent) {
@@ -179,7 +209,7 @@ export default function MaterielsPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Matériels</h1>
-            <p className="text-sm text-gray-500 mt-1">Parc machines, équipements et véhicules — EXP-001</p>
+            <p className="text-sm text-gray-500 mt-1">Parc machines, équipements et véhicules - EXP-001</p>
           </div>
           <div className="flex gap-3 flex-wrap">
             <button
@@ -343,7 +373,7 @@ export default function MaterielsPage() {
             <div className="mt-4">
               <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                 <span>Budget consommé</span>
-                <span className="font-semibold text-[#2E7D32]">420 000 / 600 000 XOF — 70%</span>
+                <span className="font-semibold text-[#2E7D32]">420 000 / 600 000 XOF - 70%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div className="h-2 rounded-full bg-[#2E7D32]" style={{ width: "70%" }} />

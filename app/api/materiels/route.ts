@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     const org = req.nextUrl.searchParams.get("org");
     const sb = createServerClient() as any;
     const { data, error } = await sb
-      .from("employes")
+      .from("materiels")
       .select("*")
       .eq("organisation_id", org ?? "")
       .order("created_at", { ascending: false })
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const sb = createServerClient() as any;
     const { data, error } = await sb
-      .from("employes")
+      .from("materiels")
       .insert([body])
       .select()
       .single();

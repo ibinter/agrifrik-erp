@@ -1,12 +1,13 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TrendingUp, ShoppingBag, Package, Clock, Plus, Download, Search } from "lucide-react";
 import Topbar from "../../components/Topbar";
 import ModalCommande from "../../components/modals/ModalCommande";
 import ExportButton from "../../components/ui/ExportButton";
+import { dbGet, dbPost, DEMO_ORG_ID } from "@/lib/db";
 
-type Filtre = "Toutes" | "En attente" | "LivrÃ©es" | "RÃ©glÃ©es";
+type Filtre = "Toutes" | "En attente" | "Livrées" | "Réglées";
 
 interface Vente {
   id: string;
@@ -16,24 +17,24 @@ interface Vente {
   volume: number;
   prixKg: number;
   montant: number;
-  statut: "RÃ©glÃ©e" | "BL Ã©mis" | "En attente";
+  statut: "Réglée" | "BL émis" | "En attente";
 }
 
 const VENTES: Vente[] = [
-  { id: "VNT-2025-001", date: "12/01", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3200, prixKg: 1087, montant: 3478400, statut: "RÃ©glÃ©e" },
-  { id: "VNT-2025-002", date: "10/02", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "RÃ©glÃ©e" },
-  { id: "VNT-2025-003", date: "12/03", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3200, prixKg: 1087, montant: 3478400, statut: "RÃ©glÃ©e" },
-  { id: "VNT-2025-004", date: "15/04", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3600, prixKg: 1087, montant: 3913200, statut: "RÃ©glÃ©e" },
-  { id: "VNT-2025-005", date: "13/05", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "RÃ©glÃ©e" },
-  { id: "VNT-2025-006", date: "02/06", client: "Cargill CI",          produit: "Anacarde WW240", volume: 1600, prixKg: 1525, montant: 2440000, statut: "RÃ©glÃ©e" },
-  { id: "VNT-2025-007", date: "22/06", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 964,  prixKg: 1087, montant: 1047768, statut: "RÃ©glÃ©e" },
-  { id: "VNT-2025-008", date: "22/06", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "RÃ©glÃ©e" },
-  { id: "VNT-2025-009", date: "11/07", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "BL Ã©mis" },
+  { id: "VNT-2025-001", date: "12/01", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3200, prixKg: 1087, montant: 3478400, statut: "Réglée" },
+  { id: "VNT-2025-002", date: "10/02", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "Réglée" },
+  { id: "VNT-2025-003", date: "12/03", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3200, prixKg: 1087, montant: 3478400, statut: "Réglée" },
+  { id: "VNT-2025-004", date: "15/04", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3600, prixKg: 1087, montant: 3913200, statut: "Réglée" },
+  { id: "VNT-2025-005", date: "13/05", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "Réglée" },
+  { id: "VNT-2025-006", date: "02/06", client: "Cargill CI",          produit: "Anacarde WW240", volume: 1600, prixKg: 1525, montant: 2440000, statut: "Réglée" },
+  { id: "VNT-2025-007", date: "22/06", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 964,  prixKg: 1087, montant: 1047768, statut: "Réglée" },
+  { id: "VNT-2025-008", date: "22/06", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "Réglée" },
+  { id: "VNT-2025-009", date: "11/07", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "BL émis" },
 ];
 
 const CA_DATA = [
   { mois: "Jan", v2024: 3.2, v2025: 3.5 },
-  { mois: "FÃ©v", v2024: 3.4, v2025: 3.7 },
+  { mois: "Fév", v2024: 3.4, v2025: 3.7 },
   { mois: "Mar", v2024: 3.1, v2025: 3.5 },
   { mois: "Avr", v2024: 3.5, v2025: 3.9 },
   { mois: "Mai", v2024: 3.3, v2025: 3.7 },
@@ -54,8 +55,8 @@ function formatXOF(n: number) {
 }
 
 function statutStyle(s: Vente["statut"]) {
-  if (s === "RÃ©glÃ©e")   return { bg: "#E8F5E9", color: "#2E7D32", label: "âœ… RÃ©glÃ©e" };
-  if (s === "BL Ã©mis")  return { bg: "#E3F2FD", color: "#1565C0", label: "ðŸ”µ BL Ã©mis" };
+  if (s === "Réglée")   return { bg: "#E8F5E9", color: "#2E7D32", label: " Réglée" };
+  if (s === "BL émis")  return { bg: "#E3F2FD", color: "#1565C0", label: " BL émis" };
   return                       { bg: "#FFF9C4", color: "#F57F17", label: "â³ En attente" };
 }
 
@@ -64,28 +65,58 @@ export default function VentesPage() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
 
-  const filtrees = VENTES.filter((v) => {
-    if (filtre === "En attente" && v.statut !== "En attente") return false;
-    if (filtre === "LivrÃ©es"   && v.statut !== "BL Ã©mis")    return false;
-    if (filtre === "RÃ©glÃ©es"   && v.statut !== "RÃ©glÃ©e")     return false;
-    if (search && !v.client.toLowerCase().includes(search.toLowerCase()) &&
-        !v.id.toLowerCase().includes(search.toLowerCase())) return false;
+  const load = () => {
+    dbGet<Record<string, unknown>>("commandes").then((data) =>
+      setRows(data.filter((r) => r.type === "Vente"))
+    );
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const activeData = rows.length > 0 ? rows : VENTES;
+
+  const filtrees = (rows.length > 0 ? rows : VENTES).filter((v) => {
+    const statut = rows.length > 0 ? String(v.statut ?? "") : (v as Vente).statut;
+    const client = rows.length > 0 ? String((v as Record<string,unknown>).client ?? "") : (v as Vente).client;
+    const id = rows.length > 0 ? String((v as Record<string,unknown>).id ?? "") : (v as Vente).id;
+    if (filtre === "En attente" && statut !== "En attente") return false;
+    if (filtre === "Livrées"   && statut !== "BL émis")    return false;
+    if (filtre === "Réglées"   && statut !== "Réglée")     return false;
+    if (search && !client.toLowerCase().includes(search.toLowerCase()) &&
+        !id.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const totalVolume  = VENTES.reduce((s, v) => s + v.volume, 0);
-  const totalMontant = VENTES.reduce((s, v) => s + v.montant, 0);
-  const reglees      = VENTES.filter((v) => v.statut === "RÃ©glÃ©e").length;
+  const totalVolume  = rows.length > 0
+    ? rows.reduce((s, v) => s + Number((v as Record<string,unknown>).quantite ?? 0), 0)
+    : VENTES.reduce((s, v) => s + v.volume, 0);
+  const totalMontant = rows.length > 0
+    ? rows.reduce((s, v) => s + Number((v as Record<string,unknown>).total ?? 0), 0)
+    : VENTES.reduce((s, v) => s + v.montant, 0);
+  const reglees = rows.length > 0
+    ? rows.filter((v) => v.statut === "Réglée").length
+    : VENTES.filter((v) => v.statut === "Réglée").length;
+  const totalCount = rows.length > 0 ? rows.length : VENTES.length;
 
-  const exportData = VENTES.map((v) => ({
-    client: v.client,
-    produit: v.produit,
-    quantite: v.volume,
-    total: v.montant,
-    statut: v.statut,
-    dateCommande: v.date + "/2025",
-  }));
+  const exportData = rows.length > 0
+    ? rows.map((v) => ({
+        client: String((v as Record<string,unknown>).client ?? ""),
+        produit: String((v as Record<string,unknown>).produit ?? ""),
+        quantite: Number((v as Record<string, unknown>).quantite ?? 0),
+        total: Number((v as Record<string, unknown>).total ?? 0),
+        statut: String(v.statut ?? ""),
+        dateCommande: String((v as Record<string, unknown>).date_livraison ?? ""),
+      }))
+    : VENTES.map((v) => ({
+        client: v.client,
+        produit: v.produit,
+        quantite: v.volume,
+        total: v.montant,
+        statut: v.statut,
+        dateCommande: v.date + "/2025",
+      }));
 
   function donutPath(segments: typeof DONUT_SEGMENTS) {
     const R = 90; const cx = 140; const cy = 140;
@@ -133,10 +164,10 @@ export default function VentesPage() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { icon: TrendingUp,  label: "CA 2025 YTD",              value: "30,4 M XOF", sub: "9 ventes rÃ©alisÃ©es",      color: "#2E7D32", bg: "#E8F5E9" },
-            { icon: ShoppingBag, label: "Nombre de ventes",          value: "9",          sub: "dont 8 rÃ©glÃ©es",          color: "#1565C0", bg: "#E3F2FD" },
+            { icon: TrendingUp,  label: "CA 2025 YTD",              value: "30,4 M XOF", sub: "9 ventes réalisées",      color: "#2E7D32", bg: "#E8F5E9" },
+            { icon: ShoppingBag, label: "Nombre de ventes",          value: "9",          sub: "dont 8 réglées",          color: "#1565C0", bg: "#E3F2FD" },
             { icon: Package,     label: "Volume total",              value: "30,3 t",     sub: "Cacao AA + Anacarde",     color: "#E65100", bg: "#FFF3E0" },
-            { icon: Clock,       label: "DÃ©lai moyen rÃ¨glement",     value: "13 j",       sub: "vs 18j cible",            color: "#6A1B9A", bg: "#F3E5F5" },
+            { icon: Clock,       label: "Délai moyen règlement",     value: "13 j",       sub: "vs 18j cible",            color: "#6A1B9A", bg: "#F3E5F5" },
           ].map(({ icon: Icon, label, value, sub, color, bg }) => (
             <div key={label} className="rounded-2xl border border-gray-100 bg-white p-5 flex items-start gap-3">
               <div className="rounded-xl p-2.5 shrink-0 mt-0.5" style={{ background: bg }}>
@@ -153,7 +184,7 @@ export default function VentesPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1">
-            {(["Toutes", "En attente", "LivrÃ©es", "RÃ©glÃ©es"] as Filtre[]).map((f) => (
+            {(["Toutes", "En attente", "Livrées", "Réglées"] as Filtre[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFiltre(f)}
@@ -188,26 +219,37 @@ export default function VentesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtrees.map((v) => {
-                  const st = statutStyle(v.statut);
-                  const isHighlighted = v.id === "VNT-2025-008";
+                {filtrees.map((v, idx) => {
+                  const isDbRow = rows.length > 0;
+                  const vDb = v as Record<string, unknown>;
+                  const vSt = v as Vente;
+                  const id = isDbRow ? String(vDb.id ?? "") : vSt.id;
+                  const date = isDbRow ? String(vDb.date_livraison ?? "").slice(0, 10) : vSt.date + "/2025";
+                  const client = isDbRow ? String(vDb.client ?? "") : vSt.client;
+                  const produit = isDbRow ? String(vDb.produit ?? "") : vSt.produit;
+                  const volume = isDbRow ? Number(vDb.quantite ?? 0) : vSt.volume;
+                  const prixKg = isDbRow ? Number(vDb.prix_unitaire ?? 0) : vSt.prixKg;
+                  const montant = isDbRow ? Number(vDb.total ?? 0) : vSt.montant;
+                  const statut = isDbRow ? String(vDb.statut ?? "") as Vente["statut"] : vSt.statut;
+                  const st = statutStyle(statut);
+                  const isHighlighted = id === "VNT-2025-008";
                   return (
                     <tr
-                      key={v.id}
+                      key={id || idx}
                       className={`hover:bg-gray-50 transition-colors ${isHighlighted ? "font-semibold" : ""}`}
                     >
-                      <td className="px-4 py-3 font-mono text-gray-600 whitespace-nowrap">{v.id}</td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{v.date}/2025</td>
-                      <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{v.client}</td>
-                      <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{v.produit}</td>
+                      <td className="px-4 py-3 font-mono text-gray-600 whitespace-nowrap">{id}</td>
+                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{date}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{client}</td>
+                      <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{produit}</td>
                       <td className="px-4 py-3 text-gray-900 font-medium whitespace-nowrap">
-                        {v.volume.toLocaleString("fr-FR")}
+                        {volume.toLocaleString("fr-FR")}
                       </td>
                       <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
-                        {v.prixKg.toLocaleString("fr-FR")} XOF
+                        {prixKg.toLocaleString("fr-FR")} XOF
                       </td>
                       <td className="px-4 py-3 font-semibold text-[#2E7D32] whitespace-nowrap">
-                        {formatXOF(v.montant)}
+                        {formatXOF(montant)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span
@@ -225,9 +267,9 @@ export default function VentesPage() {
                 <tr className="bg-[#F8FBF8] font-bold text-gray-800 border-t-2 border-gray-200">
                   <td colSpan={4} className="px-4 py-3 text-right text-xs uppercase tracking-wide text-gray-500">Total</td>
                   <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{totalVolume.toLocaleString("fr-FR")} kg</td>
-                  <td className="px-4 py-3 text-gray-400">â€”</td>
+                  <td className="px-4 py-3 text-gray-400">-"</td>
                   <td className="px-4 py-3 text-[#2E7D32] whitespace-nowrap">{formatXOF(totalMontant)}</td>
-                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">âœ… {reglees}/{VENTES.length} rÃ©glÃ©es</td>
+                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap"> {reglees}/{totalCount} réglées</td>
                 </tr>
               </tfoot>
             </table>
@@ -251,7 +293,7 @@ export default function VentesPage() {
                 </span>
               </div>
             </div>
-            <svg viewBox="0 0 640 220" className="w-full" aria-label="CA mensuel 2025 vs 2024">
+            <svg viewBox="0 0 640 220 className="w-full aria-label="CA mensuel 2025 vs 2024">
               {[0, 1, 2, 3, 4, 5].map((v) => {
                 const y = 185 - (v / MAX_CA) * 155;
                 return (
@@ -286,9 +328,9 @@ export default function VentesPage() {
           </div>
 
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h2 className="text-sm font-semibold text-gray-900 mb-4">RÃ©partition par client et produit</h2>
+            <h2 className="text-sm font-semibold text-gray-900 mb-4">Répartition par client et produit</h2>
             <div className="flex flex-col items-center gap-4">
-              <svg viewBox="0 0 280 280" className="w-full max-w-[220px]" aria-label="RÃ©partition ventes par client">
+              <svg viewBox="0 0 280 280" className="w-full max-w-[220px]" aria-label="Répartition ventes par client">
                 {donutPath(DONUT_SEGMENTS)}
                 <text x={140} y={134} textAnchor="middle" fontSize={13} fontWeight="700" fill="#212121">30,4 M</text>
                 <text x={140} y={150} textAnchor="middle" fontSize={9} fill="#9E9E9E">XOF CA</text>
@@ -320,9 +362,25 @@ export default function VentesPage() {
       <ModalCommande
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSubmit={() => {
+        onSubmit={async (formData?: Record<string, string>) => {
           setModalOpen(false);
-          setToast("Vente enregistrÃ©e avec succÃ¨s");
+          if (formData) {
+            const { produit, quantite, prixUnitaire, incoterm, dateLivraison, notes } = formData;
+            await dbPost("commandes", {
+              type: "Vente",
+              produit,
+              quantite: parseFloat(quantite),
+              prix_unitaire: parseFloat(prixUnitaire),
+              total: parseFloat(quantite) * parseFloat(prixUnitaire),
+              incoterm,
+              date_livraison: dateLivraison,
+              notes,
+              statut: "En attente",
+              organisation_id: DEMO_ORG_ID,
+            });
+            load();
+          }
+          setToast("Vente enregistrée avec succès");
           setTimeout(() => setToast(null), 3000);
         }}
       />

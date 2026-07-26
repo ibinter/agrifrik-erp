@@ -3,10 +3,18 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 
+export interface ModalRecolteData {
+  parcelle: string;
+  quantite: string;
+  qualite: string;
+  operateur: string;
+  notes: string;
+}
+
 interface ModalRecolteProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: () => void;
+  onSubmit?: (data: ModalRecolteData) => void | Promise<void>;
 }
 
 const PARCELLES = [
@@ -20,7 +28,7 @@ const PARCELLES = [
 
 const today = new Date().toISOString().split("T")[0];
 
-export default function ModalRecolte({ isOpen, onClose }: ModalRecolteProps) {
+export default function ModalRecolte({ isOpen, onClose, onSubmit }: ModalRecolteProps) {
   const [parcelle, setParcelle] = useState("");
   const [dateRecolte, setDateRecolte] = useState(today);
   const [quantite, setQuantite] = useState("");
@@ -31,9 +39,9 @@ export default function ModalRecolte({ isOpen, onClose }: ModalRecolteProps) {
   const cultureDeduire =
     PARCELLES.find((p) => p.id === parcelle)?.culture ?? "—";
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: envoyer les données
+    if (onSubmit) await onSubmit({ parcelle, quantite, qualite, operateur, notes });
     onClose();
   }
 
