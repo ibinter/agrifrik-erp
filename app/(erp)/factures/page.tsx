@@ -277,7 +277,7 @@ export default function FacturesPage() {
       )}
 
       <ModalNouvelleFacture
-        isOpen={modalOpen}
+        open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={() => {
           setModalOpen(false);
