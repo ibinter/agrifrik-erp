@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
             plan: metadata?.planCode ?? "Pro",
             dateDebut: new Date().toLocaleDateString("fr-FR"),
             dateFin: new Date(Date.now() + 30 * 86400000).toLocaleDateString("fr-FR"),
-            reference: cpm_trans_id,
+            reference: cpm_trans_id ?? "",
           },
           idempotencyKey: `cinetpay:${cpm_trans_id}`,
         }).catch(() => {});
