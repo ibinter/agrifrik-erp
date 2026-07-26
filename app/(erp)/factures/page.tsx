@@ -8,12 +8,12 @@ import { dbPost, DEMO_ORG_ID } from "@/lib/db";
 
 const kpis = [
   { label: "Factures 2025", value: "9", unit: "", sub: "Depuis janvier 2025", icon: FileText, iconColor: "#6A1B9A", iconBg: "#F3E5F5" },
-  { label: "CA facturÃ©", value: "30,1 M", unit: "XOF", sub: "Exercice 2025", icon: TrendingUp, iconColor: "#2E7D32", iconBg: "#E8F5E9" },
-  { label: "Taux encaissement", value: "100", unit: "%", sub: "8/9 rÃ©glÃ©es âœ“", icon: CheckCircle, iconColor: "#1565C0", iconBg: "#E3F2FD" },
-  { label: "DÃ©lai moyen rÃ¨glement", value: "13", unit: "j", sub: "Conforme J+15 contractuel", icon: Clock, iconColor: "#E65100", iconBg: "#FFF3E0" },
+  { label: "CA facturé", value: "30,1 M", unit: "XOF", sub: "Exercice 2025", icon: TrendingUp, iconColor: "#2E7D32", iconBg: "#E8F5E9" },
+  { label: "Taux encaissement", value: "100", unit: "%", sub: "8/9 réglées âœ“", icon: CheckCircle, iconColor: "#1565C0", iconBg: "#E3F2FD" },
+  { label: "Délai moyen règlement", value: "13", unit: "j", sub: "Conforme J+15 contractuel", icon: Clock, iconColor: "#E65100", iconBg: "#FFF3E0" },
 ];
 
-type Filtre = "Toutes" | "En attente" | "RÃ©glÃ©es" | "En retard";
+type Filtre = "Toutes" | "En attente" | "Réglées" | "En retard";
 
 interface Facture {
   numero: string;
@@ -23,19 +23,19 @@ interface Facture {
   montantTTC: number;
   echeance: string;
   paiement: string | null;
-  statut: "RÃ©glÃ©e" | "En attente LC" | "RÃ©glÃ©e (retard)";
+  statut: "Réglée" | "En attente LC" | "Réglée (retard)";
   retard?: string;
 }
 
 const factures: Facture[] = [
-  { numero: "FAC-2025-001", date: "12/01", client: "Barry Callebaut CI", description: "Cacao AA LOT-038", montantTTC: 3478400, echeance: "27/01", paiement: "27/01/2025", statut: "RÃ©glÃ©e" },
-  { numero: "FAC-2025-002", date: "10/02", client: "Barry Callebaut CI", description: "Cacao AA LOT-039", montantTTC: 3695800, echeance: "25/02", paiement: "25/02/2025", statut: "RÃ©glÃ©e" },
-  { numero: "FAC-2025-003", date: "12/03", client: "Barry Callebaut CI", description: "Cacao AA LOT-040", montantTTC: 3478400, echeance: "27/03", paiement: "26/03/2025", statut: "RÃ©glÃ©e" },
-  { numero: "FAC-2025-004", date: "15/04", client: "Barry Callebaut CI", description: "Cacao AA LOT-041", montantTTC: 3913200, echeance: "30/04", paiement: "29/04/2025", statut: "RÃ©glÃ©e" },
-  { numero: "FAC-2025-005", date: "13/05", client: "Barry Callebaut CI", description: "Cacao AA LOT-042", montantTTC: 3695800, echeance: "28/05", paiement: "28/05/2025", statut: "RÃ©glÃ©e" },
-  { numero: "FAC-2025-006", date: "02/06", client: "Cargill CI", description: "Anacarde WW240", montantTTC: 2440000, echeance: "02/07", paiement: "01/07/2025", statut: "RÃ©glÃ©e" },
-  { numero: "FAC-2025-007", date: "22/06", client: "Barry Callebaut CI", description: "Cacao AA LOT-043/044", montantTTC: 1047768, echeance: "07/07", paiement: "08/07/2025", statut: "RÃ©glÃ©e (retard)", retard: "J+1" },
-  { numero: "FAC-2025-008", date: "22/06", client: "Barry Callebaut CI", description: "Cacao AA LOT-041-046", montantTTC: 3695800, echeance: "07/07", paiement: "08/07/2025", statut: "RÃ©glÃ©e (retard)", retard: "J+1" },
+  { numero: "FAC-2025-001", date: "12/01", client: "Barry Callebaut CI", description: "Cacao AA LOT-038", montantTTC: 3478400, echeance: "27/01", paiement: "27/01/2025", statut: "Réglée" },
+  { numero: "FAC-2025-002", date: "10/02", client: "Barry Callebaut CI", description: "Cacao AA LOT-039", montantTTC: 3695800, echeance: "25/02", paiement: "25/02/2025", statut: "Réglée" },
+  { numero: "FAC-2025-003", date: "12/03", client: "Barry Callebaut CI", description: "Cacao AA LOT-040", montantTTC: 3478400, echeance: "27/03", paiement: "26/03/2025", statut: "Réglée" },
+  { numero: "FAC-2025-004", date: "15/04", client: "Barry Callebaut CI", description: "Cacao AA LOT-041", montantTTC: 3913200, echeance: "30/04", paiement: "29/04/2025", statut: "Réglée" },
+  { numero: "FAC-2025-005", date: "13/05", client: "Barry Callebaut CI", description: "Cacao AA LOT-042", montantTTC: 3695800, echeance: "28/05", paiement: "28/05/2025", statut: "Réglée" },
+  { numero: "FAC-2025-006", date: "02/06", client: "Cargill CI", description: "Anacarde WW240", montantTTC: 2440000, echeance: "02/07", paiement: "01/07/2025", statut: "Réglée" },
+  { numero: "FAC-2025-007", date: "22/06", client: "Barry Callebaut CI", description: "Cacao AA LOT-043/044", montantTTC: 1047768, echeance: "07/07", paiement: "08/07/2025", statut: "Réglée (retard)", retard: "J+1" },
+  { numero: "FAC-2025-008", date: "22/06", client: "Barry Callebaut CI", description: "Cacao AA LOT-041-046", montantTTC: 3695800, echeance: "07/07", paiement: "08/07/2025", statut: "Réglée (retard)", retard: "J+1" },
   { numero: "FAC-2025-009", date: "11/07", client: "Barry Callebaut CI", description: "Cacao AA LOT-047", montantTTC: 3695800, echeance: "26/07", paiement: null, statut: "En attente LC" },
 ];
 
@@ -48,19 +48,19 @@ const exportRows = factures.map((f) => ({
   dateEcheance: f.echeance,
 }));
 
-const FILTRES: Filtre[] = ["Toutes", "En attente", "RÃ©glÃ©es", "En retard"];
+const FILTRES: Filtre[] = ["Toutes", "En attente", "Réglées", "En retard"];
 const TOTAL = factures.reduce((s, f) => s + f.montantTTC, 0);
 
 function statutBadge(f: Facture) {
-  if (f.statut === "RÃ©glÃ©e") return { bg: "#E8F5E9", color: "#2E7D32", label: "RÃ©glÃ©e" };
-  if (f.statut === "RÃ©glÃ©e (retard)") return { bg: "#FFF3E0", color: "#E65100", label: `RÃ©glÃ©e (${f.retard} retard)` };
+  if (f.statut === "Réglée") return { bg: "#E8F5E9", color: "#2E7D32", label: "Réglée" };
+  if (f.statut === "Réglée (retard)") return { bg: "#FFF3E0", color: "#E65100", label: `Réglée (${f.retard} retard)` };
   return { bg: "#E3F2FD", color: "#1565C0", label: "En attente LC" };
 }
 
 function BarChartCA() {
   const data = [
     { month: "Jan", val: 3478400, en_cours: false },
-    { month: "FÃ©v", val: 3695800, en_cours: false },
+    { month: "Fév", val: 3695800, en_cours: false },
     { month: "Mar", val: 3478400, en_cours: false },
     { month: "Avr", val: 3913200, en_cours: false },
     { month: "Mai", val: 3695800, en_cours: false },
@@ -110,7 +110,7 @@ function BarChartCA() {
 
 function DSOChart() {
   const dsoData = [15, 15, 15, 15, 15, 29, 16];
-  const months = ["Jan", "FÃ©v", "Mar", "Avr", "Mai", "Jun", "Jul"];
+  const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul"];
   const W = 380, H = 100, padL = 36, padR = 20, padT = 16;
   const pts = dsoData.map((v, i) => ({
     x: padL + (i / (dsoData.length - 1)) * (W - padL - padR),
@@ -215,7 +215,7 @@ function ModalNouvelleFacture({ open, onClose, onSubmit }: ModalNouvelleFactureP
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Date d&apos;Ã©chÃ©ance</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Date d&apos;échéance</label>
             <input
               type="date"
               value={echeance}
@@ -268,8 +268,8 @@ export default function FacturesPage() {
   const filtered = factures.filter((f) => {
     if (search && !f.client.toLowerCase().includes(search.toLowerCase()) && !f.numero.toLowerCase().includes(search.toLowerCase())) return false;
     if (filtre === "En attente") return f.statut === "En attente LC";
-    if (filtre === "RÃ©glÃ©es") return f.statut === "RÃ©glÃ©e" || f.statut === "RÃ©glÃ©e (retard)";
-    if (filtre === "En retard") return f.statut === "RÃ©glÃ©e (retard)";
+    if (filtre === "Réglées") return f.statut === "Réglée" || f.statut === "Réglée (retard)";
+    if (filtre === "En retard") return f.statut === "Réglée (retard)";
     return true;
   });
 
@@ -363,7 +363,7 @@ export default function FacturesPage() {
             <table className="w-full text-xs">
               <thead>
                 <tr style={{ background: "#F8FBF8" }}>
-                  {["NÂ°", "Date", "Client", "Description", "Montant TTC (XOF)", "Ã‰chÃ©ance", "Paiement", "Statut", "Actions"].map((c) => (
+                  {["NÂ°", "Date", "Client", "Description", "Montant TTC (XOF)", "Ã‰chéance", "Paiement", "Statut", "Actions"].map((c) => (
                     <th key={c} className="text-left text-gray-500 font-semibold px-4 py-3 whitespace-nowrap">{c}</th>
                   ))}
                 </tr>
@@ -424,11 +424,11 @@ export default function FacturesPage() {
 
           <div className="px-5 py-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-500">
             <span>
-              Total cumulÃ© :{" "}
+              Total cumulé :{" "}
               <strong className="text-gray-900">{TOTAL.toLocaleString("fr-FR")} XOF</strong>
             </span>
             <span className="sm:ml-auto">
-              8/9 rÃ©glÃ©es{" "}
+              8/9 réglées{" "}
               <span className="text-green-700 font-semibold">âœ…</span>
             </span>
           </div>
@@ -436,19 +436,19 @@ export default function FacturesPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
           <div className="lg:col-span-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-900 mb-1">CA mensuel facturÃ© 2025</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-1">CA mensuel facturé 2025</h3>
             <p className="text-xs text-gray-400 mb-4">
-              Barres vertes = rÃ©glÃ© â€” Barre hachurÃ©e = en cours â€” Ligne orange : objectif 4,0 M XOF/mois
+              Barres vertes = réglé â€” Barre hachurée = en cours â€” Ligne orange : objectif 4,0 M XOF/mois
             </p>
             <BarChartCA />
           </div>
 
           <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-900 mb-1">DSO â€” DÃ©lai moyen de rÃ¨glement</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-1">DSO â€” Délai moyen de règlement</h3>
             <p className="text-xs text-gray-400 mb-3">Ligne rouge : seuil alerte 30 jours</p>
             <DSOChart />
             <div className="mt-3 rounded-xl bg-green-50 border border-green-100 px-3 py-2 text-xs text-green-800">
-              DÃ©lai moyen : <strong>13 jours</strong>. Conforme aux conditions contractuelles (J+15).
+              Délai moyen : <strong>13 jours</strong>. Conforme aux conditions contractuelles (J+15).
             </div>
           </div>
         </div>
@@ -458,19 +458,19 @@ export default function FacturesPage() {
             <span className="text-xl mt-0.5 flex-shrink-0">ðŸ”µ</span>
             <div className="flex-1">
               <p className="text-sm font-bold text-blue-900">
-                FAC-2025-009 â€” Barry Callebaut CI â€” 3 695 800 XOF â€” Ã‰chÃ©ance 26/07/2025
+                FAC-2025-009 â€” Barry Callebaut CI â€” 3 695 800 XOF â€” Ã‰chéance 26/07/2025
               </p>
               <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-blue-700">
                 <div className="rounded-lg bg-white/60 px-3 py-2 border border-blue-100">
-                  <span className="font-semibold text-blue-900 block mb-0.5">Lettre de crÃ©dit</span>
-                  LC irrÃ©vocable SGBCI â€” LC-SGBCI-2025-BC-009
+                  <span className="font-semibold text-blue-900 block mb-0.5">Lettre de crédit</span>
+                  LC irrévocable SGBCI â€” LC-SGBCI-2025-BC-009
                 </div>
                 <div className="rounded-lg bg-white/60 px-3 py-2 border border-blue-100">
                   <span className="font-semibold text-blue-900 block mb-0.5">Documents remis</span>
-                  Remis Ã  la banque le 11/07/2025
+                  Remis à la banque le 11/07/2025
                 </div>
                 <div className="rounded-lg bg-white/60 px-3 py-2 border border-blue-100">
-                  <span className="font-semibold text-blue-900 block mb-0.5">RÃ¨glement attendu</span>
+                  <span className="font-semibold text-blue-900 block mb-0.5">Règlement attendu</span>
                   26/07/2025 (J+15 contractuel)
                 </div>
               </div>
