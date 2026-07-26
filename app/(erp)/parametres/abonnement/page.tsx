@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Topbar from "../../../components/Topbar";
 import {
   User, Lock, Palette, Link2, Bell, CreditCard, FileText,
-  CheckCircle2, AlertTriangle, ArrowUpCircle, Download, Clock, Zap, RefreshCw,
+  CheckCircle2, AlertTriangle, ArrowUpCircle, Download, Clock, Zap, RefreshCw, Key,
 } from "lucide-react";
 import type { Licence } from "../../../../lib/licence";
 import type { Plan } from "../../../../lib/plans";
@@ -37,6 +37,53 @@ export default function AbonnementPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [periodicite, setPeriodicite] = useState<"mensuel" | "annuel">("mensuel");
   const [loading, setLoading] = useState(true);
+
+  // Activation key state
+  const [showKeyInput, setShowKeyInput] = useState(false);
+  const [activationKey, setActivationKey] = useState("");
+  const [keyStatus, setKeyStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [keyError, setKeyError] = useState("");
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
+
+  useEffect(() => {
+    if (lockoutSeconds <= 0) return;
+    const t = setTimeout(() => setLockoutSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [lockoutSeconds]);
+
+  async function handleActivateKey() {
+    if (lockoutSeconds > 0 || keyStatus === "loading") return;
+    const trimmed = activationKey.trim();
+    if (!trimmed) return;
+    setKeyStatus("loading");
+    setKeyError("");
+    try {
+      const res = await fetch("/api/licences/activate-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ key: trimmed }),
+      });
+      if (res.ok) {
+        setKeyStatus("success");
+        setFailedAttempts(0);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        const newFailed = failedAttempts + 1;
+        setFailedAttempts(newFailed);
+        if (newFailed >= 3) setLockoutSeconds(60);
+        setKeyError(data.error ?? "Une erreur est survenue.");
+        setKeyStatus("error");
+      }
+    } catch {
+      const newFailed = failedAttempts + 1;
+      setFailedAttempts(newFailed);
+      if (newFailed >= 3) setLockoutSeconds(60);
+      setKeyError("Impossible de joindre le serveur. Vérifiez votre connexion.");
+      setKeyStatus("error");
+    }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -244,6 +291,88 @@ export default function AbonnementPage() {
                 <Clock size={14} /> Historique de paiements
               </button>
             </div>
+          </div>
+
+          {/* Clé d'activation */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-6">
+            <h3 className="text-sm font-bold text-gray-800 mb-2">Vous avez une clé d'activation ?</h3>
+            <p className="text-xs text-gray-500 mb-4">Saisissez votre clé pour activer ou renouveler votre abonnement instantanément.</p>
+
+            {keyStatus === "success" ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-start gap-3 rounded-xl p-3" style={{ backgroundColor: "#F0FDF4" }}>
+                  <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#2E7D32" }} />
+                  <p className="text-sm font-semibold" style={{ color: "#15803D" }}>
+                    Clé activée avec succès ! Votre abonnement a été mis à jour.
+                  </p>
+                </div>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="self-start flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl text-white transition-colors"
+                  style={{ backgroundColor: "#2E7D32" }}>
+                  <RefreshCw size={13} /> Actualiser la page
+                </button>
+              </div>
+            ) : !showKeyInput ? (
+              <button
+                onClick={() => setShowKeyInput(true)}
+                className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border-2 transition-all"
+                style={{ borderColor: "#2E7D32", color: "#2E7D32", backgroundColor: "#F0FDF4" }}>
+                <Key size={14} /> J&apos;ai une clé d&apos;activation
+              </button>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={activationKey}
+                    onChange={(e) => setActivationKey(e.target.value.toUpperCase())}
+                    placeholder="XXXX-XXXX-XXXX-XXXX"
+                    maxLength={64}
+                    disabled={lockoutSeconds > 0 || keyStatus === "loading"}
+                    className="flex-1 text-sm font-mono px-3 py-2.5 rounded-xl border-2 outline-none transition-colors tracking-widest"
+                    style={{
+                      borderColor: keyStatus === "error" ? "#EF4444" : "#D1FAE5",
+                      backgroundColor: lockoutSeconds > 0 ? "#F9FAFB" : "white",
+                      color: "#1F2937",
+                    }}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleActivateKey(); }}
+                  />
+                  <button
+                    onClick={handleActivateKey}
+                    disabled={lockoutSeconds > 0 || keyStatus === "loading" || !activationKey.trim()}
+                    className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: "#2E7D32" }}>
+                    {keyStatus === "loading" ? <RefreshCw size={13} className="animate-spin" /> : <Key size={13} />}
+                    {keyStatus === "loading" ? "Vérification…" : lockoutSeconds > 0 ? `Attendre ${lockoutSeconds}s` : "Activer"}
+                  </button>
+                </div>
+
+                {keyStatus === "error" && keyError && (
+                  <div className="flex items-start gap-2 rounded-xl p-3" style={{ backgroundColor: "#FEF2F2" }}>
+                    <AlertTriangle size={14} className="flex-shrink-0 mt-0.5 text-red-500" />
+                    <p className="text-xs text-red-700">{keyError}</p>
+                  </div>
+                )}
+
+                {lockoutSeconds > 0 && (
+                  <p className="text-xs text-orange-600">
+                    Trop de tentatives échouées. Réessayez dans <strong>{lockoutSeconds} seconde{lockoutSeconds > 1 ? "s" : ""}</strong>.
+                  </p>
+                )}
+
+                <div className="flex items-center gap-3">
+                  <Link href="/aide" className="text-xs text-gray-400 underline underline-offset-2 hover:text-gray-600 transition-colors">
+                    Besoin d&apos;aide pour activer ?
+                  </Link>
+                  <button
+                    onClick={() => { setShowKeyInput(false); setActivationKey(""); setKeyStatus("idle"); setKeyError(""); }}
+                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>
