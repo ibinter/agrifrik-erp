@@ -240,7 +240,6 @@ export default function ModalDepenseStock({
               Valider le mouvement
             </button>
           </div>
-        </form>
         </div>
       </div>
 

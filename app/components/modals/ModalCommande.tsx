@@ -219,7 +219,6 @@ export default function ModalCommande({ isOpen, onClose }: ModalCommandeProps) {
               Créer la commande
             </button>
           </div>
-        </form>
         </div>
       </div>
 

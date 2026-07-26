@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€â"€ Types â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 type ActionType = "MESSAGE_SENT" | "DATA_REFRESH" | "LOGIN" | "LOGIN_FAILED" | "ALERT_TRIGGERED" | "RECORD_CREATED" | "ORDER_CREATED" | "TASK_UPDATED" | "RECORD_UPDATED" | "AUTO_RECONCILED" | "ALERT_RESOLVED" | "ALERT_REFRESHED" | "REPORT_SUBMITTED" | "PHOTO_UPLOADED" | "REPORT_SENT" | "EXPORT_DONE" | "STOCK_MOVEMENT" | "CQ_VALIDATED";
 
 interface LogEntry {
@@ -16,7 +16,7 @@ interface LogEntry {
   flagged?: boolean;
 }
 
-// â”€â”€â”€ DonnÃ©es logs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€â"€ DonnÃ©es logs â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 const LOGS: LogEntry[] = [
   { date: "11/07 09h14", user: "Ibrahim S.", module: "Messagerie", action: "MESSAGE_SENT", objet: "Ã‰quipe EXP-001", ip: "154.0.x.x" },
   { date: "11/07 08h47", user: "SystÃ¨me", module: "MÃ©tÃ©o", action: "DATA_REFRESH", objet: "AWS-EXP001 (auto)", ip: "Serveur" },
@@ -25,7 +25,7 @@ const LOGS: LogEntry[] = [
   { date: "11/07 07h00", user: "Ibrahim S.", module: "Auth", action: "LOGIN", objet: "ibrahim.s@agrifrik.com", ip: "154.0.x.x" },
   { date: "11/07 06h00", user: "SystÃ¨me", module: "Alertes", action: "ALERT_TRIGGERED", objet: "Cut test LOT-047", ip: "Serveur" },
   { date: "11/07 06h00", user: "SystÃ¨me", module: "Alertes", action: "ALERT_TRIGGERED", objet: "Stock KCl critique", ip: "Serveur" },
-  { date: "10/07 21h47", user: "Inconnu", module: "Auth", action: "LOGIN_FAILED", objet: "â€”", ip: "45.32.x.x", flagged: true },
+  { date: "10/07 21h47", user: "Inconnu", module: "Auth", action: "LOGIN_FAILED", objet: "â€"", ip: "45.32.x.x", flagged: true },
   { date: "10/07 16h48", user: "Adjoua M.", module: "Auth", action: "LOGIN", objet: "adjoua.m@agrifrik.com", ip: "102.176.x.x" },
   { date: "10/07 16h22", user: "Adjoua M.", module: "TrÃ©sorerie", action: "RECORD_CREATED", objet: "MVT-2025-0921", ip: "102.176.x.x" },
   { date: "10/07 16h18", user: "Adjoua M.", module: "ComptabilitÃ©", action: "RECORD_CREATED", objet: "JNL-2025-0921", ip: "102.176.x.x" },
@@ -45,7 +45,7 @@ const LOGS: LogEntry[] = [
   { date: "01/07 14h18", user: "Ibrahim S.", module: "QualitÃ©", action: "CQ_VALIDATED", objet: "CQ-2025-046 Grade AA âœ…", ip: "154.0.x.x" },
 ];
 
-// â”€â”€â”€ SVG Bar chart horizontal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€â"€ SVG Bar chart horizontal â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 function BarChartModules() {
   const data = [
     { module: "Finance", value: 428 },
@@ -95,7 +95,7 @@ function BarChartModules() {
   );
 }
 
-// â”€â”€â”€ SVG Donut utilisateurs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€â"€ SVG Donut utilisateurs â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 function DonutUsers() {
   const W = 260, H = 260;
   const cx = 130, cy = 120, r = 90, strokeW = 36;
@@ -152,10 +152,10 @@ function DonutUsers() {
   );
 }
 
-// â”€â”€â”€ Badge action â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€â"€ Badge action â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 function ActionBadge({ action, flagged }: { action: ActionType; flagged?: boolean }) {
   if (flagged || action === "LOGIN_FAILED") {
-    return <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-100 text-red-700">ðŸ”´ {action}</span>;
+    return <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-100 text-red-700">ðŸ"´ {action}</span>;
   }
   if (action.includes("CREATED") || action.includes("SUBMITTED") || action.includes("UPLOADED") || action === "CQ_VALIDATED") {
     return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-green-100 text-green-700">{action}</span>;
@@ -169,7 +169,7 @@ function ActionBadge({ action, flagged }: { action: ActionType; flagged?: boolea
   return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-gray-600">{action}</span>;
 }
 
-// â”€â”€â”€ Filtres actifs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€â"€ Filtres actifs â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 type FilterType = "Tous" | "CrÃ©ations" | "Modifications" | "Suppressions" | "Connexions";
 const FILTERS: FilterType[] = ["Tous", "CrÃ©ations", "Modifications", "Suppressions", "Connexions"];
 
@@ -182,21 +182,21 @@ function matchFilter(log: LogEntry, filter: FilterType): boolean {
   return true;
 }
 
-// â”€â”€â”€ Export CSV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€â"€ Export CSV â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 function exportCSV() {
-  const headers = [“date”, “utilisateur”, “module”, “action”, “objet”, “ip”];
-  const rows = LOGS.map((l) => [l.date, l.user, l.module, l.action, l.objet, l.ip].join(“;”));
-  const csv = [headers.join(“;”), ...rows].join(“\n”);
-  const blob = new Blob([“﻿” + csv], { type: “text/csv;charset=utf-8;” });
+  const headers = ["date", "utilisateur", "module", "action", "objet", "ip"];
+  const rows = LOGS.map((l) => [l.date, l.user, l.module, l.action, l.objet, l.ip].join(";"));
+  const csv = [headers.join(";"), ...rows].join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement(“a”);
+  const a = document.createElement("a");
   a.href = url;
-  a.download = “logs-agrifrik.csv”;
+  a.download = "logs-agrifrik.csv";
   a.click();
   URL.revokeObjectURL(url);
 }
 
-// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€â"€ Page â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 export default function LogsPage() {
   const [filter, setFilter] = useState<FilterType>("Tous");
   const [search, setSearch] = useState("");
@@ -225,7 +225,7 @@ export default function LogsPage() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-xl font-bold text-gray-800">Journal des Actions</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Audit trail complet â€” TraÃ§abilitÃ© de toutes les opÃ©rations AGRIFRIK</p>
+              <p className="text-sm text-gray-500 mt-0.5">Audit trail complet â€" TraÃ§abilitÃ© de toutes les opÃ©rations AGRIFRIK</p>
             </div>
             <button onClick={exportCSV} className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
               TÃ©lÃ©charger CSV
@@ -309,7 +309,7 @@ export default function LogsPage() {
                     <td className="px-3 py-2.5 text-gray-700 max-w-[200px] truncate">{log.objet}</td>
                     <td className="px-3 py-2.5 text-gray-500 font-mono text-[11px] whitespace-nowrap">
                       {log.flagged ? (
-                        <span className="text-red-600 font-semibold">{log.ip} ðŸ”´</span>
+                        <span className="text-red-600 font-semibold">{log.ip} ðŸ"´</span>
                       ) : (
                         log.ip
                       )}

@@ -230,7 +230,6 @@ export default function ModalEmploye({ isOpen, onClose, onSubmit }: ModalEmploye
               Ajouter l&apos;employé
             </button>
           </div>
-        </form>
         </div>
       </div>
 
