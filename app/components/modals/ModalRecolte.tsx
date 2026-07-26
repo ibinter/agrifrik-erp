@@ -49,16 +49,16 @@ export default function ModalRecolte({ isOpen, onClose, onSubmit }: ModalRecolte
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.5)" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 mt-20 p-6"
-        style={{ animation: "modalIn 0.18s ease" }}
+        className="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col overflow-hidden"
+        style={{ animation: "modalIn 0.18s ease", maxHeight: "90vh" }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+        {/* Header — fixe */}
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
           <h2 className="text-base font-semibold text-gray-800">
             Enregistrer une récolte
           </h2>
@@ -70,6 +70,8 @@ export default function ModalRecolte({ isOpen, onClose, onSubmit }: ModalRecolte
           </button>
         </div>
 
+        {/* Corps scrollable */}
+        <div className="overflow-y-auto flex-1 px-6 py-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Parcelle */}
           <div>
@@ -201,6 +203,7 @@ export default function ModalRecolte({ isOpen, onClose, onSubmit }: ModalRecolte
             </button>
           </div>
         </form>
+        </div>
       </div>
 
       <style>{`
