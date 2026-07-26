@@ -261,45 +261,36 @@ function ModalVoirFacture({ facture, onClose }: { facture: Facture | null; onClo
   const s = statutBadge(facture);
 
   function telechargerPDF() {
-    const html = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Facture ${facture.numero}</title>
-<style>
-  body { font-family: Arial, sans-serif; margin: 40px; color: #222; }
-  h1 { color: #2E7D32; margin-bottom: 4px; }
-  .subtitle { color: #666; font-size: 13px; margin-bottom: 32px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 24px; }
-  th { background: #F8FBF8; text-align: left; padding: 10px 12px; font-size: 12px; color: #555; border-bottom: 2px solid #E0E0E0; }
-  td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #F0F0F0; }
-  .label { color: #888; font-weight: 600; }
-  .value { color: #111; }
-  .total { font-size: 15px; font-weight: 700; color: #2E7D32; }
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #E8F5E9; color: #2E7D32; }
-</style>
-</head>
-<body>
-<h1>AGRIFRIK — Facture</h1>
-<p class="subtitle">Document généré le ${new Date().toLocaleDateString("fr-FR")}</p>
-<table>
-  <tr><th class="label">Numéro</th><td class="value">${facture.numero}</td></tr>
-  <tr><th class="label">Date d'émission</th><td class="value">${facture.date}</td></tr>
-  <tr><th class="label">Client</th><td class="value">${facture.client}</td></tr>
-  <tr><th class="label">Produit / Description</th><td class="value">${facture.description}</td></tr>
-  <tr><th class="label">Montant HT</th><td class="value">${montantHT.toLocaleString("fr-FR")} XOF</td></tr>
-  <tr><th class="label">TVA (${tvaRate} %)</th><td class="value">${montantTVA.toLocaleString("fr-FR")} XOF</td></tr>
-  <tr><th class="label">Montant TTC</th><td class="total">${facture.montantTTC.toLocaleString("fr-FR")} XOF</td></tr>
-  <tr><th class="label">Échéance</th><td class="value">${facture.echeance}</td></tr>
-  <tr><th class="label">Date de paiement</th><td class="value">${facture.paiement ?? "—"}</td></tr>
-  <tr><th class="label">Statut</th><td><span class="badge">${s.label}</span></td></tr>
-</table>
-</body>
-</html>`;
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const w = window.open(url, "_blank");
-    if (w) setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 600);
+    const f = facture;
+    const rows = [
+      ["Numéro", f.numero],
+      ["Date d'émission", f.date],
+      ["Client", f.client],
+      ["Produit / Description", f.description],
+      ["Montant HT", montantHT.toLocaleString("fr-FR") + " XOF"],
+      ["TVA (" + tvaRate + " %)", montantTVA.toLocaleString("fr-FR") + " XOF"],
+      ["Montant TTC", f.montantTTC.toLocaleString("fr-FR") + " XOF"],
+      ["Échéance", f.echeance],
+      ["Date de paiement", f.paiement ?? "—"],
+      ["Statut", s.label],
+    ];
+    const tableRows = rows.map(([label, val]) =>
+      "<tr><th class=\"label\">" + label + "</th><td class=\"value\">" + val + "</td></tr>"
+    ).join("");
+    const html = "<!DOCTYPE html><html lang=\"fr\"><head><meta charset=\"UTF-8\"><title>Facture " + f.numero + "</title>"
+      + "<style>body{font-family:Arial,sans-serif;margin:40px;color:#222}h1{color:#2E7D32;margin-bottom:4px}"
+      + ".subtitle{color:#666;font-size:13px;margin-bottom:32px}table{width:100%;border-collapse:collapse;margin-top:24px}"
+      + "th{background:#F8FBF8;text-align:left;padding:10px 12px;font-size:12px;color:#555;border-bottom:2px solid #E0E0E0}"
+      + "td{padding:10px 12px;font-size:13px;border-bottom:1px solid #F0F0F0}.label{color:#888;font-weight:600}"
+      + ".value{color:#111}.total{font-size:15px;font-weight:700;color:#2E7D32}</style>"
+      + "</head><body><h1>AGRIFRIK — Facture</h1>"
+      + "<p class=\"subtitle\">Document généré le " + new Date().toLocaleDateString("fr-FR") + "</p>"
+      + "<table>" + tableRows + "</table></body></html>";
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => w.print(), 500);
   }
 
   return (
