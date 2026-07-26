@@ -261,7 +261,7 @@ function ModalVoirFacture({ facture, onClose }: { facture: Facture | null; onClo
   const s = statutBadge(facture);
 
   function telechargerPDF() {
-    const f = facture;
+    const f = facture!;
     const rows = [
       ["Numéro", f.numero],
       ["Date d'émission", f.date],
