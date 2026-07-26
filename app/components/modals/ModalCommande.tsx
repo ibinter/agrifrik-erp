@@ -52,7 +52,6 @@ export default function ModalCommande({ isOpen, onClose }: ModalCommandeProps) {
       <div
         className="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col overflow-hidden"
         style={{ animation: "modalIn 0.18s ease", maxHeight: "90vh" }}
-        style={{ animation: "modalIn 0.18s ease" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
