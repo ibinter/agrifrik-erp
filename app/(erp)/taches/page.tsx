@@ -438,24 +438,228 @@ function KpiCard({ value, label, sub, color }: { value: string | number; label: 
   );
 }
 
+// ─── Nouvelle tâche modal ─────────────────────────────────────────────────────
+
+const ASSIGNEES = [
+  "Jean-Baptiste Koffi",
+  "Kouamé Assi",
+  "Marie Brou",
+  "Fatou Diallo",
+];
+
+const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
+  { value: "critique", label: "Haute" },
+  { value: "importante", label: "Moyenne" },
+  { value: "normale", label: "Basse" },
+];
+
+interface NewTaskForm {
+  title: string;
+  assignee: string;
+  priority: Priority;
+  due: string;
+  description: string;
+}
+
+function NewTaskModal({
+  onClose,
+  onSubmit,
+}: {
+  onClose: () => void;
+  onSubmit: (form: NewTaskForm) => void;
+}) {
+  const [form, setForm] = useState<NewTaskForm>({
+    title: "",
+    assignee: ASSIGNEES[0],
+    priority: "normale",
+    due: "",
+    description: "",
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title.trim()) return;
+    onSubmit(form);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
+        {/* Modal header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-base font-bold text-gray-900">Nouvelle tâche</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-4">
+          {/* Titre */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-gray-700">
+              Titre <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="Ex : Traitement phytosanitaire PAR-A1"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+            />
+          </div>
+
+          {/* Assigné à */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-gray-700">Assigné à</label>
+            <select
+              value={form.assignee}
+              onChange={(e) => setForm({ ...form, assignee: e.target.value })}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32] bg-white"
+            >
+              {ASSIGNEES.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Priorité + Date limite (côte à côte) */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-gray-700">Priorité</label>
+              <select
+                value={form.priority}
+                onChange={(e) => setForm({ ...form, priority: e.target.value as Priority })}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32] bg-white"
+              >
+                {PRIORITY_OPTIONS.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-gray-700">Date limite</label>
+              <input
+                type="date"
+                value={form.due}
+                onChange={(e) => setForm({ ...form, due: e.target.value })}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-gray-700">Description</label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              rows={3}
+              placeholder="Détails, instructions, références…"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32] resize-none"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-xs font-medium text-white bg-[#2E7D32] rounded-xl hover:bg-[#1B5E20] transition-colors"
+            >
+              Créer la tâche
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── Kanban view ──────────────────────────────────────────────────────────────
+
+function KanbanView({ onAction }: { onAction: () => void }) {
+  const columns: { label: string; dotColor: string; tasks: Task[] }[] = [
+    { label: "Critiques", dotColor: "bg-red-500", tasks: EN_COURS_CRITIQUE },
+    { label: "Importantes", dotColor: "bg-yellow-400", tasks: EN_COURS_IMPORTANTE },
+    { label: "Normales", dotColor: "bg-green-500", tasks: EN_COURS_NORMALE },
+  ];
+  return (
+    <div className="flex gap-4 overflow-x-auto pb-4">
+      {columns.map((col) => (
+        <div key={col.label} className="flex-shrink-0 w-80">
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className={`w-2.5 h-2.5 rounded-full ${col.dotColor}`} />
+            <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">{col.label}</h3>
+            <span className="w-5 h-5 rounded-full bg-white border border-gray-200 text-[10px] font-bold text-gray-600 flex items-center justify-center">
+              {col.tasks.length}
+            </span>
+          </div>
+          <div className="flex flex-col gap-3">
+            {col.tasks.map((t) => (
+              <TaskCard key={t.id} task={t} actionLabel="Mettre à jour" onAction={onAction} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 type TabKey = "encours" | "afaire" | "terminees";
+type Vue = "liste" | "kanban";
+
+let nextId = 100;
 
 export default function TachesPage() {
   const [tab, setTab] = useState<TabKey>("encours");
   const [toast, setToast] = useState<string | null>(null);
+  const [vue, setVue] = useState<Vue>("liste");
+  const [showNewTaskModal, setShowNewTaskModal] = useState(false);
+  const [extraTodos, setExtraTodos] = useState<TodoTask[]>([]);
 
   const showToast = (message: string) => {
     setToast(message);
     setTimeout(() => setToast(null), 3000);
   };
 
+  const handleCreateTask = (form: NewTaskForm) => {
+    const dueFmt = form.due
+      ? new Date(form.due).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })
+      : "—";
+    const newTask: TodoTask = {
+      id: nextId++,
+      title: form.title,
+      assignee: form.assignee,
+      due: dueFmt,
+      description: form.description || "Aucune description.",
+      priority: form.priority,
+    };
+    setExtraTodos((prev) => [newTask, ...prev]);
+    setShowNewTaskModal(false);
+    setTab("afaire");
+    showToast("Tâche créée avec succès");
+  };
+
+  const allTodos = [...extraTodos, ...A_FAIRE];
   const totalEnCours = EN_COURS_CRITIQUE.length + EN_COURS_IMPORTANTE.length + EN_COURS_NORMALE.length;
 
   const TABS: { k: TabKey; l: string; count: number }[] = [
     { k: "encours", l: "En cours", count: totalEnCours },
-    { k: "afaire", l: "À faire", count: A_FAIRE.length },
+    { k: "afaire", l: "À faire", count: allTodos.length },
     { k: "terminees", l: "Terminées", count: TERMINEES.length },
   ];
 
@@ -463,6 +667,14 @@ export default function TachesPage() {
     <div className="flex flex-col h-full">
       <Topbar breadcrumb={["Collaboration", "Tâches"]} />
       <div className="flex-1 overflow-auto p-6 bg-[#F4F6F4]">
+
+        {/* Modal nouvelle tâche */}
+        {showNewTaskModal && (
+          <NewTaskModal
+            onClose={() => setShowNewTaskModal(false)}
+            onSubmit={handleCreateTask}
+          />
+        )}
 
         {/* Toast */}
         {toast && (
@@ -484,13 +696,17 @@ export default function TachesPage() {
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
-              onClick={() => showToast("Vue Kanban disponible prochainement")}
-              className="flex items-center gap-2 px-3 py-2 text-xs bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"
+              onClick={() => setVue(vue === "liste" ? "kanban" : "liste")}
+              className={`flex items-center gap-2 px-3 py-2 text-xs border rounded-xl transition-colors ${
+                vue === "kanban"
+                  ? "bg-[#2E7D32] border-[#2E7D32] text-white"
+                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
             >
-              <Columns size={13} />Vue Kanban
+              <Columns size={13} />{vue === "kanban" ? "Vue Liste" : "Vue Kanban"}
             </button>
             <button
-              onClick={() => showToast("Création de tâche disponible prochainement")}
+              onClick={() => setShowNewTaskModal(true)}
               className="flex items-center gap-2 px-3 py-2 text-xs bg-[#2E7D32] text-white rounded-xl hover:bg-[#1B5E20] transition-colors font-medium"
             >
               <Plus size={13} />Nouvelle tâche
@@ -527,8 +743,20 @@ export default function TachesPage() {
         </div>
 
         {/* Content */}
-        {tab === "encours" && <EnCoursTab onAction={() => showToast("Statut mis à jour")} />}
-        {tab === "afaire" && <AFaireTab onAction={() => showToast("Tâche assignée")} />}
+        {tab === "encours" && vue === "kanban"
+          ? <KanbanView onAction={() => showToast("Statut mis à jour")} />
+          : tab === "encours"
+            ? <EnCoursTab onAction={() => showToast("Statut mis à jour")} />
+            : null
+        }
+        {tab === "afaire" && (
+          <div>
+            <p className="text-sm text-gray-500 mb-5">{allTodos.length} tâches programmées — Semaine S3 juillet 2025</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+              {allTodos.map((t) => <TodoCard key={t.id} task={t} onAction={() => showToast("Tâche assignée")} />)}
+            </div>
+          </div>
+        )}
         {tab === "terminees" && <TermineesTab />}
       </div>
     </div>
