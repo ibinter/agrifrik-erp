@@ -45,16 +45,17 @@ export default function ModalCommande({ isOpen, onClose }: ModalCommandeProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.5)" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 mt-20 p-6"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col overflow-hidden"
+        style={{ animation: "modalIn 0.18s ease", maxHeight: "90vh" }}
         style={{ animation: "modalIn 0.18s ease" }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
           <h2 className="text-base font-semibold text-gray-800">
             Nouvelle commande client
           </h2>
@@ -66,7 +67,8 @@ export default function ModalCommande({ isOpen, onClose }: ModalCommandeProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="overflow-y-auto flex-1 px-6 py-4">
+        
           {/* Client */}
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">
@@ -218,6 +220,7 @@ export default function ModalCommande({ isOpen, onClose }: ModalCommandeProps) {
             </button>
           </div>
         </form>
+        </div>
       </div>
 
       <style>{`
