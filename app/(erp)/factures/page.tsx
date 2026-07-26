@@ -252,10 +252,157 @@ function ModalNouvelleFacture({ open, onClose, onSubmit }: ModalNouvelleFactureP
   );
 }
 
+function ModalVoirFacture({ facture, onClose }: { facture: Facture | null; onClose: () => void }) {
+  if (!facture) return null;
+
+  const tvaRate = 18;
+  const montantHT = Math.round(facture.montantTTC / (1 + tvaRate / 100));
+  const montantTVA = facture.montantTTC - montantHT;
+  const s = statutBadge(facture);
+
+  function telechargerPDF() {
+    const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Facture ${facture.numero}</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 40px; color: #222; }
+  h1 { color: #2E7D32; margin-bottom: 4px; }
+  .subtitle { color: #666; font-size: 13px; margin-bottom: 32px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+  th { background: #F8FBF8; text-align: left; padding: 10px 12px; font-size: 12px; color: #555; border-bottom: 2px solid #E0E0E0; }
+  td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #F0F0F0; }
+  .label { color: #888; font-weight: 600; }
+  .value { color: #111; }
+  .total { font-size: 15px; font-weight: 700; color: #2E7D32; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #E8F5E9; color: #2E7D32; }
+</style>
+</head>
+<body>
+<h1>AGRIFRIK — Facture</h1>
+<p class="subtitle">Document généré le ${new Date().toLocaleDateString("fr-FR")}</p>
+<table>
+  <tr><th class="label">Numéro</th><td class="value">${facture.numero}</td></tr>
+  <tr><th class="label">Date d'émission</th><td class="value">${facture.date}</td></tr>
+  <tr><th class="label">Client</th><td class="value">${facture.client}</td></tr>
+  <tr><th class="label">Produit / Description</th><td class="value">${facture.description}</td></tr>
+  <tr><th class="label">Montant HT</th><td class="value">${montantHT.toLocaleString("fr-FR")} XOF</td></tr>
+  <tr><th class="label">TVA (${tvaRate} %)</th><td class="value">${montantTVA.toLocaleString("fr-FR")} XOF</td></tr>
+  <tr><th class="label">Montant TTC</th><td class="total">${facture.montantTTC.toLocaleString("fr-FR")} XOF</td></tr>
+  <tr><th class="label">Échéance</th><td class="value">${facture.echeance}</td></tr>
+  <tr><th class="label">Date de paiement</th><td class="value">${facture.paiement ?? "—"}</td></tr>
+  <tr><th class="label">Statut</th><td><span class="badge">${s.label}</span></td></tr>
+</table>
+</body>
+</html>`;
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, "_blank");
+    if (w) setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 600);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-sm font-bold text-gray-900">Détail de la facture</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+            aria-label="Fermer"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+          {/* Identité */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+              <p className="text-xs text-gray-400 mb-0.5">Numéro</p>
+              <p className="text-xs font-bold font-mono" style={{ color: "#2E7D32" }}>{facture.numero}</p>
+            </div>
+            <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+              <p className="text-xs text-gray-400 mb-0.5">Date d&apos;émission</p>
+              <p className="text-xs font-semibold text-gray-800">{facture.date}</p>
+            </div>
+            <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+              <p className="text-xs text-gray-400 mb-0.5">Client</p>
+              <p className="text-xs font-semibold text-gray-800">{facture.client}</p>
+            </div>
+            <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+              <p className="text-xs text-gray-400 mb-0.5">Produit</p>
+              <p className="text-xs font-semibold text-gray-800">{facture.description}</p>
+            </div>
+          </div>
+
+          {/* Montants */}
+          <div className="rounded-xl border border-gray-100 overflow-hidden">
+            <div className="flex justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+              <span className="text-xs text-gray-500">Montant HT</span>
+              <span className="text-xs font-semibold text-gray-800">{montantHT.toLocaleString("fr-FR")} XOF</span>
+            </div>
+            <div className="flex justify-between px-4 py-2.5 border-b border-gray-100">
+              <span className="text-xs text-gray-500">TVA ({tvaRate} %)</span>
+              <span className="text-xs font-semibold text-gray-800">{montantTVA.toLocaleString("fr-FR")} XOF</span>
+            </div>
+            <div className="flex justify-between px-4 py-3" style={{ background: "#F0F7F0" }}>
+              <span className="text-xs font-bold text-gray-900">Montant TTC</span>
+              <span className="text-sm font-bold" style={{ color: "#2E7D32" }}>{facture.montantTTC.toLocaleString("fr-FR")} XOF</span>
+            </div>
+          </div>
+
+          {/* Échéance & statut */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+              <p className="text-xs text-gray-400 mb-0.5">Date d&apos;échéance</p>
+              <p className="text-xs font-semibold text-gray-800">{facture.echeance}</p>
+            </div>
+            <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+              <p className="text-xs text-gray-400 mb-0.5">Paiement reçu</p>
+              <p className="text-xs font-semibold text-gray-800">{facture.paiement ?? "—"}</p>
+            </div>
+            <div className="col-span-2 rounded-xl bg-gray-50 px-3 py-2.5">
+              <p className="text-xs text-gray-400 mb-1">Statut</p>
+              <span
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+                style={{ background: s.bg, color: s.color }}
+              >
+                {s.label}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center gap-2 px-6 py-4 border-t border-gray-100">
+          <button
+            onClick={telechargerPDF}
+            className="flex-1 text-white rounded-xl text-xs font-medium px-3 py-2"
+            style={{ background: "#2E7D32" }}
+          >
+            Télécharger PDF
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 border border-gray-200 text-gray-600 rounded-xl text-xs font-medium px-3 py-2 hover:bg-gray-50"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function FacturesPage() {
   const [filtre, setFiltre] = useState<Filtre>("Toutes");
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [voirFacture, setVoirFacture] = useState<Facture | null>(null);
   const [toast, setToast] = useState(false);
   const [toastMsg, setToastMsg] = useState("Facture enregistrée avec succès");
 
@@ -292,6 +439,8 @@ export default function FacturesPage() {
           showToast("Facture enregistrée avec succès");
         }}
       />
+
+      <ModalVoirFacture facture={voirFacture} onClose={() => setVoirFacture(null)} />
 
       <main className="flex-1 p-6 space-y-6">
 
@@ -402,7 +551,7 @@ export default function FacturesPage() {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <button
-                            onClick={() => showToast("Visualisation de la facture disponible prochainement")}
+                            onClick={() => setVoirFacture(f)}
                             className="border border-gray-200 text-gray-600 rounded-lg text-xs px-2 py-1 hover:bg-gray-50 flex items-center gap-1"
                           >
                             <Eye size={11} /> Voir
