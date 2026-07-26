@@ -9,7 +9,115 @@ import {
   Send,
   Calendar,
   Info,
+  X,
 } from "lucide-react";
+
+/* ─── Types ─────────────────────────────────────────────────────────────────── */
+type NouveauRapport = {
+  nom: string;
+  type: string;
+  frequence: string;
+  destinataires: string;
+  heure: string;
+};
+
+/* ─── Modal Nouveau Rapport Planifié ────────────────────────────────────────── */
+function ModalNouveauRapport({ onClose, onSave }: { onClose: () => void; onSave: (r: NouveauRapport) => void }) {
+  const [form, setForm] = useState<NouveauRapport>({
+    nom: "",
+    type: "Production",
+    frequence: "Mensuel",
+    destinataires: "",
+    heure: "08:00",
+  });
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    onSave(form);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+      <div className="bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col w-full max-w-md shadow-xl">
+        <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-800">Nouveau rapport planifié</h2>
+          <button onClick={onClose} className="rounded-lg p-1 hover:bg-gray-100 transition-colors">
+            <X size={16} className="text-gray-500" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Nom du rapport</label>
+            <input
+              type="text"
+              value={form.nom}
+              onChange={(e) => setForm({ ...form, nom: e.target.value })}
+              placeholder="Ex: Rapport mensuel production"
+              required
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
+            <select
+              value={form.type}
+              onChange={(e) => setForm({ ...form, type: e.target.value })}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+            >
+              <option>Production</option>
+              <option>Finance</option>
+              <option>RH</option>
+              <option>Stocks</option>
+              <option>Ventes</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Fréquence</label>
+            <select
+              value={form.frequence}
+              onChange={(e) => setForm({ ...form, frequence: e.target.value })}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+            >
+              <option>Quotidien</option>
+              <option>Hebdomadaire</option>
+              <option>Mensuel</option>
+              <option>Trimestriel</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Destinataires (emails séparés par virgule)</label>
+            <input
+              type="text"
+              value={form.destinataires}
+              onChange={(e) => setForm({ ...form, destinataires: e.target.value })}
+              placeholder="dg@agrifrik.com, cf@agrifrik.com"
+              required
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Heure d&apos;envoi</label>
+            <input
+              type="time"
+              value={form.heure}
+              onChange={(e) => setForm({ ...form, heure: e.target.value })}
+              required
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+              Annuler
+            </button>
+            <button type="submit" className="rounded-xl bg-[#2E7D32] px-4 py-2 text-xs font-medium text-white hover:bg-[#1B5E20] transition-colors">
+              Planifier
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 const rapportsActifs = [
   { nom: "Rapport mensuel production", freq: "Mensuel (dernier jour)", dest: "DG + CF + Terrain", prochain: "31/07/2025", format: "PDF", statut: "actif" },
@@ -42,18 +150,23 @@ const historique = [
 
 export default function RapportsPlanifiesPage() {
   const [onglet, setOnglet] = useState<"actifs" | "historique">("actifs");
+  const [showModal, setShowModal] = useState(false);
+  const [nouveauxRapports, setNouveauxRapports] = useState<NouveauRapport[]>([]);
   const [toast, setToast] = useState(false);
 
-  const showToast = () => {
+  function handleSaveRapport(r: NouveauRapport) {
+    setNouveauxRapports((prev) => [...prev, r]);
+    setShowModal(false);
     setToast(true);
     setTimeout(() => setToast(false), 3000);
-  };
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FBF8]">
+      {showModal && <ModalNouveauRapport onClose={() => setShowModal(false)} onSave={handleSaveRapport} />}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-800 px-4 py-3 text-sm text-white shadow-lg">
-          Création de rapport planifié disponible prochainement
+          Rapport planifié créé avec succès
         </div>
       )}
       <Topbar
@@ -69,7 +182,7 @@ export default function RapportsPlanifiesPage() {
             <h1 className="text-xl font-bold text-gray-900">Rapports Planifiés</h1>
             <p className="text-sm text-gray-500 mt-0.5">Automatisation et planification des rapports récurrents</p>
           </div>
-          <button onClick={showToast} className="inline-flex items-center gap-2 rounded-xl bg-[#2E7D32] px-4 py-2 text-xs font-medium text-white hover:bg-[#1B5E20] transition-colors self-start sm:self-auto">
+          <button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2 rounded-xl bg-[#2E7D32] px-4 py-2 text-xs font-medium text-white hover:bg-[#1B5E20] transition-colors self-start sm:self-auto">
             <Plus className="h-4 w-4" />
             Nouveau rapport planifié
           </button>
@@ -129,6 +242,32 @@ export default function RapportsPlanifiesPage() {
                     </tr>
                   </thead>
                   <tbody>
+                    {nouveauxRapports.map((r, i) => (
+                      <tr key={`new-${i}`} className="border-t border-gray-50 hover:bg-gray-50 transition-colors bg-green-50/30">
+                        <td className="px-4 py-3 font-medium text-gray-800">{r.nom}</td>
+                        <td className="px-4 py-3 text-gray-600">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="h-3 w-3 text-gray-400" />
+                            {r.frequence} ({r.heure})
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">{r.destinataires}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="h-3 w-3 text-gray-400" />
+                            <span className="font-medium text-gray-700">—</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-gray-600 text-[10px] font-medium">PDF</span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">
+                            <CheckCircle className="h-3 w-3" /> Actif
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                     {rapportsActifs.map((r, i) => (
                       <tr key={i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3 font-medium text-gray-800">{r.nom}</td>

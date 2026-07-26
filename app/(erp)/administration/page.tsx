@@ -108,13 +108,108 @@ function ChartSystemUsage() {
 
 // ── Tabs ───────────────────────────────────────────────────────────────────────
 
+type UserRow = { nom: string; email: string; role: string; lastLogin: string; statut: string };
+
 function TabUtilisateurs({ showToast }: { showToast: (msg: string) => void }) {
+  const [users, setUsers] = useState<UserRow[]>(USERS);
+  const [modifierUser, setModifierUser] = useState<UserRow | null>(null);
+  const [editForm, setEditForm] = useState({ nom: "", email: "", role: "lecture", statut: "Actif" });
+
+  const openEdit = (u: UserRow) => {
+    setModifierUser(u);
+    setEditForm({ nom: u.nom, email: u.email, role: u.role, statut: u.statut === "actif" ? "Actif" : "Inactif" });
+  };
+
+  const saveEdit = () => {
+    if (!modifierUser) return;
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.email === modifierUser.email
+          ? { ...u, nom: editForm.nom, email: editForm.email, role: editForm.role, statut: editForm.statut === "Actif" ? "actif" : "desactive" }
+          : u
+      )
+    );
+    setModifierUser(null);
+    showToast("Utilisateur mis à jour avec succès");
+  };
+
   return (
     <div className="space-y-6">
+      {/* Modal édition utilisateur */}
+      {modifierUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h2 className="text-base font-bold text-gray-900">Modifier l&apos;utilisateur</h2>
+              <button onClick={() => setModifierUser(null)} className="text-gray-400 hover:text-gray-600 transition text-xl leading-none">&times;</button>
+            </div>
+            <div className="overflow-y-auto p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Nom complet</label>
+                <input
+                  type="text"
+                  value={editForm.nom}
+                  onChange={(e) => setEditForm((f) => ({ ...f, nom: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#2E7D32]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                <input
+                  type="text"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#2E7D32]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Rôle</label>
+                <select
+                  value={editForm.role}
+                  onChange={(e) => setEditForm((f) => ({ ...f, role: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#2E7D32] bg-white"
+                >
+                  <option value="admin">Admin</option>
+                  <option value="manager">Manager</option>
+                  <option value="operateur">Opérateur</option>
+                  <option value="comptable">Comptable</option>
+                  <option value="lecture">Lecture seule</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Statut</label>
+                <select
+                  value={editForm.statut}
+                  onChange={(e) => setEditForm((f) => ({ ...f, statut: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-[#2E7D32] bg-white"
+                >
+                  <option value="Actif">Actif</option>
+                  <option value="Inactif">Inactif</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 px-6 py-4 border-t border-gray-100">
+              <button
+                onClick={() => setModifierUser(null)}
+                className="flex-1 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={saveEdit}
+                className="flex-1 px-4 py-2 rounded-xl text-sm font-medium bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition"
+              >
+                Enregistrer les modifications
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tableau utilisateurs */}
       <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-800">Utilisateurs ({USERS.length})</h3>
+          <h3 className="text-sm font-semibold text-gray-800">Utilisateurs ({users.length})</h3>
           <button
             onClick={() => showToast("Invitation envoyée par email")}
             className="flex items-center gap-1.5 bg-[#2E7D32] text-white text-xs font-medium px-3 py-2 rounded-xl hover:bg-[#1B5E20] transition-colors"
@@ -135,7 +230,7 @@ function TabUtilisateurs({ showToast }: { showToast: (msg: string) => void }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {USERS.map((u, i) => (
+              {users.map((u, i) => (
                 <tr key={i} className="bg-white hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-gray-800 text-sm">{u.nom}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs font-mono">{u.email}</td>
@@ -159,7 +254,7 @@ function TabUtilisateurs({ showToast }: { showToast: (msg: string) => void }) {
                   <td className="px-4 py-3">
                     {u.statut === "actif" ? (
                       <button
-                        onClick={() => showToast("Modification de l'utilisateur disponible prochainement")}
+                        onClick={() => openEdit(u)}
                         className="flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium"
                       >
                         <Edit2 size={11} /> Modifier

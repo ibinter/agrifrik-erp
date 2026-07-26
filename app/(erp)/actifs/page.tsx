@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
+import { X } from "lucide-react";
 
 function fmt(n: number) {
   return n.toLocaleString("fr-FR") + " XOF";
@@ -97,6 +98,113 @@ const totalAmort = 11654223;
 const totalVNC = 56305777;
 const totalAnnuelle = 4190667;
 const totalYTD = 2444556;
+
+/* ─── Types ─────────────────────────────────────────────────────────────────── */
+type NouvelleImmo = {
+  designation: string;
+  categorie: string;
+  valeur: string;
+  dateAcquisition: string;
+  dureeAmort: string;
+};
+
+/* ─── Modal Nouvelle Immobilisation ─────────────────────────────────────────── */
+function ModalNouvelleImmo({ onClose, onSave }: { onClose: () => void; onSave: (immo: NouvelleImmo) => void }) {
+  const [form, setForm] = useState<NouvelleImmo>({
+    designation: "",
+    categorie: "Matériel agricole",
+    valeur: "",
+    dateAcquisition: "",
+    dureeAmort: "",
+  });
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    onSave(form);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+      <div className="bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col w-full max-w-md shadow-xl">
+        <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-800">Nouvelle immobilisation</h2>
+          <button onClick={onClose} className="rounded-lg p-1 hover:bg-gray-100 transition-colors">
+            <X size={16} className="text-gray-500" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Désignation <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              value={form.designation}
+              onChange={(e) => setForm({ ...form, designation: e.target.value })}
+              placeholder="Ex: Tracteur John Deere 5055E"
+              required
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Catégorie</label>
+            <select
+              value={form.categorie}
+              onChange={(e) => setForm({ ...form, categorie: e.target.value })}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+            >
+              <option>Matériel agricole</option>
+              <option>Véhicule</option>
+              <option>Équipement</option>
+              <option>Bâtiment</option>
+              <option>Terrain</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Valeur d&apos;acquisition (XOF)</label>
+            <input
+              type="number"
+              value={form.valeur}
+              onChange={(e) => setForm({ ...form, valeur: e.target.value })}
+              placeholder="Ex: 16800000"
+              required
+              min={0}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Date d&apos;acquisition</label>
+            <input
+              type="date"
+              value={form.dateAcquisition}
+              onChange={(e) => setForm({ ...form, dateAcquisition: e.target.value })}
+              required
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Durée d&apos;amortissement (années)</label>
+            <input
+              type="number"
+              value={form.dureeAmort}
+              onChange={(e) => setForm({ ...form, dureeAmort: e.target.value })}
+              placeholder="Ex: 10"
+              required
+              min={1}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+              Annuler
+            </button>
+            <button type="submit" className="rounded-xl bg-[#2E7D32] px-4 py-2 text-xs font-medium text-white hover:bg-[#1B5E20] transition-colors">
+              Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 /* ─── DONUT SVG ─── */
 function DonutActifs() {
@@ -266,10 +374,18 @@ function PlanAmortissement() {
 export default function ActifsPage() {
   const [filtre, setFiltre] = useState("Tous");
   const [toast, setToast] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [nouvellesImmos, setNouvellesImmos] = useState<NouvelleImmo[]>([]);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(""), 3000);
+  }
+
+  function handleSaveImmo(immo: NouvelleImmo) {
+    setNouvellesImmos((prev) => [...prev, immo]);
+    setShowModal(false);
+    showToast("Immobilisation ajoutée");
   }
 
   const lignes = filtre === "Tous"
@@ -278,6 +394,7 @@ export default function ActifsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+      {showModal && <ModalNouvelleImmo onClose={() => setShowModal(false)} onSave={handleSaveImmo} />}
       <Topbar title="Actifs" breadcrumb={["Finance", "Actifs"]} />
 
       <main className="flex-1 p-6 space-y-6">
@@ -290,7 +407,7 @@ export default function ActifsPage() {
             </p>
           </div>
           <button
-            onClick={() => showToast("Ajout d'immobilisation disponible prochainement")}
+            onClick={() => setShowModal(true)}
             className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors"
           >
             + Nouvelle immobilisation
@@ -359,6 +476,19 @@ export default function ActifsPage() {
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-[#2E7D32] whitespace-nowrap">{fmt(imm.vnc)}</td>
                     <td className="px-4 py-3 text-center text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{imm.taux}</td>
+                  </tr>
+                ))}
+                {/* Nouvelles immobilisations */}
+                {nouvellesImmos.map((immo, idx) => (
+                  <tr key={`new-${idx}`} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">IMM-NEW-{String(idx + 1).padStart(3, "0")}</td>
+                    <td className="px-4 py-3 text-gray-900 dark:text-white font-medium max-w-[200px]">{immo.designation}</td>
+                    <td className="px-4 py-3 text-center font-mono text-xs text-gray-600 dark:text-gray-400">—</td>
+                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap text-xs">{immo.dateAcquisition}</td>
+                    <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-white whitespace-nowrap">{Number(immo.valeur).toLocaleString("fr-FR")} XOF</td>
+                    <td className="px-4 py-3 text-right text-orange-600 dark:text-orange-400 whitespace-nowrap">0 XOF</td>
+                    <td className="px-4 py-3 text-right font-semibold text-[#2E7D32] whitespace-nowrap">{Number(immo.valeur).toLocaleString("fr-FR")} XOF</td>
+                    <td className="px-4 py-3 text-center text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{immo.dureeAmort ? `${(100 / Number(immo.dureeAmort)).toFixed(2)}%/${immo.dureeAmort}ans` : "—"}</td>
                   </tr>
                 ))}
                 {/* Total row */}

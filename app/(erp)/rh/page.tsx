@@ -270,6 +270,7 @@ export default function RHPage() {
   const [tab, setTab] = useState(0);
   const [filtreEff, setFiltreEff] = useState("Tous");
   const [modalEmployeOpen, setModalEmployeOpen] = useState(false);
+  const [voirEmploye, setVoirEmploye] = useState<Record<string, unknown> | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
 
@@ -343,6 +344,60 @@ export default function RHPage() {
           load();
         }}
       />
+
+      {/* Modal fiche employé */}
+      {voirEmploye && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ backgroundColor: "#2E7D32" }}>
+                  {initials(`${String(voirEmploye.prenom ?? "")} ${String(voirEmploye.nom ?? "")}`)}
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">{String(voirEmploye.prenom ?? "")} {String(voirEmploye.nom ?? "")}</h2>
+                  <p className="text-xs text-gray-500">{String(voirEmploye.id ?? "")}</p>
+                </div>
+              </div>
+              <button onClick={() => setVoirEmploye(null)} className="text-gray-400 hover:text-gray-600 transition text-xl leading-none">&times;</button>
+            </div>
+            <div className="overflow-y-auto p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "Nom complet", value: `${String(voirEmploye.prenom ?? "")} ${String(voirEmploye.nom ?? "")}`.trim() },
+                  { label: "Poste", value: String(voirEmploye.poste ?? "—") },
+                  { label: "Département", value: String(voirEmploye.departement ?? "—") },
+                  { label: "Type de contrat", value: String(voirEmploye.type_contrat ?? "—") },
+                  { label: "Salaire brut", value: voirEmploye.salaire_base != null ? `${String(voirEmploye.salaire_base)} XOF` : "—" },
+                  { label: "Date d'embauche", value: String(voirEmploye.date_embauche ?? "—") },
+                  { label: "Statut", value: voirEmploye.actif !== false ? "Actif" : "Inactif" },
+                  { label: "Contact", value: String(voirEmploye.telephone ?? "Non renseigné") },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-gray-50 rounded-xl p-3">
+                    <p className="text-xs text-gray-400 mb-0.5">{label}</p>
+                    <p className="text-sm font-semibold text-gray-800 break-words">{value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-3 px-6 py-4 border-t border-gray-100">
+              <button
+                onClick={() => setVoirEmploye(null)}
+                className="flex-1 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
+              >
+                Fermer
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="flex-1 px-4 py-2 rounded-xl text-sm font-medium bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition flex items-center justify-center gap-2"
+              >
+                <FileText size={14} />
+                Générer fiche PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
 
@@ -457,7 +512,7 @@ export default function RHPage() {
                               Éditer
                             </button>
                             <button
-                              onClick={() => showToast(`Fiche employé disponible prochainement`)}
+                              onClick={() => setVoirEmploye(e)}
                               className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition border border-gray-200"
                             >
                               <FileText size={12} />
