@@ -1,6 +1,7 @@
 import Topbar from "../../../components/Topbar";
-import { ArrowLeft, Download, Mail, CheckCircle } from "lucide-react";
+import { ArrowLeft, Mail, CheckCircle } from "lucide-react";
 import Link from "next/link";
+import FacturePdfButton from "./FacturePdfButton";
 
 export default async function FactureDetailPage({
   params,
@@ -318,10 +319,7 @@ export default async function FactureDetailPage({
             <ArrowLeft size={14} />
             Retour aux factures
           </Link>
-          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white transition-colors" style={{ background: "#2E7D32" }}>
-            <Download size={14} />
-            Télécharger PDF
-          </button>
+          <FacturePdfButton factureId={id} />
           <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             <Mail size={14} />
             Envoyer par email

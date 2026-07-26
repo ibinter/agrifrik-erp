@@ -1,34 +1,50 @@
 ﻿// Webhook Stripe — validation automatique
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "crypto";
 import { sendEmail } from "../../../../lib/email";
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 
 export async function POST(req: NextRequest) {
-  const body = await req.text();
+  const rawBody = await req.text();
   const sig = req.headers.get("stripe-signature") ?? "";
 
-  // Vérification de signature Stripe (HMAC-SHA256 via timing-safe compare)
-  if (STRIPE_WEBHOOK_SECRET && sig) {
+  // Vérification de signature Stripe obligatoire si le secret est configuré.
+  // On rejette si l'en-tête est absent pour éviter qu'un attaquant puisse
+  // simplement omettre stripe-signature et contourner la vérification.
+  if (STRIPE_WEBHOOK_SECRET) {
+    if (!sig) {
+      return NextResponse.json({ error: "En-tête stripe-signature manquant" }, { status: 401 });
+    }
     try {
+      // Format Stripe : "t=<timestamp>,v1=<hmac>,v0=<hmac>"
       const parts = sig.split(",").reduce((acc: Record<string, string>, p) => {
-        const [k, v] = p.split("=");
-        acc[k] = v;
+        const eqIdx = p.indexOf("=");
+        if (eqIdx !== -1) acc[p.slice(0, eqIdx)] = p.slice(eqIdx + 1);
         return acc;
       }, {});
       const ts = parts["t"];
       const v1 = parts["v1"];
-      const { createHmac, timingSafeEqual } = await import("crypto");
-      const expected = createHmac("sha256", STRIPE_WEBHOOK_SECRET).update(`${ts}.${body}`).digest("hex");
-      if (!timingSafeEqual(Buffer.from(expected), Buffer.from(v1 ?? ""))) {
-        return NextResponse.json({ error: "Signature invalide" }, { status: 401 });
+      if (!ts || !v1) throw new Error("Format stripe-signature invalide");
+
+      const payload = `${ts}.${rawBody}`;
+      const expectedHex = createHmac("sha256", STRIPE_WEBHOOK_SECRET).update(payload).digest("hex");
+      const expectedBuf = Buffer.from(expectedHex, "hex");
+      // timingSafeEqual exige des buffers de même longueur — si v1 a une
+      // longueur différente la signature est nécessairement incorrecte.
+      const receivedBuf = Buffer.from(
+        v1.length === expectedHex.length ? v1 : expectedHex.replace(/./g, "0"),
+        "hex",
+      );
+      if (!timingSafeEqual(expectedBuf, receivedBuf)) {
+        throw new Error("Signature HMAC incorrecte");
       }
     } catch {
       return NextResponse.json({ error: "Signature invalide" }, { status: 401 });
     }
   }
 
-  const event = JSON.parse(body);
+  const event = JSON.parse(rawBody);
 
   if (event.type !== "checkout.session.completed" && event.type !== "payment_intent.succeeded") {
     return NextResponse.json({ received: true });
@@ -56,6 +72,7 @@ export async function POST(req: NextRequest) {
         methode: "Stripe",
         statut: "valide",
         fournisseur: "Stripe",
+        source: "webhook",
         payload_webhook: event,
         organisation_id: metadata.orgId,
       }, { onConflict: "reference" });

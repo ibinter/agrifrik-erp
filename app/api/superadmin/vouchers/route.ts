@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySession, COOKIE_NAME } from "../../../../lib/session";
 import { randomBytes } from "crypto";
 
+// NOTE DÉVELOPPEUR — Génération des clés d'activation
+// ─────────────────────────────────────────────────────
+// Actuellement, les codes sont insérés dans la table `vouchers`.
+// Pour que la route POST /api/licences/activate-key puisse les valider,
+// les nouvelles clés doivent AUSSI être insérées dans la table `activation_keys`
+// avec le format : AGFR-[RAND4]-[RAND4]-[RAND4]  (4 groupes de 4 chars alphanumériques).
+//
+// Exemple de génération conforme :
+//   const seg = () => randomBytes(2).toString("hex").toUpperCase(); // 4 chars hex
+//   const key = `AGFR-${seg()}-${seg()}-${seg()}`;
+//
+// Colonnes à renseigner dans activation_keys :
+//   key             → la clé générée
+//   plan_code       → planCode (ex: "pro")
+//   duree_jours     → 30 si mensuel, 365 si annuel
+//   statut          → 'disponible'
+//   date_expiration → now() + 1 an (expiration de la clé elle-même, pas de la licence)
+//   batch_id        → identifiant du lot courant (optionnel mais utile pour le suivi)
+//
+// Jusqu'à ce que cette double insertion soit en place, seule la clé TEST-TEST-TEST-TEST
+// fonctionne en mode démo dans /api/licences/activate-key.
+// ─────────────────────────────────────────────────────
+
 const DEMO_VOUCHERS = [
   { id: "1", code: "AGRIFRIK-DEMO-2025", plan: "pro", periodicite: "mensuel", valeur: 24900, statut: "utilise", utilise_par: "admin@agrifrik.com", creeLe: "2025-01-01", utiliseLe: "2025-07-15" },
   { id: "2", code: "AGRIFRIK-STARTER-3M", plan: "starter", periodicite: "mensuel", valeur: 35700, statut: "disponible", utilise_par: null, creeLe: "2025-03-01", utiliseLe: null },

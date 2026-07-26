@@ -288,6 +288,23 @@ export default function OnboardingPage() {
           </div>
         </div>
 
+        {/* Bannière essai gratuit */}
+        <div
+          className="flex items-center justify-between px-8 py-2.5 text-sm font-medium"
+          style={{ background: "#E8F5E9", borderBottom: "1px solid #C8E6C9", color: "#1B5E20" }}
+        >
+          <div className="flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="8" cy="8" r="7" stroke="#2E7D32" strokeWidth="1.5" />
+              <path d="M5 8.5L7 10.5L11 6" stroke="#2E7D32" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>Essai gratuit activé — <strong>14 jours restants</strong></span>
+          </div>
+          <span className="text-xs font-normal" style={{ color: "#388E3C" }}>
+            Aucune carte bancaire requise
+          </span>
+        </div>
+
         {/* Contenu de l'étape */}
         <div className="flex-1 overflow-y-auto px-6 py-10">
           <div className="max-w-2xl mx-auto">
@@ -683,9 +700,19 @@ export default function OnboardingPage() {
                 <h1 className="text-3xl font-black text-gray-900 mb-2">
                   Votre espace AGRIFRIK est prêt !
                 </h1>
-                <p className="text-gray-500 text-base mb-10">
+                <p className="text-gray-500 text-base mb-4">
                   Votre configuration a été enregistrée avec succès.
                 </p>
+                <div
+                  className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold mb-8"
+                  style={{ background: "#E8F5E9", color: "#1B5E20", border: "1px solid #A5D6A7" }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="8" cy="8" r="7" stroke="#2E7D32" strokeWidth="1.5" />
+                    <path d="M5 8.5L7 10.5L11 6" stroke="#2E7D32" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Essai gratuit — 14 jours restants
+                </div>
 
                 {/* Résumé */}
                 <div className="bg-white rounded-2xl border border-gray-100 p-6 text-left max-w-md mx-auto mb-10 space-y-3">

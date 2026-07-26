@@ -1,4 +1,10 @@
-﻿// Validation manuelle d'un paiement — réservée aux admins
+﻿// Validation manuelle d'un paiement — réservée aux admins.
+//
+// IMPORTANT : cette route ne doit être appelée que pour valider un paiement
+// reçu hors-ligne (virement, chèque…) par un administrateur.
+// Les paiements électroniques (CinetPay, Stripe) sont confirmés automatiquement
+// par leurs webhooks respectifs (/api/webhooks/cinetpay, /api/webhooks/stripe)
+// et ne doivent PAS passer par cette route.
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession, COOKIE_NAME } from "../../../../lib/session";
 import { sendEmail } from "../../../../lib/email";
@@ -23,6 +29,24 @@ export async function POST(req: NextRequest) {
     try {
       const { createServerClient } = await import("../../../../lib/supabase/server");
       const sb = createServerClient() as any;
+
+      // Vérifier que le paiement n'a pas déjà été confirmé automatiquement
+      // par un webhook (source = "webhook"). Un paiement électronique ne doit
+      // pas être re-validé manuellement, car la licence aurait déjà été activée.
+      const { data: existing } = await sb
+        .from("paiements")
+        .select("id, statut, source")
+        .eq("id", paiementId)
+        .single();
+
+      if (!existing) {
+        return NextResponse.json({ error: "Paiement introuvable" }, { status: 404 });
+      }
+      if (existing.source === "webhook") {
+        return NextResponse.json({
+          error: "Ce paiement a été confirmé automatiquement par le prestataire de paiement. La validation manuelle n'est pas autorisée.",
+        }, { status: 409 });
+      }
 
       // Mettre à jour le paiement (idempotent via statut)
       const { data: pmt } = await sb

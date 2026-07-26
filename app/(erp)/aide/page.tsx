@@ -146,9 +146,9 @@ export default function AidePage() {
         {/* Liens rapides */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
+            { label: "Guide utilisateur", href: "/aide/guide", icon: BookOpen, color: "#2E7D32" },
             { label: "100 FAQ", href: "/aide/faq", icon: HelpCircle, color: "#E65100" },
             { label: "Académie AGRIFRIK", href: "/aide/academie", icon: GraduationCap, color: "#1565C0" },
-            { label: "Contacter le support", href: "/messagerie", icon: MessageSquare, color: "#2E7D32" },
             { label: "Vidéos de démonstration", href: "/aide/academie#videos", icon: Play, color: "#6A1B9A" },
           ].map(item => {
             const Icon = item.icon;
@@ -163,6 +163,30 @@ export default function AidePage() {
               </Link>
             );
           })}
+        </div>
+
+        {/* Contact support */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-4 flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#E8F5E9" }}>
+              <MessageSquare size={15} style={{ color: "#2E7D32" }} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-800">Besoin d&apos;aide personnalisée ?</p>
+              <p className="text-[11px] text-gray-400">Notre équipe répond en moins de 24h</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <a href="mailto:support@agrifrik.com"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border border-gray-200 hover:border-[#2E7D32] transition-colors text-gray-600 hover:text-[#2E7D32]">
+              <MessageSquare size={12} /> support@agrifrik.com
+            </a>
+            <a href="https://wa.me/2250778882592" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold text-white"
+              style={{ backgroundColor: "#25D366" }}>
+              <MessageSquare size={12} /> WhatsApp
+            </a>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

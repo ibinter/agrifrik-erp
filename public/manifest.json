@@ -1,12 +1,12 @@
 {
   "name": "AGRIFRIK ERP",
   "short_name": "AGRIFRIK",
-  "description": "Système ERP agricole pour l'Afrique de l'Ouest",
+  "description": "ERP Agricole Africain — Gérez votre exploitation depuis votre smartphone",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#F8FBF8",
+  "background_color": "#1B5E20",
   "theme_color": "#1B5E20",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "lang": "fr",
   "scope": "/",
   "categories": ["business", "productivity"],
@@ -20,12 +20,20 @@
     { "src": "/icons/icon-384x384.png", "sizes": "384x384", "type": "image/png" },
     { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
+  "screenshots": [],
   "shortcuts": [
     {
-      "name": "Tableau de bord",
+      "name": "Dashboard",
       "short_name": "Dashboard",
-      "description": "Accéder au tableau de bord",
+      "description": "Tableau de bord",
       "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "SARA IA",
+      "short_name": "SARA",
+      "description": "Assistante IA",
+      "url": "/ia",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {

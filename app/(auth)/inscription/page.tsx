@@ -93,7 +93,7 @@ export default function InscriptionPage() {
     setStep(2);
   };
 
-  const handleStep2 = (e: React.FormEvent) => {
+  const handleStep2 = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!prenom.trim()) errs.prenom = "Requis";
@@ -105,10 +105,35 @@ export default function InscriptionPage() {
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: emailPro,
+          password,
+          prenom,
+          nom,
+          societe: exploitation,
+          filiere,
+          surface,
+          pays,
+          ville,
+          telephone,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrors({ api: data.error ?? "Une erreur est survenue. Réessayez." });
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(false);
       setStep("done");
-    }, 1200);
+    } catch {
+      setErrors({ api: "Impossible de contacter le serveur. Réessayez." });
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -260,15 +285,21 @@ export default function InscriptionPage() {
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-gray-900">Bienvenue sur AGRIFRIK !</h2>
+              <div
+                className="rounded-xl px-4 py-3 text-sm font-medium"
+                style={{ background: "#E8F5E9", color: "#1B5E20", border: "1px solid #A5D6A7" }}
+              >
+                Votre essai gratuit de 14 jours est activé.
+              </div>
               <p className="text-sm text-gray-500 leading-relaxed">
-                Votre compte a été créé avec succès. Vérifiez votre email pour activer votre accès.
+                Votre compte a été créé avec succès. Configurez maintenant votre espace AGRIFRIK.
               </p>
               <button
-                onClick={() => router.push("/dashboard")}
+                onClick={() => router.push("/onboarding")}
                 className="w-full py-3 rounded-xl text-white font-semibold text-sm transition"
                 style={{ background: "#2E7D32" }}
               >
-                Aller au tableau de bord →
+                Configurer mon espace →
               </button>
             </div>
           ) : (
@@ -548,6 +579,12 @@ export default function InscriptionPage() {
                       </label>
                     </div>
                     {errors.terms && <p className="text-xs text-red-500 -mt-2">{errors.terms}</p>}
+
+                    {errors.api && (
+                      <div className="rounded-xl px-4 py-3 text-sm text-red-700 bg-red-50 border border-red-200">
+                        {errors.api}
+                      </div>
+                    )}
 
                     <div className="flex gap-3 pt-1">
                       <button
