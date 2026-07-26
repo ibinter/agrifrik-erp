@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
+import ModalEmploye from "../../components/modals/ModalEmploye";
+import ExportButton from "../../components/ui/ExportButton";
 import {
   Users,
   UserCheck,
   Briefcase,
   DollarSign,
   Leaf,
+  Pencil,
+  FileText,
 } from "lucide-react";
 
-// ─── KPI ───────────────────────────────────────────────────────────────────
 const kpis = [
   { label: "Effectif total", value: "287", accent: "#2E7D32", bg: "#E8F5E9", icon: Users },
   { label: "CDI", value: "42", accent: "#1565C0", bg: "#E3F2FD", icon: Briefcase },
@@ -19,7 +22,6 @@ const kpis = [
   { label: "Masse salariale/mois", value: "3 840 000 XOF", accent: "#2E7D32", bg: "#E8F5E9", icon: DollarSign },
 ];
 
-// ─── EFFECTIFS ──────────────────────────────────────────────────────────────
 const employes = [
   { id: "EMP-001", nom: "Admin AGRIFRIK", poste: "Directeur Général", type: "CDI cadre", entree: "01/03/2023", salaire: "580 000", dept: "Direction", statut: "Actif" },
   { id: "EMP-002", nom: "Jean-Baptiste Kouassi", poste: "DAF", type: "CDI cadre", entree: "01/03/2023", salaire: "420 000", dept: "Finance", statut: "Actif" },
@@ -38,6 +40,16 @@ const employes = [
   { id: "EMP-015", nom: "Dembélé Mariam", poste: "Assistante RH", type: "CDD 6 mois", entree: "01/05/2025", salaire: "145 000", dept: "RH", statut: "Actif" },
 ];
 
+const exportRows = employes.map((e) => ({
+  nom: e.nom,
+  prenom: "",
+  poste: e.poste,
+  typeContrat: e.type,
+  salaireBase: e.salaire + " XOF",
+  dateEmbauche: e.entree,
+  zone: e.dept,
+}));
+
 function initials(nom: string) {
   return nom.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 }
@@ -55,7 +67,6 @@ function ContratBadge({ type }: { type: string }) {
   );
 }
 
-// ─── ORGANIGRAMME SVG ────────────────────────────────────────────────────────
 function OrgChart() {
   const boxW = 140, boxH = 52, rx = 8;
   const gV = "#E8F5E9", gB = "#2E7D32";
@@ -64,31 +75,23 @@ function OrgChart() {
   type Box = { x: number; y: number; name: string; role: string; dark?: boolean };
 
   const boxes: Box[] = [
-    // L0 — DG
     { x: 330, y: 20, name: "Admin AGRIFRIK", role: "Directeur Général", dark: true },
-    // L1 — 4 directions
     { x: 40,  y: 120, name: "Jean-Baptiste K.", role: "DAF" },
     { x: 200, y: 120, name: "Mariam Kouyaté", role: "DRH" },
     { x: 360, y: 120, name: "Ibrahim Sawadogo", role: "Dir. Production" },
     { x: 520, y: 120, name: "Adjoua Messou", role: "Dir. Commerce" },
-    // L2 — sous DAF
     { x: 0,   y: 230, name: "Kouyaté Laurent", role: "Comptable junior" },
     { x: 80,  y: 230, name: "Diallo Fatoumata", role: "Secrét. comptable" },
-    // L2 — sous DRH
     { x: 200, y: 230, name: "Dembélé Mariam", role: "Assistante RH" },
-    // L2 — sous Production
     { x: 320, y: 230, name: "Konan Yao", role: "Tech. agricole" },
     { x: 430, y: 230, name: "Ouédraogo Aïssata", role: "Tech. terrain" },
-    // L2 — sous Commerce
     { x: 540, y: 230, name: "Bi Irié", role: "Agent logistique" },
-    // Transversal
     { x: 660, y: 120, name: "Bamba Oumar", role: "Chef mécanicien" },
     { x: 660, y: 200, name: "Traoré Moussa", role: "Chauffeur camion" },
     { x: 660, y: 280, name: "Coulibaly Rasmané", role: "Chauffeur pick-up" },
     { x: 660, y: 355, name: "Soro Ladji", role: "Magasinier" },
   ];
 
-  // lines: [parent_idx, child_idx]
   const edges: [number, number][] = [
     [0, 1], [0, 2], [0, 3], [0, 4],
     [1, 5], [1, 6],
@@ -105,11 +108,9 @@ function OrgChart() {
 
   return (
     <svg viewBox="0 0 820 430" className="w-full" aria-label="Organigramme AGRIFRIK">
-      {/* Transversal label */}
       <text x={730} y={108} fontSize="9" fill="#9CA3AF" fontStyle="italic">Logistique &amp; Maintenance</text>
       <line x1={660} y1={112} x2={800} y2={112} stroke="#D1D5DB" strokeWidth="1" strokeDasharray="4 3" />
 
-      {/* Edges */}
       {edges.map(([pi, ci], i) => {
         const p = boxes[pi], c = boxes[ci];
         const x1 = bx(p), y1 = by(p);
@@ -121,7 +122,6 @@ function OrgChart() {
         );
       })}
 
-      {/* Boxes */}
       {boxes.map((b, i) => {
         const bg = b.dark ? dkV : gV;
         const textColor = b.dark ? dkB : "#1A2E1A";
@@ -135,13 +135,11 @@ function OrgChart() {
         );
       })}
 
-      {/* Soro Ladji line from Magasinier box — small note */}
       <text x={bx(boxes[11]) + 5} y={cy(boxes[11])} fontSize="8" fill="#9CA3AF" dominantBaseline="middle">Service transversal</text>
     </svg>
   );
 }
 
-// ─── RECRUTEMENTS ────────────────────────────────────────────────────────────
 const recrutements = [
   {
     poste: "Responsable exportation",
@@ -173,7 +171,6 @@ const recrutements = [
   },
 ];
 
-// ─── ÉVALUATIONS ─────────────────────────────────────────────────────────────
 const evals = [
   { nom: "Ibrahim Sawadogo", note: 96, points: "Leadership terrain, qualité cacao", obj: "Formation audit RA avancé" },
   { nom: "Adjoua Messou", note: 94, points: "Rigueur qualité, initiative NC", obj: "Responsable certif. ISO" },
@@ -193,7 +190,6 @@ function ScoreBar({ note }: { note: number }) {
   );
 }
 
-// ─── CONGÉS ──────────────────────────────────────────────────────────────────
 const conges = [
   { nom: "Ibrahim Sawadogo", acquis: 30, pris: 8, solde: 22, prochain: "Pas de congé planifié (récolte oct)", alert: false },
   { nom: "Mariam Kouyaté", acquis: 30, pris: 12, solde: 18, prochain: "Congé annuel 1→15 Aoû 2025", alert: false },
@@ -212,7 +208,6 @@ const conges = [
   { nom: "Admin AGRIFRIK", acquis: 30, pris: 15, solde: 15, prochain: "Non planifié", alert: false },
 ];
 
-// ─── Planning SVG ─────────────────────────────────────────────────────────────
 const planningPersonnes = [
   { nom: "Mariam Kouyaté", conge: [2, 3], formation: [] },
   { nom: "Traoré Moussa", conge: [5, 6], formation: [] },
@@ -233,7 +228,6 @@ function PlanningChart() {
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" aria-label="Planning absences Juil-Aoû 2025">
-      {/* Header semaines */}
       {semaines.map((s, i) => (
         <text key={i} x={labelW + padL + i * colW + colW / 2} y={padT - 8} textAnchor="middle" fontSize="9" fill="#9CA3AF">
           {s.split("\n")[0]}
@@ -245,26 +239,20 @@ function PlanningChart() {
         </text>
       ))}
 
-      {/* Rows */}
       {planningPersonnes.map((p, ri) => {
         const y = padT + ri * rowH;
         return (
           <g key={ri}>
-            {/* Alternating bg */}
             <rect x={0} y={y} width={W} height={rowH} fill={ri % 2 === 0 ? "#F9FAFB" : "#fff"} />
-            {/* Name */}
             <text x={padL + 4} y={y + rowH / 2 + 4} fontSize="10" fill="#374151">{p.nom}</text>
-            {/* Congés */}
             {p.conge.map((col) => (
               <rect key={col} x={labelW + padL + (col - 1) * colW + 2} y={y + 6} width={colW - 4} height={rowH - 12} rx="4"
                 fill="#FED7AA" stroke="#F97316" strokeWidth="1" />
             ))}
-            {/* Formations */}
             {p.formation.map((col) => (
               <rect key={col} x={labelW + padL + (col - 1) * colW + 2} y={y + 6} width={colW - 4} height={rowH - 12} rx="4"
                 fill="#BFDBFE" stroke="#3B82F6" strokeWidth="1" />
             ))}
-            {/* Grid cols */}
             {semaines.map((_, i) => (
               <line key={i} x1={labelW + padL + i * colW} y1={y} x2={labelW + padL + i * colW} y2={y + rowH}
                 stroke="#E5E7EB" strokeWidth="0.5" />
@@ -272,9 +260,7 @@ function PlanningChart() {
           </g>
         );
       })}
-      {/* Bottom border */}
       <line x1={0} y1={H - 10} x2={W} y2={H - 10} stroke="#E5E7EB" strokeWidth="1" />
-      {/* Legend */}
       <rect x={padL} y={H - 8} width={12} height={8} rx="2" fill="#FED7AA" stroke="#F97316" strokeWidth="1" />
       <text x={padL + 16} y={H - 1} fontSize="9" fill="#9CA3AF">Congés</text>
       <rect x={padL + 70} y={H - 8} width={12} height={8} rx="2" fill="#BFDBFE" stroke="#3B82F6" strokeWidth="1" />
@@ -283,7 +269,6 @@ function PlanningChart() {
   );
 }
 
-// ─── FILTRES EFFECTIFS ────────────────────────────────────────────────────────
 const filtresEff = ["Tous", "Permanent", "CDD", "Saisonniers", "Cadres"];
 
 const TABS = ["Effectifs", "Organigramme", "Recrutements", "Évaluations", "Congés"];
@@ -291,6 +276,8 @@ const TABS = ["Effectifs", "Organigramme", "Recrutements", "Évaluations", "Cong
 export default function RHPage() {
   const [tab, setTab] = useState(0);
   const [filtreEff, setFiltreEff] = useState("Tous");
+  const [modalEmployeOpen, setModalEmployeOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   const empFiltres = employes.filter((e) => {
     if (filtreEff === "Tous") return true;
@@ -300,9 +287,29 @@ export default function RHPage() {
     return true;
   });
 
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Topbar title="Ressources Humaines" breadcrumb={["RH & Social", "RH"]} />
+
+      {toast && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 shadow-lg text-sm font-medium">
+          {toast}
+        </div>
+      )}
+
+      <ModalEmploye
+        open={modalEmployeOpen}
+        onClose={() => setModalEmployeOpen(false)}
+        onSubmit={() => {
+          setModalEmployeOpen(false);
+          showToast("Employé ajouté avec succès");
+        }}
+      />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
 
@@ -338,23 +345,33 @@ export default function RHPage() {
           ))}
         </div>
 
-        {/* ── Effectifs ─────────────────────────────────────────────────────── */}
+        {/* Effectifs */}
         {tab === 0 && (
           <div className="space-y-4">
-            {/* Filtres chips */}
-            <div className="flex flex-wrap gap-2">
-              {filtresEff.map((f) => (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap gap-2">
+                {filtresEff.map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFiltreEff(f)}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium transition border"
+                    style={filtreEff === f
+                      ? { backgroundColor: "#2E7D32", color: "#fff", borderColor: "#2E7D32" }
+                      : { backgroundColor: "#fff", color: "#6B7280", borderColor: "#E5E7EB" }}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <ExportButton data={exportRows} filename="employes-agrifrik" label="Exporter" />
                 <button
-                  key={f}
-                  onClick={() => setFiltreEff(f)}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium transition border"
-                  style={filtreEff === f
-                    ? { backgroundColor: "#2E7D32", color: "#fff", borderColor: "#2E7D32" }
-                    : { backgroundColor: "#fff", color: "#6B7280", borderColor: "#E5E7EB" }}
+                  onClick={() => setModalEmployeOpen(true)}
+                  className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-3 py-1.5 hover:bg-[#1B5E20] transition"
                 >
-                  {f}
+                  + Ajouter un employé
                 </button>
-              ))}
+              </div>
             </div>
 
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
@@ -362,14 +379,14 @@ export default function RHPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr style={{ backgroundColor: "#F8FBF8" }}>
-                      {["N°", "Employé", "Poste", "Type contrat", "Date entrée", "Salaire brut", "Département", "Statut"].map((h) => (
+                      {["N°", "Employé", "Poste", "Type contrat", "Date entrée", "Salaire brut", "Département", "Statut", "Actions"].map((h) => (
                         <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {empFiltres.map((e) => (
-                      <tr key={e.id} className="hover:bg-gray-50 transition cursor-pointer">
+                      <tr key={e.id} className="hover:bg-gray-50 transition">
                         <td className="px-4 py-3 text-xs font-mono text-gray-400">{e.id}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
@@ -388,6 +405,24 @@ export default function RHPage() {
                         <td className="px-4 py-3">
                           <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">✅ {e.statut}</span>
                         </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => setModalEmployeOpen(true)}
+                              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition border border-gray-200"
+                            >
+                              <Pencil size={12} />
+                              Éditer
+                            </button>
+                            <button
+                              onClick={() => showToast(`Fiche de ${e.nom} — en cours de développement`)}
+                              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition border border-gray-200"
+                            >
+                              <FileText size={12} />
+                              Voir fiche
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -397,7 +432,7 @@ export default function RHPage() {
           </div>
         )}
 
-        {/* ── Organigramme ──────────────────────────────────────────────────── */}
+        {/* Organigramme */}
         {tab === 1 && (
           <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
             <h2 className="text-base font-semibold text-gray-800 mb-4">Organigramme AGRIFRIK</h2>
@@ -406,7 +441,6 @@ export default function RHPage() {
                 <OrgChart />
               </div>
             </div>
-            {/* Légende */}
             <div className="flex items-center gap-6 mt-4 text-xs text-gray-500">
               <span className="flex items-center gap-2">
                 <span className="inline-block w-4 h-4 rounded" style={{ backgroundColor: "#1A2E1A" }} />
@@ -420,7 +454,7 @@ export default function RHPage() {
           </div>
         )}
 
-        {/* ── Recrutements ──────────────────────────────────────────────────── */}
+        {/* Recrutements */}
         {tab === 2 && (
           <div className="space-y-4">
             <h2 className="text-base font-semibold text-gray-800">Recrutements en cours ({recrutements.length})</h2>
@@ -467,7 +501,7 @@ export default function RHPage() {
           </div>
         )}
 
-        {/* ── Évaluations ───────────────────────────────────────────────────── */}
+        {/* Evaluations */}
         {tab === 3 && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
@@ -475,7 +509,6 @@ export default function RHPage() {
                 <h2 className="text-base font-semibold text-gray-800">Campagne évaluation annuelle 2025</h2>
                 <span className="text-xs text-gray-500">Avr – Mai 2025 · 42/60 complètes (70%)</span>
               </div>
-              {/* Progress bar */}
               <div className="w-full h-2 bg-gray-100 rounded-full mb-6 overflow-hidden">
                 <div className="h-full rounded-full bg-[#2E7D32]" style={{ width: "70%" }} />
               </div>
@@ -513,7 +546,7 @@ export default function RHPage() {
           </div>
         )}
 
-        {/* ── Congés ────────────────────────────────────────────────────────── */}
+        {/* Conges */}
         {tab === 4 && (
           <div className="space-y-6">
             <div>
@@ -556,7 +589,6 @@ export default function RHPage() {
               </div>
             </div>
 
-            {/* Planning */}
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <h2 className="text-base font-semibold text-gray-800 mb-4">Calendrier des absences — Juillet–Août 2025</h2>
               <div className="overflow-x-auto">

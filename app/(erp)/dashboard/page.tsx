@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Topbar from "../../components/Topbar";
 import {
   TrendingUp, TrendingDown, Leaf, Package, Users,
-  AlertTriangle, Brain, Ship, Calendar, Wind, CloudRain,
+  AlertTriangle, Brain, Ship, Calendar, Wind,
   Sun, Zap,
 } from "lucide-react";
 
@@ -94,16 +95,13 @@ function FinanceLineChart() {
   const toX = (i: number) => padL + (i / (MONTHS.length - 1)) * chartW;
   const toY = (v: number) => padT + chartH - (v / maxVal) * chartH;
 
-  // Build path for 2025 (all points)
   const path2025 = DATA_2025.map((v, i) => `${i === 0 ? "M" : "L"}${toX(i)},${toY(v)}`).join(" ");
 
-  // Build path for 2024 (only non-null)
   const pts2024 = DATA_2024.map((v, i) => (v !== null ? { x: toX(i), y: toY(v as number) } : null)).filter(Boolean) as { x: number; y: number }[];
   const path2024 = pts2024.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: H }}>
-      {/* Y grid */}
       {yTicks.map((t) => {
         const y = toY(t);
         return (
@@ -113,11 +111,9 @@ function FinanceLineChart() {
           </g>
         );
       })}
-      {/* Month labels */}
       {MONTHS.map((m, i) => (
         <text key={m} x={toX(i)} y={H - 8} textAnchor="middle" fontSize={9} fill="#9CA3AF">{m}</text>
       ))}
-      {/* Area fill 2025 */}
       <defs>
         <linearGradient id="fillGreen" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor="#2E7D32" stopOpacity="0.15" />
@@ -128,19 +124,14 @@ function FinanceLineChart() {
         d={`${path2025} L${toX(DATA_2025.length - 1)},${toY(0)} L${toX(0)},${toY(0)} Z`}
         fill="url(#fillGreen)"
       />
-      {/* 2024 dashed line */}
       <path d={path2024} fill="none" stroke="#9CA3AF" strokeWidth={1.5} strokeDasharray="5 3" />
-      {/* 2025 solid line */}
       <path d={path2025} fill="none" stroke="#2E7D32" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-      {/* Data points 2025 */}
       {DATA_2025.map((v, i) => (
         <circle key={i} cx={toX(i)} cy={toY(v)} r={4} fill="#2E7D32" stroke="white" strokeWidth={1.5}
           opacity={i === DATA_2025.length - 1 ? 0.6 : 1}
         />
       ))}
-      {/* Partial label */}
       <text x={toX(6) + 6} y={toY(3.4) - 4} fontSize={8} fill="#9CA3AF">(partiel)</text>
-      {/* Legend */}
       <line x1={padL} x2={padL + 20} y1={8} y2={8} stroke="#2E7D32" strokeWidth={2.5} />
       <text x={padL + 24} y={12} fontSize={9} fill="#6B7280">2025</text>
       <line x1={padL + 60} x2={padL + 80} y1={8} y2={8} stroke="#9CA3AF" strokeWidth={1.5} strokeDasharray="5 3" />
@@ -172,7 +163,6 @@ function ParcelleBarChart() {
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: H }}>
-      {/* Objectif line */}
       <line x1={objX} x2={objX} y1={padT - 8} y2={H - padB} stroke="#C62828" strokeWidth={1.5} strokeDasharray="4 3" />
       <text x={objX} y={padT - 10} textAnchor="middle" fontSize={8} fill="#C62828">Objectif 1,20</text>
 
@@ -194,6 +184,17 @@ function ParcelleBarChart() {
 
 /* ─── PAGE ───────────────────────────────────────────────── */
 export default function DashboardPage() {
+  const router = useRouter();
+
+  const quickActions = [
+    { label: "Nouvelle vente", route: "/ventes", bg: "#E8F5E9", color: "#2E7D32", icon: "💰" },
+    { label: "Saisir récolte", route: "/cultures", bg: "#F3E5F5", color: "#6A1B9A", icon: "🌱" },
+    { label: "Entrée stock", route: "/stocks", bg: "#E3F2FD", color: "#1565C0", icon: "📦" },
+    { label: "Nouvel employé", route: "/rh", bg: "#FFF3E0", color: "#E65100", icon: "👤" },
+    { label: "Nouvelle facture", route: "/factures", bg: "#E0F2F1", color: "#00695C", icon: "🧾" },
+    { label: "Rapport", route: "/rapports", bg: "#F0FFF4", color: "#1B5E20", icon: "📊" },
+  ];
+
   return (
     <div>
       <Topbar title="Tableau de Bord" breadcrumb={["Dashboard"]} />
@@ -220,6 +221,27 @@ export default function DashboardPage() {
                 42 alertes actives
               </Link>
             </div>
+          </div>
+        </div>
+
+        {/* ── ACTIONS RAPIDES (router.push) ───────────────────── */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Zap size={15} color="#E65100" />
+            <h2 className="font-semibold text-gray-900 text-sm">Actions rapides</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {quickActions.map((a) => (
+              <button
+                key={a.label}
+                onClick={() => router.push(a.route)}
+                className="flex flex-col items-center gap-2 p-4 rounded-xl text-xs font-semibold hover:opacity-80 transition-opacity cursor-pointer text-center"
+                style={{ backgroundColor: a.bg, color: a.color }}
+              >
+                <span className="text-2xl">{a.icon}</span>
+                {a.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -267,7 +289,6 @@ export default function DashboardPage() {
             <h2 className="font-semibold text-sm" style={{ color: "#B71C1C" }}>Alertes urgentes</h2>
           </div>
           <div className="space-y-2">
-            {/* Critiques */}
             <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: "#FFEBEE" }}>
               <span className="text-base flex-shrink-0">🔴</span>
               <div className="flex-1 min-w-0">
@@ -285,7 +306,6 @@ export default function DashboardPage() {
                 <p className="text-xs text-red-700 mt-0.5">Surveiller — stress hydrique léger détecté</p>
               </div>
             </div>
-            {/* Importante */}
             <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: "#FEF3C7" }}>
               <span className="text-base flex-shrink-0">🟡</span>
               <div className="flex-1 min-w-0">
@@ -293,7 +313,6 @@ export default function DashboardPage() {
                 <p className="text-xs" style={{ color: "#78350F" }}>Contrôle qualité requis avant ouverture caisse</p>
               </div>
             </div>
-            {/* Info */}
             <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: "#F0FFF4" }}>
               <span className="text-base flex-shrink-0">🟢</span>
               <div className="flex-1 min-w-0">
@@ -311,7 +330,6 @@ export default function DashboardPage() {
             <Link href="/transformation" className="text-xs text-green-700 font-medium hover:underline">Voir tous →</Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* LOT-048 */}
             <div className="rounded-xl p-4 border" style={{ backgroundColor: "#EFF6FF", borderColor: "#93C5FD" }}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-mono font-bold text-blue-900">LOT-2025-048</span>
@@ -324,7 +342,6 @@ export default function DashboardPage() {
               </div>
               <div className="text-xs text-blue-600 mt-1">Progression J5/6 — 83%</div>
             </div>
-            {/* LOT-047 */}
             <div className="rounded-xl p-4 border" style={{ backgroundColor: "#F0FFF4", borderColor: "#86EFAC" }}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-mono font-bold text-green-900">LOT-2025-047</span>
@@ -373,7 +390,6 @@ export default function DashboardPage() {
         {/* ── WIDGET 5 — Agenda semaine + Météo ──────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-          {/* Agenda de la semaine */}
           <div className="rounded-2xl border border-gray-100 bg-white p-5">
             <div className="flex items-center gap-2 mb-4">
               <Calendar size={15} color="#2E7D32" />
@@ -443,14 +459,12 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Météo agronomique */}
           <div className="rounded-2xl border border-gray-100 bg-white p-5">
             <div className="flex items-center gap-2 mb-1">
               <Wind size={15} color="#1565C0" />
               <h2 className="font-semibold text-gray-900 text-sm">Météo agronomique</h2>
               <span className="text-xs text-gray-400 ml-auto">Station Davis : Soubré Nord</span>
             </div>
-            {/* Aujourd'hui */}
             <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-xl mt-3">
               <Sun size={22} color="#F59E0B" />
               <div className="flex-1">
@@ -458,7 +472,6 @@ export default function DashboardPage() {
                 <div className="text-xs text-gray-600">⛅ 32°C · HR 74% · Vent SE 8 km/h · Pluie 48h : 0 mm</div>
               </div>
             </div>
-            {/* Prévisions 3j */}
             <div className="grid grid-cols-3 gap-2 mt-3">
               {[
                 { day: "Sam", icon: "⛅", temp: "30°C", rain: "12mm", bg: "#F9FAFB" },
@@ -473,7 +486,6 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-            {/* ETP + Bilan */}
             <div className="mt-3 space-y-1">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-500">ETP journalière</span>
@@ -506,11 +518,11 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── WIDGET 8 — Actions rapides ─────────────────────── */}
+        {/* ── WIDGET 8 — Raccourcis ──────────────────────────── */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
           <div className="flex items-center gap-2 mb-4">
             <Zap size={15} color="#E65100" />
-            <h2 className="font-semibold text-gray-900 text-sm">Actions rapides</h2>
+            <h2 className="font-semibold text-gray-900 text-sm">Raccourcis</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[

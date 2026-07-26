@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, CheckCircle, Clock, TrendingUp, Plus, Eye, Search } from "lucide-react";
+import { FileText, CheckCircle, Clock, TrendingUp, Plus, Eye, Search, Printer } from "lucide-react";
 import Topbar from "../../components/Topbar";
+import ExportButton from "../../components/ui/ExportButton";
 
-/* ─── KPIs ─────────────────────────────────────────────── */
 const kpis = [
   { label: "Factures 2025", value: "9", unit: "", sub: "Depuis janvier 2025", icon: FileText, iconColor: "#6A1B9A", iconBg: "#F3E5F5" },
   { label: "CA facturé", value: "30,1 M", unit: "XOF", sub: "Exercice 2025", icon: TrendingUp, iconColor: "#2E7D32", iconBg: "#E8F5E9" },
@@ -12,7 +12,6 @@ const kpis = [
   { label: "Délai moyen règlement", value: "13", unit: "j", sub: "Conforme J+15 contractuel", icon: Clock, iconColor: "#E65100", iconBg: "#FFF3E0" },
 ];
 
-/* ─── DONNÉES FACTURES ──────────────────────────────────── */
 type Filtre = "Toutes" | "En attente" | "Réglées" | "En retard";
 
 interface Facture {
@@ -39,28 +38,32 @@ const factures: Facture[] = [
   { numero: "FAC-2025-009", date: "11/07", client: "Barry Callebaut CI", description: "Cacao AA LOT-047", montantTTC: 3695800, echeance: "26/07", paiement: null, statut: "En attente LC" },
 ];
 
-const FILTRES: Filtre[] = ["Toutes", "En attente", "Réglées", "En retard"];
+const exportRows = factures.map((f) => ({
+  numero: f.numero,
+  client: f.client,
+  montantTTC: f.montantTTC,
+  statut: f.statut,
+  dateEmission: f.date,
+  dateEcheance: f.echeance,
+}));
 
+const FILTRES: Filtre[] = ["Toutes", "En attente", "Réglées", "En retard"];
 const TOTAL = factures.reduce((s, f) => s + f.montantTTC, 0);
 
 function statutBadge(f: Facture) {
-  if (f.statut === "Réglée")
-    return { bg: "#E8F5E9", color: "#2E7D32", label: "Réglée" };
-  if (f.statut === "Réglée (retard)")
-    return { bg: "#FFF3E0", color: "#E65100", label: `Réglée (${f.retard} retard)` };
+  if (f.statut === "Réglée") return { bg: "#E8F5E9", color: "#2E7D32", label: "Réglée" };
+  if (f.statut === "Réglée (retard)") return { bg: "#FFF3E0", color: "#E65100", label: `Réglée (${f.retard} retard)` };
   return { bg: "#E3F2FD", color: "#1565C0", label: "En attente LC" };
 }
 
-/* ─── SVG BAR CHART CA MENSUEL ──────────────────────────── */
 function BarChartCA() {
-  // Jan-Jul 2025 en milliers XOF
   const data = [
     { month: "Jan", val: 3478400, en_cours: false },
     { month: "Fév", val: 3695800, en_cours: false },
     { month: "Mar", val: 3478400, en_cours: false },
     { month: "Avr", val: 3913200, en_cours: false },
     { month: "Mai", val: 3695800, en_cours: false },
-    { month: "Jun", val: 3487768, en_cours: false },   // FAC-006 + FAC-007 + FAC-008
+    { month: "Jun", val: 3487768, en_cours: false },
     { month: "Jul", val: 3695800, en_cours: true },
   ];
   const max = 5000000;
@@ -72,7 +75,6 @@ function BarChartCA() {
 
   return (
     <svg viewBox={`0 0 ${W} ${H + 40}`} className="w-full" style={{ maxHeight: 230 }}>
-      {/* Grille */}
       {[0, 25, 50, 75, 100].map((pct) => {
         const y = H - (pct / 100) * H;
         return (
@@ -84,34 +86,20 @@ function BarChartCA() {
           </g>
         );
       })}
-
-      {/* Ligne objectif */}
       <line x1={padL} y1={objY} x2={W - padR} y2={objY} stroke="#E65100" strokeWidth={1.5} strokeDasharray="5 3" />
       <text x={W - padR + 2} y={objY + 4} fontSize={9} fill="#E65100">4M</text>
-
-      {/* Barres */}
       {data.map((d, i) => {
         const x = padL + i * (barW + gap);
         const barH = (d.val / max) * H;
         const y = H - barH;
         return (
           <g key={d.month}>
-            <rect
-              x={x} y={y} width={barW} height={barH} rx={5}
-              fill={d.en_cours ? "none" : "#2E7D32"}
-              stroke={d.en_cours ? "#2E7D32" : "none"}
-              strokeWidth={d.en_cours ? 2 : 0}
-              opacity={d.en_cours ? 1 : 0.85}
-            />
-            {d.en_cours && (
-              <rect x={x} y={y} width={barW} height={barH} rx={5} fill="#2E7D32" opacity={0.3} />
-            )}
+            <rect x={x} y={y} width={barW} height={barH} rx={5} fill={d.en_cours ? "none" : "#2E7D32"} stroke={d.en_cours ? "#2E7D32" : "none"} strokeWidth={d.en_cours ? 2 : 0} opacity={d.en_cours ? 1 : 0.85} />
+            {d.en_cours && <rect x={x} y={y} width={barW} height={barH} rx={5} fill="#2E7D32" opacity={0.3} />}
             <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={9} fill={d.en_cours ? "#E65100" : "#2E7D32"} fontWeight={600}>
               {(d.val / 1000000).toFixed(1)}M
             </text>
-            <text x={x + barW / 2} y={H + 16} textAnchor="middle" fontSize={10} fill="#9E9E9E">
-              {d.month}
-            </text>
+            <text x={x + barW / 2} y={H + 16} textAnchor="middle" fontSize={10} fill="#9E9E9E">{d.month}</text>
           </g>
         );
       })}
@@ -119,9 +107,7 @@ function BarChartCA() {
   );
 }
 
-/* ─── SVG DSO LINE CHART ────────────────────────────────── */
 function DSOChart() {
-  // Jan Fév Mar Avr Mai Jun Jul (2 valeurs Jul pour FAC-007 et FAC-008)
   const dsoData = [15, 15, 15, 15, 15, 29, 16];
   const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul"];
   const W = 380, H = 100, padL = 36, padR = 20, padT = 16;
@@ -135,7 +121,6 @@ function DSOChart() {
 
   return (
     <svg viewBox={`0 0 ${W} ${H + padT + 28}`} className="w-full" style={{ maxHeight: 160 }}>
-      {/* Grille */}
       {[0, 10, 20, 30].map((v) => {
         const y = padT + H - (v / 35) * H;
         return (
@@ -145,31 +130,133 @@ function DSOChart() {
           </g>
         );
       })}
-      {/* Seuil 30j */}
       <line x1={padL} y1={seuil} x2={W - padR} y2={seuil} stroke="#C62828" strokeWidth={1.5} strokeDasharray="4 3" />
       <text x={W - padR + 2} y={seuil + 4} fontSize={9} fill="#C62828">30j</text>
-
-      {/* Ligne DSO */}
       <polyline points={poly} fill="none" stroke="#2E7D32" strokeWidth={2} />
       {pts.map((p, i) => (
         <g key={i}>
           <circle cx={p.x} cy={p.y} r={4} fill={p.v >= 30 ? "#C62828" : "#2E7D32"} />
-          <text x={p.x} y={p.y - 6} textAnchor="middle" fontSize={9} fill={p.v >= 30 ? "#C62828" : "#2E7D32"} fontWeight={600}>
-            {p.v}j
-          </text>
-          <text x={p.x} y={padT + H + 16} textAnchor="middle" fontSize={9} fill="#9E9E9E">
-            {months[i]}
-          </text>
+          <text x={p.x} y={p.y - 6} textAnchor="middle" fontSize={9} fill={p.v >= 30 ? "#C62828" : "#2E7D32"} fontWeight={600}>{p.v}j</text>
+          <text x={p.x} y={padT + H + 16} textAnchor="middle" fontSize={9} fill="#9E9E9E">{months[i]}</text>
         </g>
       ))}
     </svg>
   );
 }
 
-/* ─── PAGE ──────────────────────────────────────────────── */
+interface ModalNouvelleFactureProps {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: () => void;
+}
+
+function ModalNouvelleFacture({ open, onClose, onSubmit }: ModalNouvelleFactureProps) {
+  const [client, setClient] = useState("");
+  const [montantHT, setMontantHT] = useState("");
+  const [tva, setTva] = useState("18");
+  const [echeance, setEcheance] = useState("");
+
+  if (!open) return null;
+
+  const ht = parseFloat(montantHT) || 0;
+  const ttc = ht * (1 + parseFloat(tva) / 100);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    onSubmit();
+    setClient("");
+    setMontantHT("");
+    setTva("18");
+    setEcheance("");
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+        <h2 className="text-base font-bold text-gray-900 mb-4">Nouvelle facture</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Client</label>
+            <input
+              type="text"
+              value={client}
+              onChange={(e) => setClient(e.target.value)}
+              required
+              placeholder="Nom du client"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 outline-none focus:border-green-600"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Montant HT (XOF)</label>
+            <input
+              type="number"
+              value={montantHT}
+              onChange={(e) => setMontantHT(e.target.value)}
+              required
+              min={0}
+              placeholder="0"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 outline-none focus:border-green-600"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">TVA (%)</label>
+            <select
+              value={tva}
+              onChange={(e) => setTva(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 outline-none focus:border-green-600"
+            >
+              <option value="0">0 %</option>
+              <option value="10">10 %</option>
+              <option value="18">18 %</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Date d&apos;échéance</label>
+            <input
+              type="date"
+              value={echeance}
+              onChange={(e) => setEcheance(e.target.value)}
+              required
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 outline-none focus:border-green-600"
+            />
+          </div>
+          {ht > 0 && (
+            <div className="rounded-xl bg-green-50 border border-green-100 px-3 py-2 text-xs text-green-800">
+              Montant TTC : <strong>{ttc.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} XOF</strong>
+            </div>
+          )}
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 border border-gray-200 text-gray-600 rounded-xl text-xs font-medium px-3 py-2 hover:bg-gray-50"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              className="flex-1 text-white rounded-xl text-xs font-medium px-3 py-2"
+              style={{ background: "#2E7D32" }}
+            >
+              Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function FacturesPage() {
   const [filtre, setFiltre] = useState<Filtre>("Toutes");
   const [search, setSearch] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [toast, setToast] = useState(false);
+
+  function showToast() {
+    setToast(true);
+    setTimeout(() => setToast(false), 3000);
+  }
 
   const filtered = factures.filter((f) => {
     if (search && !f.client.toLowerCase().includes(search.toLowerCase()) && !f.numero.toLowerCase().includes(search.toLowerCase())) return false;
@@ -183,23 +270,40 @@ export default function FacturesPage() {
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Topbar title="Factures" breadcrumb={["Commerce", "Factures"]} />
 
+      {toast && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-xs font-medium shadow-lg">
+          Facture enregistrée avec succès
+        </div>
+      )}
+
+      <ModalNouvelleFacture
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={() => {
+          setModalOpen(false);
+          showToast();
+        }}
+      />
+
       <main className="flex-1 p-6 space-y-6">
 
-        {/* En-tête */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Factures</h1>
             <p className="text-xs text-gray-500 mt-0.5">Facturation clients et suivi des paiements — SYSCOHADA</p>
           </div>
-          <button
-            className="flex items-center gap-1.5 text-white rounded-xl text-xs font-medium px-4 py-2"
-            style={{ background: "#2E7D32" }}
-          >
-            <Plus size={14} /> Nouvelle facture
-          </button>
+          <div className="flex items-center gap-2">
+            <ExportButton data={exportRows} filename="factures-2025" label="Exporter" />
+            <button
+              onClick={() => setModalOpen(true)}
+              className="flex items-center gap-1.5 text-white rounded-xl text-xs font-medium px-4 py-2"
+              style={{ background: "#2E7D32" }}
+            >
+              <Plus size={14} /> Nouvelle facture
+            </button>
+          </div>
         </div>
 
-        {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {kpis.map((k) => {
             const Icon = k.icon;
@@ -221,9 +325,7 @@ export default function FacturesPage() {
           })}
         </div>
 
-        {/* Tableau */}
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
-          {/* Filtres + recherche */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-5 py-4 border-b border-gray-100">
             <div className="flex gap-1.5 flex-wrap">
               {FILTRES.map((f) => (
@@ -231,9 +333,7 @@ export default function FacturesPage() {
                   key={f}
                   onClick={() => setFiltre(f)}
                   className="px-3 py-1 rounded-full text-xs font-medium transition-colors"
-                  style={filtre === f
-                    ? { background: "#2E7D32", color: "#fff" }
-                    : { background: "#F5F5F5", color: "#757575" }}
+                  style={filtre === f ? { background: "#2E7D32", color: "#fff" } : { background: "#F5F5F5", color: "#757575" }}
                 >
                   {f}
                 </button>
@@ -255,7 +355,7 @@ export default function FacturesPage() {
             <table className="w-full text-xs">
               <thead>
                 <tr style={{ background: "#F8FBF8" }}>
-                  {["N°", "Date", "Client", "Description", "Montant TTC (XOF)", "Échéance", "Paiement", "Statut", ""].map((c) => (
+                  {["N°", "Date", "Client", "Description", "Montant TTC (XOF)", "Échéance", "Paiement", "Statut", "Actions"].map((c) => (
                     <th key={c} className="text-left text-gray-500 font-semibold px-4 py-3 whitespace-nowrap">{c}</th>
                   ))}
                 </tr>
@@ -292,9 +392,17 @@ export default function FacturesPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <button className="border border-gray-200 text-gray-600 rounded-lg text-xs px-2 py-1 hover:bg-gray-50 flex items-center gap-1">
-                          <Eye size={11} /> Voir
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button className="border border-gray-200 text-gray-600 rounded-lg text-xs px-2 py-1 hover:bg-gray-50 flex items-center gap-1">
+                            <Eye size={11} /> Voir
+                          </button>
+                          <button
+                            onClick={() => window.print()}
+                            className="border border-gray-200 text-gray-600 rounded-lg text-xs px-2 py-1 hover:bg-gray-50 flex items-center gap-1"
+                          >
+                            <Printer size={11} /> Imprimer
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -303,7 +411,6 @@ export default function FacturesPage() {
             </table>
           </div>
 
-          {/* Totaux */}
           <div className="px-5 py-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-500">
             <span>
               Total cumulé :{" "}
@@ -316,10 +423,7 @@ export default function FacturesPage() {
           </div>
         </div>
 
-        {/* Analyse financière */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-
-          {/* Bar chart CA */}
           <div className="lg:col-span-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-900 mb-1">CA mensuel facturé 2025</h3>
             <p className="text-xs text-gray-400 mb-4">
@@ -328,7 +432,6 @@ export default function FacturesPage() {
             <BarChartCA />
           </div>
 
-          {/* DSO */}
           <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-900 mb-1">DSO — Délai moyen de règlement</h3>
             <p className="text-xs text-gray-400 mb-3">Ligne rouge : seuil alerte 30 jours</p>
@@ -339,7 +442,6 @@ export default function FacturesPage() {
           </div>
         </div>
 
-        {/* Facture en attente */}
         <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
           <div className="flex items-start gap-3">
             <span className="text-xl mt-0.5 flex-shrink-0">🔵</span>

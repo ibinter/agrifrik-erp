@@ -1,13 +1,13 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
+import ModalRecolte from "../../components/modals/ModalRecolte";
+import ExportButton from "../../components/ui/ExportButton";
 import { Sprout, MapPin, TrendingUp, BarChart2, AlertTriangle } from "lucide-react";
 
-/* ─── Types ─────────────────────────────────────────────── */
 type Tab = "overview" | "cacao" | "anacarde" | "vivrieres" | "phenologie";
 
-/* ─── Données parcelles ─────────────────────────────────── */
 const parcelles = [
   { id: "PAR-A1", nom: "Bloc A – Zone Nord 1", surface: 6.2, culture: "Cacao AA", stade: "Production — Cabosses", cert: "RA", derniereOp: "Taille 08/07", prochainActe: "Traitement 20/07", score: 96, alerte: false },
   { id: "PAR-A2", nom: "Bloc A – Zone Nord 2", surface: 5.8, culture: "Cacao AA", stade: "Production", cert: "RA", derniereOp: "Taille 08/07", prochainActe: "Taille 10/07", score: 94, alerte: false },
@@ -22,6 +22,15 @@ const parcelles = [
   { id: "PAR-E2", nom: "Bloc E – Vivrier 2", surface: 5.8, culture: "Maïs", stade: "Récolte", cert: "—", derniereOp: "Récolte en cours", prochainActe: "Export", score: 75, alerte: false },
   { id: "PAR-F1", nom: "Bloc F – Jeune plantation", surface: 6.0, culture: "Cacao jeune", stade: "Croissance an 2", cert: "AB prévu", derniereOp: "Entretien jeunes plants", prochainActe: "—", score: 85, alerte: false },
 ];
+
+const exportData = parcelles.map((p) => ({
+  parcelle: p.id,
+  nom: p.nom,
+  surface: p.surface,
+  stade: p.stade,
+  statut: p.cert,
+  rendementPrevu: p.score,
+}));
 
 const cacaoDetails = [
   { parcelle: "PAR-A1", surface: 6.2, variete: "F3 hybrid", age: "17 ans", cabosses: 24, poidsMoy: "420g", rendement: "1,28 t/ha", alerte: "" },
@@ -48,7 +57,6 @@ const vivrierBilan = [
   { culture: "Maïs cycle 2", parcelle: "PAR-E2", surface: "5,8 ha", cycle: "90j", semis: "Jul (prévu)", recolte: "Oct", production: "3,5 t (prévu)", ca: "630 000" },
 ];
 
-/* ─── Helpers ────────────────────────────────────────────── */
 function ScoreBar({ score }: { score: number }) {
   const color = score >= 90 ? "#2E7D32" : score >= 75 ? "#F9A825" : "#E53935";
   return (
@@ -68,7 +76,6 @@ function CertBadge({ cert }: { cert: string }) {
   return <span className="text-gray-300 text-xs">—</span>;
 }
 
-/* ─── Tabs ───────────────────────────────────────────────── */
 const TABS: { key: Tab; label: string }[] = [
   { key: "overview", label: "Vue d'ensemble" },
   { key: "cacao", label: "Cacao" },
@@ -77,16 +84,32 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "phenologie", label: "Stades phénologiques" },
 ];
 
-/* ─── Component ──────────────────────────────────────────── */
 export default function CulturesPage() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [modalRecolteOpen, setModalRecolteOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   return (
     <div>
       <Topbar title="Cultures & Plantations" breadcrumb={["Production", "Cultures"]} />
 
+      {toast && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-sm font-medium shadow-lg">
+          {toast}
+        </div>
+      )}
+
+      <ModalRecolte
+        open={modalRecolteOpen}
+        onClose={() => setModalRecolteOpen(false)}
+        onSubmit={() => {
+          setModalRecolteOpen(false);
+          setToast("Récolte enregistrée");
+          setTimeout(() => setToast(null), 3000);
+        }}
+      />
+
       <div className="p-4 sm:p-6 space-y-6">
-        {/* KPI */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           {[
             { label: "Parcelles en culture", val: "12", icon: MapPin, color: "#2E7D32", bg: "#E8F5E9" },
@@ -108,26 +131,35 @@ export default function CulturesPage() {
           })}
         </div>
 
-        {/* Onglets */}
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <div className="flex border-b border-gray-100 overflow-x-auto">
-            {TABS.map((t) => (
+          <div className="flex items-center justify-between border-b border-gray-100 pr-4">
+            <div className="flex overflow-x-auto">
+              {TABS.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setActiveTab(t.key)}
+                  className="px-5 py-3.5 text-xs font-medium whitespace-nowrap transition-colors"
+                  style={{
+                    color: activeTab === t.key ? "#2E7D32" : "#6B7280",
+                    borderBottom: activeTab === t.key ? "2px solid #2E7D32" : "2px solid transparent",
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <ExportButton data={exportData} filename="cultures-parcelles" label="Exporter" />
               <button
-                key={t.key}
-                onClick={() => setActiveTab(t.key)}
-                className="px-5 py-3.5 text-xs font-medium whitespace-nowrap transition-colors"
-                style={{
-                  color: activeTab === t.key ? "#2E7D32" : "#6B7280",
-                  borderBottom: activeTab === t.key ? "2px solid #2E7D32" : "2px solid transparent",
-                }}
+                onClick={() => setModalRecolteOpen(true)}
+                className="bg-[#2E7D32] text-white rounded-xl px-3 py-1.5 text-xs font-medium"
               >
-                {t.label}
+                Saisir une récolte
               </button>
-            ))}
+            </div>
           </div>
 
           <div className="p-4 sm:p-6">
-            {/* ── Vue d'ensemble ── */}
             {activeTab === "overview" && (
               <div>
                 <h2 className="text-sm font-semibold text-gray-700 mb-4">Grille des 12 parcelles</h2>
@@ -180,16 +212,13 @@ export default function CulturesPage() {
               </div>
             )}
 
-            {/* ── Cacao ── */}
             {activeTab === "cacao" && (
               <div className="space-y-6">
-                {/* En-tête filière */}
                 <div className="rounded-2xl p-5" style={{ backgroundColor: "#F8FBF8" }}>
                   <h2 className="font-semibold text-gray-900 mb-1">Filière cacao AGRIFRIK</h2>
                   <p className="text-xs text-gray-500">6 parcelles · Total : 23,6 ha · Variété : Forastero hybride (F1, F3)</p>
                 </div>
 
-                {/* Calendrier phénologique */}
                 <div>
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
                     Calendrier phénologique cacao — Mois en cours : Juillet
@@ -220,7 +249,6 @@ export default function CulturesPage() {
                   </div>
                 </div>
 
-                {/* Tableau de suivi */}
                 <div>
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
                     Suivi par parcelle
@@ -259,7 +287,6 @@ export default function CulturesPage() {
                   </div>
                 </div>
 
-                {/* Traitements */}
                 <div>
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Traitements en cours</h3>
                   <div className="space-y-2">
@@ -277,7 +304,6 @@ export default function CulturesPage() {
               </div>
             )}
 
-            {/* ── Anacarde ── */}
             {activeTab === "anacarde" && (
               <div className="space-y-6">
                 <div className="rounded-2xl p-5" style={{ backgroundColor: "#F8FBF8" }}>
@@ -333,7 +359,6 @@ export default function CulturesPage() {
               </div>
             )}
 
-            {/* ── Vivrières ── */}
             {activeTab === "vivrieres" && (
               <div className="space-y-6">
                 <div className="rounded-2xl p-5" style={{ backgroundColor: "#F8FBF8" }}>
@@ -372,7 +397,6 @@ export default function CulturesPage() {
               </div>
             )}
 
-            {/* ── Phénologie ── */}
             {activeTab === "phenologie" && (
               <div className="space-y-6">
                 <div>
@@ -423,7 +447,6 @@ export default function CulturesPage() {
                   </div>
                 </div>
 
-                {/* Note agronomique */}
                 <div className="rounded-2xl border border-green-100 p-5" style={{ backgroundColor: "#F1F8F1" }}>
                   <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#2E7D32" }}>
                     Note agronomique — Juillet 2025

@@ -2,10 +2,29 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
+import ExportButton from "../../components/ui/ExportButton";
+import { Plus, X } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type Tab = "overview" | "departements" | "alertes" | "revisions";
 type Dept = "Production" | "Logistique" | "Commerce" | "Finance" | "RH" | "IA/Tech" | "Administration";
+
+// ─── Données budget par postes (mock listing principal) ───────────────────────
+type LigneBudget = {
+  id: string;
+  poste: string;
+  budgetPrevu: number;
+  realise: number;
+  periode: string;
+};
+
+const lignesInitiales: LigneBudget[] = [
+  { id: "B1", poste: "Personnel", budgetPrevu: 44000000, realise: 21200000, periode: "2026" },
+  { id: "B2", poste: "Intrants", budgetPrevu: 52000000, realise: 29400000, periode: "2026" },
+  { id: "B3", poste: "Transport", budgetPrevu: 14000000, realise: 6400000, periode: "2026" },
+  { id: "B4", poste: "Équipements", budgetPrevu: 6000000, realise: 3200000, periode: "2026" },
+  { id: "B5", poste: "Divers", budgetPrevu: 12000000, realise: 5600000, periode: "2026" },
+];
 
 // ─── Données budget général ───────────────────────────────────────────────────
 const produits = [
@@ -96,10 +115,17 @@ function tauxColor(t: number) {
   return "#C62828";
 }
 
+type LigneForm = { poste: string; budgetPrevu: string; periode: string };
+const defaultLigneForm: LigneForm = { poste: "", budgetPrevu: "", periode: "2026" };
+
 // ─── Composant principal ─────────────────────────────────────────────────────
 export default function BudgetPage() {
   const [tab, setTab] = useState<Tab>("overview");
   const [dept, setDept] = useState<Dept>("Production");
+  const [lignes, setLignes] = useState<LigneBudget[]>(lignesInitiales);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [ligneForm, setLigneForm] = useState<LigneForm>(defaultLigneForm);
+  const [toast, setToast] = useState(false);
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "overview", label: "Vue d'ensemble" },
@@ -118,7 +144,6 @@ export default function BudgetPage() {
     { label: "Taux exécution", val: "51,9%", sub: "S1 terminé", pct: 51.9, color: "text-blue-600" },
   ];
 
-  // SVG barres horizontales taux d'exécution
   const allRows = [
     ...produits.map((r) => ({ label: r.rubrique.length > 28 ? r.rubrique.slice(0, 28) + "…" : r.rubrique, taux: r.taux })),
     ...charges.map((r) => ({ label: r.rubrique.length > 28 ? r.rubrique.slice(0, 28) + "…" : r.rubrique, taux: r.taux })),
@@ -126,11 +151,171 @@ export default function BudgetPage() {
 
   const svgH = 30 * allRows.length + 20;
 
+  const exportData = lignes.map((l) => ({
+    Poste: l.poste,
+    "Budget prévu (XOF)": l.budgetPrevu,
+    "Réalisé (XOF)": l.realise,
+    "Écart (XOF)": l.budgetPrevu - l.realise,
+    "% consommé": Math.round((l.realise / l.budgetPrevu) * 100),
+    Période: l.periode,
+  }));
+
+  function handleLigneSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const newLigne: LigneBudget = {
+      id: `B${lignes.length + 1}`,
+      poste: ligneForm.poste,
+      budgetPrevu: parseFloat(ligneForm.budgetPrevu) || 0,
+      realise: 0,
+      periode: ligneForm.periode,
+    };
+    setLignes([...lignes, newLigne]);
+    setModalOpen(false);
+    setLigneForm(defaultLigneForm);
+    setToast(true);
+    setTimeout(() => setToast(false), 3000);
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
       <Topbar title="Budget & Contrôle Budgétaire" breadcrumb={["Finance", "Budget"]} />
 
+      {toast && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-sm font-medium shadow-lg">
+          Ligne budgétaire ajoutée avec succès
+        </div>
+      )}
+
+      {modalOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-semibold text-gray-900">Ajouter une ligne budget</h2>
+              <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleLigneSubmit} className="space-y-4">
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1.5">Poste budgétaire</label>
+                <input
+                  type="text"
+                  required
+                  value={ligneForm.poste}
+                  onChange={(e) => setLigneForm({ ...ligneForm, poste: e.target.value })}
+                  placeholder="Ex: Semences certifiées"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1.5">Montant prévu (XOF)</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={ligneForm.budgetPrevu}
+                  onChange={(e) => setLigneForm({ ...ligneForm, budgetPrevu: e.target.value })}
+                  placeholder="Ex: 5000000"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1.5">Période</label>
+                <input
+                  type="text"
+                  value={ligneForm.periode}
+                  onChange={(e) => setLigneForm({ ...ligneForm, periode: e.target.value })}
+                  placeholder="Ex: 2026 ou S1 2026"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+                />
+              </div>
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  className="flex-1 border border-gray-200 rounded-xl py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-[#2E7D32] text-white rounded-xl py-2 text-sm font-medium hover:bg-[#1B5E20] transition"
+                >
+                  Ajouter
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <main className="flex-1 p-6 space-y-6">
+
+        {/* Barre d'actions */}
+        <div className="flex flex-wrap gap-2 justify-end">
+          <ExportButton data={exportData} filename="budget-postes" label="Exporter" />
+          <button
+            onClick={() => setModalOpen(true)}
+            className="flex items-center gap-1.5 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-3 py-1.5 hover:bg-[#1B5E20] transition"
+          >
+            <Plus size={14} />
+            Ajouter ligne budget
+          </button>
+        </div>
+
+        {/* Tableau listing principal */}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Lignes budgétaires</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ backgroundColor: "#F8FBF8" }}>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">Poste</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500">Budget prévu</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500">Réalisé</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500">Écart</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 w-40">% consommé</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">Période</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {lignes.map((l) => {
+                  const pct = l.budgetPrevu > 0 ? Math.round((l.realise / l.budgetPrevu) * 100) : 0;
+                  const ecart = l.budgetPrevu - l.realise;
+                  const over = pct > 100;
+                  return (
+                    <tr key={l.id} className="hover:bg-gray-50 transition">
+                      <td className="px-4 py-3 font-medium text-gray-800 text-sm">{l.poste}</td>
+                      <td className="px-4 py-3 text-right text-xs text-gray-700">{fmtXOF(l.budgetPrevu)}</td>
+                      <td className="px-4 py-3 text-right text-xs text-gray-700">{fmtXOF(l.realise)}</td>
+                      <td className="px-4 py-3 text-right text-xs font-semibold" style={{ color: ecart >= 0 ? "#2E7D32" : "#D32F2F" }}>
+                        {ecart >= 0 ? "+" : ""}{fmtXOF(ecart)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-gray-100 rounded-full h-2">
+                            <div
+                              className="h-2 rounded-full transition-all"
+                              style={{
+                                width: `${Math.min(pct, 100)}%`,
+                                backgroundColor: over ? "#E65100" : "#4CAF50",
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-semibold shrink-0" style={{ color: over ? "#E65100" : "#2E7D32" }}>{pct}%</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-500">{l.periode}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
           {kpis.map((k) => (
@@ -167,7 +352,6 @@ export default function BudgetPage() {
         {/* ── VUE D'ENSEMBLE ── */}
         {tab === "overview" && (
           <div className="space-y-6">
-            {/* Tableau général */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
                 <h2 className="text-base font-semibold text-gray-900 dark:text-white">Budget général 2025 — PRODUITS</h2>
@@ -254,7 +438,6 @@ export default function BudgetPage() {
               </div>
             </div>
 
-            {/* Résultat prévisionnel */}
             <div className="bg-[#1B5E20] text-white rounded-2xl p-5 shadow">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div><p className="text-green-200 text-xs">Résultat budgété annuel</p><p className="font-bold text-lg mt-0.5">106,9 M XOF</p></div>
@@ -265,9 +448,8 @@ export default function BudgetPage() {
               <p className="text-green-200 text-xs mt-3">Résultat total prévu fin 2025 : <span className="font-bold text-white">114,4 M XOF</span></p>
             </div>
 
-            {/* SVG Taux d'exécution */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">Taux d'exécution par rubrique (S1)</h2>
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">Taux d&apos;exécution par rubrique (S1)</h2>
               <p className="text-xs text-gray-400 mb-4">Vert ≤ 105% · Orange 105-115% · Rouge &gt; 115%</p>
               <svg viewBox={`0 0 700 ${svgH}`} className="w-full" aria-label="Taux d'exécution par rubrique">
                 {allRows.map((row, i) => {
@@ -290,7 +472,6 @@ export default function BudgetPage() {
         {/* ── PAR DÉPARTEMENT ── */}
         {tab === "departements" && (
           <div className="space-y-6">
-            {/* Chips département */}
             <div className="flex flex-wrap gap-2">
               {depts.map((d) => (
                 <button
@@ -307,7 +488,6 @@ export default function BudgetPage() {
               ))}
             </div>
 
-            {/* Tableau département */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
                 <h2 className="text-base font-semibold text-gray-900 dark:text-white">Budget {dept} — S1 2025</h2>
@@ -379,7 +559,6 @@ export default function BudgetPage() {
         {/* ── ALERTES ── */}
         {tab === "alertes" && (
           <div className="space-y-6">
-            {/* Dépassements */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
               <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Lignes budgétaires en dépassement</h2>
               <div className="space-y-4">
@@ -398,7 +577,7 @@ export default function BudgetPage() {
                   <div className="flex items-start gap-3">
                     <span className="text-xl mt-0.5">🟡</span>
                     <div className="flex-1">
-                      <p className="font-semibold text-orange-800 dark:text-orange-300 text-sm">Main d'œuvre récolte</p>
+                      <p className="font-semibold text-orange-800 dark:text-orange-300 text-sm">Main d&apos;œuvre récolte</p>
                       <p className="text-xs text-orange-700 dark:text-orange-400 mt-0.5">Réalisé : 10,8 M XOF vs Budget : 10 M XOF — <span className="font-bold">Dépassement +8%</span></p>
                       <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 italic">Cause : Pénurie saisonniers zone, négociation tarif +12%</p>
                     </div>
@@ -408,7 +587,6 @@ export default function BudgetPage() {
               </div>
             </div>
 
-            {/* Sous-utilisations */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
               <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Lignes sous-utilisées — Opportunités de réallocation</h2>
               <div className="space-y-4">
@@ -437,7 +615,6 @@ export default function BudgetPage() {
               </div>
             </div>
 
-            {/* Recommandation */}
             <div className="bg-[#1B5E20] text-white rounded-2xl p-5 shadow">
               <p className="text-sm font-semibold text-green-200 mb-1">Recommandation de réallocation</p>
               <p className="text-base font-bold">2 M XOF de Transport → Intrants</p>

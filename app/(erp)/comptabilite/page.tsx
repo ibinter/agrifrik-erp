@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
+import ExportButton from "../../components/ui/ExportButton";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
 type Tab = "journaux" | "balance" | "grandlivre" | "plancomptable";
 type JournalFilter = "Tous" | "VTE" | "ACH" | "BNQ" | "CAI" | "OD";
 type ClasseFilter = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8";
 
-// ─── Journaux ─────────────────────────────────────────────────────────────────
 const journalEntries = [
   { date: "10/07", piece: "FAC-2025-048", journal: "VTE", compteD: "411000 Clients", libelle: "Vente cacao — Barry Callebaut LOT-045", debit: 27_390_000, compteC: "701000 Ventes cacao", credit: 27_390_000 },
   { date: "08/07", piece: "ACH-2025-088", journal: "ACH", compteD: "601000 Achats intrants", libelle: "Livraison KCl 4t — SCPA", debit: 2_400_000, compteC: "401000 Fournisseurs", credit: 2_400_000 },
@@ -27,42 +26,33 @@ const journalEntries = [
   { date: "15/05", piece: "FAC-2025-038", journal: "VTE", compteD: "411000 Clients", libelle: "Vente cacao — Barry Callebaut LOT-040", debit: 24_600_000, compteC: "701000 Ventes cacao", credit: 24_600_000 },
 ];
 
-// ─── Balance ──────────────────────────────────────────────────────────────────
 const balanceData = [
-  // Classe 1
   { compte: "101000", intitule: "Capital social", classe: "1", debit: 0, credit: 50_000_000, soldeDt: 0, soldeCr: 50_000_000 },
   { compte: "111000", intitule: "Réserves légales", classe: "1", debit: 0, credit: 4_200_000, soldeDt: 0, soldeCr: 4_200_000 },
   { compte: "121000", intitule: "Report à nouveau", classe: "1", debit: 0, credit: 18_200_000, soldeDt: 0, soldeCr: 18_200_000 },
   { compte: "161000", intitule: "Emprunts BIC", classe: "1", debit: 0, credit: 24_000_000, soldeDt: 0, soldeCr: 24_000_000 },
-  // Classe 2
   { compte: "221000", intitule: "Terres et terrains", classe: "2", debit: 42_000_000, credit: 0, soldeDt: 42_000_000, soldeCr: 0 },
   { compte: "231000", intitule: "Bâtiments", classe: "2", debit: 18_400_000, credit: 0, soldeDt: 18_400_000, soldeCr: 0 },
   { compte: "241000", intitule: "Matériels & outillage", classe: "2", debit: 68_200_000, credit: 0, soldeDt: 68_200_000, soldeCr: 0 },
   { compte: "281000", intitule: "Amortissements", classe: "2", debit: 0, credit: 28_400_000, soldeDt: 0, soldeCr: 28_400_000 },
-  // Classe 3
   { compte: "311000", intitule: "Cacao en stock", classe: "3", debit: 18_420_000, credit: 0, soldeDt: 18_420_000, soldeCr: 0 },
   { compte: "321000", intitule: "Intrants en stock", classe: "3", debit: 6_840_000, credit: 0, soldeDt: 6_840_000, soldeCr: 0 },
-  // Classe 4
   { compte: "401000", intitule: "Fournisseurs", classe: "4", debit: 0, credit: 8_240_000, soldeDt: 0, soldeCr: 8_240_000 },
   { compte: "411000", intitule: "Clients", classe: "4", debit: 24_600_000, credit: 0, soldeDt: 24_600_000, soldeCr: 0 },
   { compte: "421000", intitule: "Personnel", classe: "4", debit: 0, credit: 3_840_000, soldeDt: 0, soldeCr: 3_840_000 },
   { compte: "431000", intitule: "CNPS", classe: "4", debit: 0, credit: 1_240_000, soldeDt: 0, soldeCr: 1_240_000 },
   { compte: "441000", intitule: "État — impôts", classe: "4", debit: 0, credit: 2_840_000, soldeDt: 0, soldeCr: 2_840_000 },
-  // Classe 5
   { compte: "521000", intitule: "BICICI c/c", classe: "5", debit: 34_200_000, credit: 0, soldeDt: 34_200_000, soldeCr: 0 },
   { compte: "531000", intitule: "Caisse Soubré", classe: "5", debit: 1_240_000, credit: 0, soldeDt: 1_240_000, soldeCr: 0 },
   { compte: "532000", intitule: "Orange Money CI", classe: "5", debit: 480_000, credit: 0, soldeDt: 480_000, soldeCr: 0 },
-  // Classe 6
   { compte: "601000", intitule: "Achats intrants", classe: "6", debit: 29_400_000, credit: 0, soldeDt: 29_400_000, soldeCr: 0 },
   { compte: "641000", intitule: "Salaires", classe: "6", debit: 21_200_000, credit: 0, soldeDt: 21_200_000, soldeCr: 0 },
   { compte: "681000", intitule: "Dotations amort.", classe: "6", debit: 9_200_000, credit: 0, soldeDt: 9_200_000, soldeCr: 0 },
-  // Classe 7
   { compte: "701000", intitule: "Ventes cacao", classe: "7", debit: 0, credit: 101_200_000, soldeDt: 0, soldeCr: 101_200_000 },
   { compte: "702000", intitule: "Ventes anacarde", classe: "7", debit: 0, credit: 31_400_000, soldeDt: 0, soldeCr: 31_400_000 },
   { compte: "703000", intitule: "Subventions", classe: "7", debit: 0, credit: 24_200_000, soldeDt: 0, soldeCr: 24_200_000 },
 ];
 
-// ─── Grand Livre (compte 411000) ──────────────────────────────────────────────
 const grandLivreEntries = [
   { date: "01/01", piece: "OD-2025-001", libelle: "À-nouveau 2024", debit: 8_400_000, credit: 0, solde: 8_400_000 },
   { date: "15/01", piece: "FAC-2025-001", libelle: "Vente LOT-2024-042 Barry Callebaut", debit: 12_840_000, credit: 0, solde: 21_240_000 },
@@ -81,7 +71,6 @@ const grandLivreEntries = [
   { date: "30/06", piece: "FAC-2025-047", libelle: "Vente LOT-046 Nestlé", debit: 32_818_000, credit: 0, solde: 24_600_000 },
 ];
 
-// ─── Plan comptable ───────────────────────────────────────────────────────────
 const planComptable: Record<string, { num: string; intitule: string; utilise: boolean; solde: string }[]> = {
   "1": [
     { num: "101000", intitule: "Capital social", utilise: true, solde: "50 000 000 Cr" },
@@ -146,7 +135,6 @@ const planComptable: Record<string, { num: string; intitule: string; utilise: bo
   ],
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 function fmtXOF(n: number) {
   if (n === 0) return "—";
   return n.toLocaleString("fr-FR");
@@ -171,12 +159,60 @@ const classeLabels: Record<string, string> = {
   "8": "Classe 8 — Résultats",
 };
 
-// ─── Page ────────────────────────────────────────────────────────────────────
+const journalExportData = journalEntries.map((e) => ({
+  date: e.date,
+  numeroJournal: e.piece,
+  journal: e.journal,
+  libelle: e.libelle,
+  compteDebit: e.compteD,
+  compteCredit: e.compteC,
+  montant: e.debit,
+}));
+
+const balanceExportData = balanceData.map((r) => ({
+  compte: r.compte,
+  intitule: r.intitule,
+  classe: r.classe,
+  debitCumul: r.debit,
+  creditCumul: r.credit,
+  soldeDebiteur: r.soldeDt,
+  soldeCrediteur: r.soldeCr,
+}));
+
+const grandLivreExportData = grandLivreEntries.map((e) => ({
+  date: e.date,
+  piece: e.piece,
+  libelle: e.libelle,
+  debit: e.debit,
+  credit: e.credit,
+  solde: e.solde,
+}));
+
 export default function ComptabilitePage() {
   const [tab, setTab] = useState<Tab>("journaux");
   const [journalFilter, setJournalFilter] = useState<JournalFilter>("Tous");
   const [classeFilter, setClasseFilter] = useState<ClasseFilter>("1");
   const [glSearch, setGlSearch] = useState("411000 Clients");
+  const [modalEcritureOpen, setModalEcritureOpen] = useState(false);
+  const [toast, setToast] = useState(false);
+
+  const [form, setForm] = useState({
+    date: "",
+    journal: "Achats",
+    libelle: "",
+    compteDebit: "",
+    compteCredit: "",
+    montant: "",
+    piece: "",
+  });
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setModalEcritureOpen(false);
+    setForm({ date: "", journal: "Achats", libelle: "", compteDebit: "", compteCredit: "", montant: "", piece: "" });
+    setToast(true);
+    setTimeout(() => setToast(false), 3000);
+  }
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "journaux", label: "Journaux" },
@@ -235,8 +271,7 @@ export default function ComptabilitePage() {
         {/* ── JOURNAUX ── */}
         {tab === "journaux" && (
           <div className="space-y-4">
-            {/* Filtre journal */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {journalFilters.map((f) => (
                 <button
                   key={f}
@@ -250,6 +285,15 @@ export default function ComptabilitePage() {
                   {f}
                 </button>
               ))}
+              <div className="ml-auto flex items-center gap-2">
+                <ExportButton data={journalExportData} filename="journal-comptable" label="Exporter" />
+                <button
+                  onClick={() => setModalEcritureOpen(true)}
+                  className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-3 py-1.5 hover:bg-[#1B5E20] transition-colors whitespace-nowrap"
+                >
+                  + Nouvelle écriture
+                </button>
+              </div>
             </div>
 
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
@@ -297,60 +341,65 @@ export default function ComptabilitePage() {
 
         {/* ── BALANCE ── */}
         {tab === "balance" && (
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white">Balance générale au 30/06/2025</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Comptes principaux SYSCOHADA · AGRIFRIK</p>
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <ExportButton data={balanceExportData} filename="balance-generale" label="Exporter Balance" />
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs min-w-[750px]">
-                <thead>
-                  <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wide">
-                    <th className="px-4 py-3 text-left">Compte</th>
-                    <th className="px-4 py-3 text-left">Intitulé</th>
-                    <th className="px-4 py-3 text-right">Débit cumul</th>
-                    <th className="px-4 py-3 text-right">Crédit cumul</th>
-                    <th className="px-4 py-3 text-right">Solde débiteur</th>
-                    <th className="px-4 py-3 text-right">Solde créditeur</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {["1","2","3","4","5","6","7"].map((cls) => {
-                    const rows = balanceData.filter((r) => r.classe === cls);
-                    return (
-                      <>
-                        <tr key={`header-${cls}`} className="bg-gray-50 dark:bg-gray-800/50">
-                          <td colSpan={6} className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
-                            {classeLabels[cls]}
-                          </td>
-                        </tr>
-                        {rows.map((r) => (
-                          <tr key={r.compte} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
-                            <td className="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400">{r.compte}</td>
-                            <td className="px-4 py-2.5 text-gray-800 dark:text-gray-200">{r.intitule}</td>
-                            <td className="px-4 py-2.5 text-right text-blue-700 dark:text-blue-400">{r.debit ? fmtXOF(r.debit) : "—"}</td>
-                            <td className="px-4 py-2.5 text-right text-emerald-700 dark:text-emerald-400">{r.credit ? fmtXOF(r.credit) : "—"}</td>
-                            <td className="px-4 py-2.5 text-right font-semibold text-gray-800 dark:text-gray-200">{r.soldeDt ? fmtXOF(r.soldeDt) : "—"}</td>
-                            <td className="px-4 py-2.5 text-right font-semibold text-gray-800 dark:text-gray-200">{r.soldeCr ? fmtXOF(r.soldeCr) : "—"}</td>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Balance générale au 30/06/2025</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Comptes principaux SYSCOHADA · AGRIFRIK</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs min-w-[750px]">
+                  <thead>
+                    <tr className="bg-[#F8FBF8] dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wide">
+                      <th className="px-4 py-3 text-left">Compte</th>
+                      <th className="px-4 py-3 text-left">Intitulé</th>
+                      <th className="px-4 py-3 text-right">Débit cumul</th>
+                      <th className="px-4 py-3 text-right">Crédit cumul</th>
+                      <th className="px-4 py-3 text-right">Solde débiteur</th>
+                      <th className="px-4 py-3 text-right">Solde créditeur</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                    {["1","2","3","4","5","6","7"].map((cls) => {
+                      const rows = balanceData.filter((r) => r.classe === cls);
+                      return (
+                        <>
+                          <tr key={`header-${cls}`} className="bg-gray-50 dark:bg-gray-800/50">
+                            <td colSpan={6} className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
+                              {classeLabels[cls]}
+                            </td>
                           </tr>
-                        ))}
-                      </>
-                    );
-                  })}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-[#1B5E20] text-white font-bold text-xs border-t-2 border-[#1B5E20]">
-                    <td className="px-4 py-3" colSpan={2}>Total général</td>
-                    <td className="px-4 py-3 text-right">{fmtXOF(totalDebit)}</td>
-                    <td className="px-4 py-3 text-right">{fmtXOF(totalCredit)}</td>
-                    <td className="px-4 py-3 text-right" colSpan={2}>
-                      <span className="bg-green-700 px-3 py-1 rounded-full text-white text-xs">
-                        {totalDebit === totalCredit ? "✅ Balance équilibrée" : "⚠️ Écart"}
-                      </span>
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+                          {rows.map((r) => (
+                            <tr key={r.compte} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                              <td className="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400">{r.compte}</td>
+                              <td className="px-4 py-2.5 text-gray-800 dark:text-gray-200">{r.intitule}</td>
+                              <td className="px-4 py-2.5 text-right text-blue-700 dark:text-blue-400">{r.debit ? fmtXOF(r.debit) : "—"}</td>
+                              <td className="px-4 py-2.5 text-right text-emerald-700 dark:text-emerald-400">{r.credit ? fmtXOF(r.credit) : "—"}</td>
+                              <td className="px-4 py-2.5 text-right font-semibold text-gray-800 dark:text-gray-200">{r.soldeDt ? fmtXOF(r.soldeDt) : "—"}</td>
+                              <td className="px-4 py-2.5 text-right font-semibold text-gray-800 dark:text-gray-200">{r.soldeCr ? fmtXOF(r.soldeCr) : "—"}</td>
+                            </tr>
+                          ))}
+                        </>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-[#1B5E20] text-white font-bold text-xs border-t-2 border-[#1B5E20]">
+                      <td className="px-4 py-3" colSpan={2}>Total général</td>
+                      <td className="px-4 py-3 text-right">{fmtXOF(totalDebit)}</td>
+                      <td className="px-4 py-3 text-right">{fmtXOF(totalCredit)}</td>
+                      <td className="px-4 py-3 text-right" colSpan={2}>
+                        <span className="bg-green-700 px-3 py-1 rounded-full text-white text-xs">
+                          {totalDebit === totalCredit ? "✅ Balance équilibrée" : "⚠️ Écart"}
+                        </span>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -358,7 +407,6 @@ export default function ComptabilitePage() {
         {/* ── GRAND LIVRE ── */}
         {tab === "grandlivre" && (
           <div className="space-y-4">
-            {/* Sélecteur compte */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm">
               <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Compte</label>
               <input
@@ -379,6 +427,10 @@ export default function ComptabilitePage() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="flex justify-end">
+              <ExportButton data={grandLivreExportData} filename="grand-livre" label="Exporter Grand Livre" />
             </div>
 
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
@@ -427,7 +479,6 @@ export default function ComptabilitePage() {
         {/* ── PLAN COMPTABLE ── */}
         {tab === "plancomptable" && (
           <div className="space-y-4">
-            {/* Chips classes */}
             <div className="flex flex-wrap gap-2">
               {(["1","2","3","4","5","6","7","8"] as ClasseFilter[]).map((c) => (
                 <button
@@ -484,6 +535,138 @@ export default function ComptabilitePage() {
           </div>
         )}
       </main>
+
+      {/* ── MODALE NOUVELLE ÉCRITURE ── */}
+      {modalEcritureOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-lg border border-gray-100 dark:border-gray-800">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white">Nouvelle écriture comptable</h2>
+              <button
+                onClick={() => setModalEcritureOpen(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={form.date}
+                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Journal</label>
+                  <select
+                    value={form.journal}
+                    onChange={(e) => setForm({ ...form, journal: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  >
+                    <option value="Achats">Achats</option>
+                    <option value="Ventes">Ventes</option>
+                    <option value="Trésorerie">Trésorerie</option>
+                    <option value="OD">OD</option>
+                    <option value="Paie">Paie</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Libellé</label>
+                <input
+                  type="text"
+                  required
+                  value={form.libelle}
+                  onChange={(e) => setForm({ ...form, libelle: e.target.value })}
+                  placeholder="Description de l'écriture"
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Compte débit</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.compteDebit}
+                    onChange={(e) => setForm({ ...form, compteDebit: e.target.value })}
+                    placeholder="ex: 701000"
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Compte crédit</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.compteCredit}
+                    onChange={(e) => setForm({ ...form, compteCredit: e.target.value })}
+                    placeholder="ex: 411000"
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Montant (XOF)</label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    value={form.montant}
+                    onChange={(e) => setForm({ ...form, montant: e.target.value })}
+                    placeholder="ex: 1500000"
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                    Pièce justificative <span className="text-gray-400 font-normal">(optionnel)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.piece}
+                    onChange={(e) => setForm({ ...form, piece: e.target.value })}
+                    placeholder="ex: FAC-2025-050"
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setModalEcritureOpen(false)}
+                  className="px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="bg-[#2E7D32] text-white rounded-xl text-sm font-medium px-5 py-2 hover:bg-[#1B5E20] transition-colors"
+                >
+                  Valider l'écriture
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── TOAST ── */}
+      {toast && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 shadow-lg text-sm font-medium">
+          Écriture comptable enregistrée avec succès
+        </div>
+      )}
     </div>
   );
 }

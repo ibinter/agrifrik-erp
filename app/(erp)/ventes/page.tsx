@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { TrendingUp, ShoppingBag, Package, Clock, Plus, Download, Search } from "lucide-react";
 import Topbar from "../../components/Topbar";
+import ModalCommande from "../../components/modals/ModalCommande";
+import ExportButton from "../../components/ui/ExportButton";
 
-/* ─── Types ─────────────────────────────────────────────────────────────────── */
 type Filtre = "Toutes" | "En attente" | "Livrées" | "Réglées";
 
 interface Vente {
@@ -18,7 +19,6 @@ interface Vente {
   statut: "Réglée" | "BL émis" | "En attente";
 }
 
-/* ─── Données ─────────────────────────────────────────────────────────────── */
 const VENTES: Vente[] = [
   { id: "VNT-2025-001", date: "12/01", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3200, prixKg: 1087, montant: 3478400, statut: "Réglée" },
   { id: "VNT-2025-002", date: "10/02", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "Réglée" },
@@ -31,7 +31,6 @@ const VENTES: Vente[] = [
   { id: "VNT-2025-009", date: "11/07", client: "Barry Callebaut CI", produit: "Cacao Grade AA", volume: 3400, prixKg: 1087, montant: 3695800, statut: "BL émis" },
 ];
 
-/* CA mensuel 2025 vs 2024 — groupé bar chart */
 const CA_DATA = [
   { mois: "Jan", v2024: 3.2, v2025: 3.5 },
   { mois: "Fév", v2024: 3.4, v2025: 3.7 },
@@ -39,19 +38,17 @@ const CA_DATA = [
   { mois: "Avr", v2024: 3.5, v2025: 3.9 },
   { mois: "Mai", v2024: 3.3, v2025: 3.7 },
   { mois: "Jun", v2024: 3.0, v2025: 3.5 },
-  { mois: "Jul", v2024: 3.2, v2025: 3.7 }, // partiel 2025
+  { mois: "Jul", v2024: 3.2, v2025: 3.7 },
 ];
 
 const MAX_CA = 5;
 
-/* Donut data */
 const DONUT_SEGMENTS = [
   { label: "BC cacao",         pct: 89.2, color: "#2E7D32" },
   { label: "Cargill anacarde", pct: 8.0,  color: "#E65100" },
   { label: "Autres",           pct: 2.8,  color: "#BDBDBD" },
 ];
 
-/* ─── Helpers ─────────────────────────────────────────────────────────────── */
 function formatXOF(n: number) {
   return n.toLocaleString("fr-FR") + " XOF";
 }
@@ -62,10 +59,11 @@ function statutStyle(s: Vente["statut"]) {
   return                       { bg: "#FFF9C4", color: "#F57F17", label: "⏳ En attente" };
 }
 
-/* ─── Composant principal ─────────────────────────────────────────────────── */
 export default function VentesPage() {
   const [filtre, setFiltre] = useState<Filtre>("Toutes");
   const [search, setSearch] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   const filtrees = VENTES.filter((v) => {
     if (filtre === "En attente" && v.statut !== "En attente") return false;
@@ -80,7 +78,15 @@ export default function VentesPage() {
   const totalMontant = VENTES.reduce((s, v) => s + v.montant, 0);
   const reglees      = VENTES.filter((v) => v.statut === "Réglée").length;
 
-  /* Donut SVG helper */
+  const exportData = VENTES.map((v) => ({
+    client: v.client,
+    produit: v.produit,
+    quantite: v.volume,
+    total: v.montant,
+    statut: v.statut,
+    dateCommande: v.date + "/2025",
+  }));
+
   function donutPath(segments: typeof DONUT_SEGMENTS) {
     const R = 90; const cx = 140; const cy = 140;
     let cumul = 0;
@@ -114,16 +120,17 @@ export default function VentesPage() {
 
       <main className="flex-1 p-6 space-y-5 max-w-[1400px] mx-auto w-full">
 
-        {/* ── En-tête ── */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h1 className="text-xl font-bold text-gray-900">Ventes</h1>
-          <button className="inline-flex items-center gap-2 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors">
+          <button
+            onClick={() => setModalOpen(true)}
+            className="inline-flex items-center gap-2 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#1B5E20] transition-colors"
+          >
             <Plus size={14} />
             Nouvelle vente
           </button>
         </div>
 
-        {/* ── KPIs ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { icon: TrendingUp,  label: "CA 2025 YTD",              value: "30,4 M XOF", sub: "9 ventes réalisées",      color: "#2E7D32", bg: "#E8F5E9" },
@@ -144,7 +151,6 @@ export default function VentesPage() {
           ))}
         </div>
 
-        {/* ── Filtres + recherche ── */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1">
             {(["Toutes", "En attente", "Livrées", "Réglées"] as Filtre[]).map((f) => (
@@ -171,7 +177,6 @@ export default function VentesPage() {
           </div>
         </div>
 
-        {/* ── Tableau des ventes ── */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-xs min-w-[780px]">
@@ -216,7 +221,6 @@ export default function VentesPage() {
                   );
                 })}
               </tbody>
-              {/* Ligne total */}
               <tfoot>
                 <tr className="bg-[#F8FBF8] font-bold text-gray-800 border-t-2 border-gray-200">
                   <td colSpan={4} className="px-4 py-3 text-right text-xs uppercase tracking-wide text-gray-500">Total</td>
@@ -230,10 +234,8 @@ export default function VentesPage() {
           </div>
         </div>
 
-        {/* ── Analyse des ventes ── */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
-          {/* Bar chart CA mensuel — 3/5 */}
           <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-gray-900">CA mensuel 2025 vs 2024</h2>
@@ -250,7 +252,6 @@ export default function VentesPage() {
               </div>
             </div>
             <svg viewBox="0 0 640 220" className="w-full" aria-label="CA mensuel 2025 vs 2024">
-              {/* Grille */}
               {[0, 1, 2, 3, 4, 5].map((v) => {
                 const y = 185 - (v / MAX_CA) * 155;
                 return (
@@ -260,7 +261,6 @@ export default function VentesPage() {
                   </g>
                 );
               })}
-              {/* Barres */}
               {CA_DATA.map((d, i) => {
                 const slotW = 76;
                 const x0 = 48 + i * slotW;
@@ -271,16 +271,13 @@ export default function VentesPage() {
                 const isPartial = i === CA_DATA.length - 1;
                 return (
                   <g key={d.mois}>
-                    {/* 2024 */}
                     <rect x={x0} y={185 - h24} width={bW} height={h24} rx={3} fill="#D0D0D0" />
-                    {/* 2025 */}
                     {isPartial ? (
                       <rect x={x0 + bW + gap} y={185 - h25} width={bW} height={h25} rx={3}
                         fill="none" stroke="#4CAF50" strokeWidth={1.5} strokeDasharray="4,3" />
                     ) : (
                       <rect x={x0 + bW + gap} y={185 - h25} width={bW} height={h25} rx={3} fill="#4CAF50" />
                     )}
-                    {/* Label */}
                     <text x={x0 + bW + 1} y={200} textAnchor="middle" fontSize={9} fill="#9E9E9E">{d.mois}</text>
                   </g>
                 );
@@ -288,17 +285,14 @@ export default function VentesPage() {
             </svg>
           </div>
 
-          {/* Donut répartition — 2/5 */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-sm font-semibold text-gray-900 mb-4">Répartition par client et produit</h2>
             <div className="flex flex-col items-center gap-4">
               <svg viewBox="0 0 280 280" className="w-full max-w-[220px]" aria-label="Répartition ventes par client">
                 {donutPath(DONUT_SEGMENTS)}
-                {/* Centre */}
                 <text x={140} y={134} textAnchor="middle" fontSize={13} fontWeight="700" fill="#212121">30,4 M</text>
                 <text x={140} y={150} textAnchor="middle" fontSize={9} fill="#9E9E9E">XOF CA</text>
               </svg>
-              {/* Légende */}
               <div className="w-full space-y-2">
                 {DONUT_SEGMENTS.map((seg) => (
                   <div key={seg.label} className="flex items-center justify-between text-xs">
@@ -314,18 +308,30 @@ export default function VentesPage() {
           </div>
         </div>
 
-        {/* ── Actions bas de page ── */}
         <div className="flex items-center gap-3 justify-end pb-2">
           <button className="inline-flex items-center gap-2 border border-gray-200 bg-white text-gray-700 rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-gray-50 transition-colors">
             Voir toutes les ventes
           </button>
-          <button className="inline-flex items-center gap-2 border border-[#2E7D32] text-[#2E7D32] bg-white rounded-xl text-xs font-medium px-4 py-2.5 hover:bg-[#E8F5E9] transition-colors">
-            <Download size={13} />
-            Exporter Excel
-          </button>
+          <ExportButton data={exportData} filename="ventes-export" label="Exporter Excel" />
         </div>
 
       </main>
+
+      <ModalCommande
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={() => {
+          setModalOpen(false);
+          setToast("Vente enregistrée avec succès");
+          setTimeout(() => setToast(null), 3000);
+        }}
+      />
+
+      {toast && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 shadow-lg">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

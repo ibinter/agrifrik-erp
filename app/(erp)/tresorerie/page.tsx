@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
+import ExportButton from "../../components/ui/ExportButton";
 import {
   Wallet,
   Building2,
@@ -10,6 +11,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   Star,
+  Plus,
+  X,
 } from "lucide-react";
 
 // ─── KPI ───────────────────────────────────────────────────────────────────
@@ -100,7 +103,6 @@ function TresoChart() {
   const W = 680, H = 220, padL = 52, padR = 20, padT = 20, padB = 40;
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
-  const vals = tresoData.map((d) => d.val);
   const minV = 15, maxV = 75;
   const n = tresoData.length;
 
@@ -114,7 +116,6 @@ function TresoChart() {
     return `${i === 0 ? "M" : "L"}${x(idx)},${y(d.val)}`;
   }).join(" ");
 
-  // dashed from last solid to all prev
   const splitIdx = tresoData.findIndex((d) => d.prev) - 1;
   const dashPath = tresoData
     .slice(splitIdx)
@@ -137,14 +138,10 @@ function TresoChart() {
       {tresoData.map((d, i) => (
         <text key={d.mois} x={x(i)} y={H - 8} textAnchor="middle" fontSize="10" fill={d.prev ? "#93C5FD" : "#9CA3AF"}>{d.mois}</text>
       ))}
-      {/* Annotations */}
       <text x={x(3)} y={y(48.2) - 10} textAnchor="middle" fontSize="9" fill="#2E7D32">↑ Récolte anacarde</text>
       <text x={x(1)} y={y(22.8) + 16} textAnchor="middle" fontSize="9" fill="#E65100">↓ Intrants</text>
-      {/* Solid line */}
       <path d={solidPath} fill="none" stroke="#2E7D32" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      {/* Dashed preview */}
       <path d={dashPath} fill="none" stroke="#93C5FD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="6 4" />
-      {/* Dots */}
       {allPoints.map((d, i) => (
         <circle key={i} cx={x(i)} cy={y(d.val)} r="4" fill={d.prev ? "#93C5FD" : "#2E7D32"} />
       ))}
@@ -152,7 +149,14 @@ function TresoChart() {
   );
 }
 
-// ─── MOUVEMENTS ─────────────────────────────────────────────────────────────
+// ─── MOUVEMENTS MOCK ─────────────────────────────────────────────────────────
+const mouvementsMock = [
+  { id: "T1", date: "2026-07-01", libelle: "Vente cacao lot 083", type: "Encaissement", compte: "Banque SGBCI", montant: 4500000, solde: 12450000 },
+  { id: "T2", date: "2026-07-05", libelle: "Achat engrais SCPA", type: "Décaissement", compte: "Banque SGBCI", montant: 2000000, solde: 10450000 },
+  { id: "T3", date: "2026-07-10", libelle: "Salaires juillet", type: "Décaissement", compte: "Caisse", montant: 1850000, solde: 8600000 },
+];
+
+// ─── MOUVEMENTS HISTORIQUES ─────────────────────────────────────────────────
 const mouvements = [
   { date: "07/07", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Olam CI — FAC-044 partiel", ref: "V-OLA-202507", montant: "+18 240 000", solde: "34 200 000" },
   { date: "05/07", compte: "BICICI c/c", type: "Entrée", libelle: "Virement Nestlé — FAC-040", ref: "V-NES-202507", montant: "+5 440 000", solde: "15 960 000" },
@@ -223,10 +227,32 @@ function PrevChart() {
 
 const TABS = ["Vue d'ensemble", "Mouvements", "Rapprochement", "Prévisions"];
 
+type MouvForm = {
+  type: "Encaissement" | "Décaissement";
+  compte: string;
+  libelle: string;
+  montant: string;
+  date: string;
+  reference: string;
+};
+
+const defaultForm: MouvForm = {
+  type: "Encaissement",
+  compte: "Caisse",
+  libelle: "",
+  montant: "",
+  date: new Date().toISOString().slice(0, 10),
+  reference: "",
+};
+
 export default function TresoreriePage() {
   const [tab, setTab] = useState(0);
   const [filtreCompte, setFiltreCompte] = useState("Tous");
   const [filtreType, setFiltreType] = useState("Tous");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [form, setForm] = useState<MouvForm>(defaultForm);
+  const [toast, setToast] = useState(false);
+  const [rows, setRows] = useState(mouvementsMock);
 
   const mouvFiltres = mouvements.filter((m) => {
     const okC = filtreCompte === "Tous" || m.compte.includes(filtreCompte);
@@ -234,11 +260,229 @@ export default function TresoreriePage() {
     return okC && okT;
   });
 
+  function openModal() {
+    setForm(defaultForm);
+    setModalOpen(true);
+  }
+
+  function closeModal() {
+    setModalOpen(false);
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const newRow = {
+      id: `T${rows.length + 1}`,
+      date: form.date,
+      libelle: form.libelle,
+      type: form.type,
+      compte: form.compte,
+      montant: parseFloat(form.montant) || 0,
+      solde: 0,
+    };
+    setRows([newRow, ...rows]);
+    setModalOpen(false);
+    setToast(true);
+    setTimeout(() => setToast(false), 3000);
+  }
+
+  const exportData = rows.map((r) => ({
+    ID: r.id,
+    Date: r.date,
+    Libellé: r.libelle,
+    Type: r.type,
+    Compte: r.compte,
+    Montant: r.montant,
+    Solde: r.solde,
+  }));
+
+  const soldeCourant = rows.reduce((acc, r) => {
+    return r.type === "Encaissement" ? acc + r.montant : acc - r.montant;
+  }, 8600000);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Topbar title="Trésorerie & Banques" breadcrumb={["Finance", "Trésorerie"]} />
 
+      {toast && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-sm font-medium shadow-lg">
+          Mouvement enregistré avec succès
+        </div>
+      )}
+
+      {modalOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-semibold text-gray-900">Nouveau mouvement</h2>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1.5">Type</label>
+                <div className="flex gap-4">
+                  {(["Encaissement", "Décaissement"] as const).map((t) => (
+                    <label key={t} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="type"
+                        value={t}
+                        checked={form.type === t}
+                        onChange={() => setForm({ ...form, type: t })}
+                        className="accent-[#2E7D32]"
+                      />
+                      <span className="text-sm text-gray-700">{t}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1.5">Compte</label>
+                <select
+                  value={form.compte}
+                  onChange={(e) => setForm({ ...form, compte: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+                >
+                  {["Caisse", "Banque SGBCI", "Banque BICICI", "Orange Money"].map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1.5">Libellé</label>
+                <input
+                  type="text"
+                  required
+                  value={form.libelle}
+                  onChange={(e) => setForm({ ...form, libelle: e.target.value })}
+                  placeholder="Ex: Vente cacao lot 084"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1.5">Montant (XOF)</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={form.montant}
+                    onChange={(e) => setForm({ ...form, montant: e.target.value })}
+                    placeholder="0"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1.5">Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={form.date}
+                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1.5">Référence</label>
+                <input
+                  type="text"
+                  value={form.reference}
+                  onChange={(e) => setForm({ ...form, reference: e.target.value })}
+                  placeholder="Ex: V-SGBCI-2026-01"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30"
+                />
+              </div>
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="flex-1 border border-gray-200 rounded-xl py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-[#2E7D32] text-white rounded-xl py-2 text-sm font-medium hover:bg-[#1B5E20] transition"
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+
+        {/* Solde KPI + bouton */}
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-1">Solde courant consolidé</p>
+            <p className="text-3xl font-bold" style={{ color: "#1B5E20" }}>
+              {soldeCourant.toLocaleString("fr-FR")} XOF
+            </p>
+            <p className="text-xs text-gray-400 mt-1">Mis à jour au {new Date().toLocaleDateString("fr-FR")}</p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <ExportButton data={exportData} filename="tresorerie-mouvements" label="Exporter" />
+            <button
+              onClick={openModal}
+              className="flex items-center gap-1.5 bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-3 py-1.5 hover:bg-[#1B5E20] transition"
+            >
+              <Plus size={14} />
+              Nouveau mouvement
+            </button>
+          </div>
+        </div>
+
+        {/* Tableau mouvements récents */}
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h2 className="text-base font-semibold text-gray-900">Mouvements récents</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ backgroundColor: "#F8FBF8" }}>
+                  {["Date", "Libellé", "Type", "Compte", "Montant", "Solde courant"].map((h) => (
+                    <th key={h} className={`px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap ${h === "Montant" || h === "Solde courant" ? "text-right" : "text-left"}`}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {rows.map((r) => {
+                  const isEnc = r.type === "Encaissement";
+                  return (
+                    <tr key={r.id} className="hover:bg-gray-50 transition">
+                      <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{r.date}</td>
+                      <td className="px-4 py-3 text-sm text-gray-800">{r.libelle}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                          style={isEnc
+                            ? { backgroundColor: "#E8F5E9", color: "#2E7D32" }
+                            : { backgroundColor: "#FFEBEE", color: "#D32F2F" }}
+                        >
+                          {r.type}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-600">{r.compte}</td>
+                      <td className="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap" style={{ color: isEnc ? "#2E7D32" : "#D32F2F" }}>
+                        {isEnc ? "+" : "-"}{r.montant.toLocaleString("fr-FR")} XOF
+                      </td>
+                      <td className="px-4 py-3 text-right text-xs text-gray-500 whitespace-nowrap">
+                        {r.solde ? r.solde.toLocaleString("fr-FR") + " XOF" : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
         {/* KPI */}
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
@@ -275,7 +519,6 @@ export default function TresoreriePage() {
         {/* ── Vue d'ensemble ─────────────────────────────────────────────────── */}
         {tab === 0 && (
           <div className="space-y-6">
-            {/* Comptes */}
             <div>
               <h2 className="text-base font-semibold text-gray-800 mb-3">Mes comptes</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -303,7 +546,6 @@ export default function TresoreriePage() {
               </div>
             </div>
 
-            {/* Flux du mois */}
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
               <h2 className="text-base font-semibold text-gray-800 mb-4">Flux du mois — Juillet 2025 (au 11/07)</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -317,7 +559,6 @@ export default function TresoreriePage() {
               </div>
             </div>
 
-            {/* SVG tréso 12 mois */}
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base font-semibold text-gray-800">Évolution trésorerie 12 mois</h2>
@@ -338,7 +579,6 @@ export default function TresoreriePage() {
         {/* ── Mouvements ────────────────────────────────────────────────────── */}
         {tab === 1 && (
           <div className="space-y-4">
-            {/* Filtres */}
             <div className="flex flex-wrap gap-3">
               <div>
                 <label className="text-xs text-gray-500 mr-1">Compte</label>
@@ -407,7 +647,6 @@ export default function TresoreriePage() {
         {/* ── Rapprochement ─────────────────────────────────────────────────── */}
         {tab === 2 && (
           <div className="space-y-6">
-            {/* Rapprochement Juin 2025 */}
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-semibold text-gray-800">Rapprochement BICICI — Juin 2025</h2>
@@ -431,7 +670,6 @@ export default function TresoreriePage() {
               </div>
             </div>
 
-            {/* Historique */}
             <div>
               <h2 className="text-base font-semibold text-gray-800 mb-3">Historique des rapprochements</h2>
               <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
@@ -466,7 +704,6 @@ export default function TresoreriePage() {
               </div>
             </div>
 
-            {/* Juillet en cours */}
             <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
               <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-600" />
               <div>
@@ -513,13 +750,11 @@ export default function TresoreriePage() {
               </div>
             </div>
 
-            {/* Prévisions chart */}
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
               <h2 className="text-base font-semibold text-gray-800 mb-3">Évolution prévisionnelle trésorerie S2 2025</h2>
               <PrevChart />
             </div>
 
-            {/* Alertes */}
             <div className="space-y-3">
               <h2 className="text-base font-semibold text-gray-800">Alertes de trésorerie anticipées</h2>
               <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">

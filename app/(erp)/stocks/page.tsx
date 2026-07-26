@@ -1,7 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
+import ModalDepenseStock from "../../components/modals/ModalDepenseStock";
+import ExportButton from "../../components/ui/ExportButton";
 import {
   Plus,
   Package,
@@ -13,7 +15,6 @@ import {
   ShoppingCart,
 } from "lucide-react";
 
-/* ─── KPIs ─────────────────────────────────────────────────────────────────── */
 const kpis = [
   { label: "Valeur totale stock", value: "28,7 M XOF", sub: "valorisation FIFO", icon: Package, color: "#2E7D32", bg: "#E8F5E9" },
   { label: "Catégories", value: "4", sub: "agricole · intrants · matières · piscicole", icon: BarChart2, color: "#1565C0", bg: "#E3F2FD" },
@@ -21,7 +22,6 @@ const kpis = [
   { label: "Rotation stock", value: "4,2×/trim", sub: "vs 3,8× trim précédent", icon: RotateCcw, color: "#6A1B9A", bg: "#F3E5F5" },
 ];
 
-/* ─── Inventaire ────────────────────────────────────────────────────────────── */
 const agricoles = [
   { code: "STK-CAC-AA", produit: "Cacao sec Grade AA", localisation: "ENT-001 Zone A", qte: "23 634 kg", unite: "kg", valeur: "25 677 258 XOF", statut: "Normal" as const },
   { code: "STK-ANA-WW", produit: "Anacarde WW240", localisation: "ENT-001 Zone B", qte: "842 kg", unite: "kg", valeur: "1 284 050 XOF", statut: "Normal" as const },
@@ -40,6 +40,22 @@ const matieres = [
   { code: "STK-MAT-002", produit: "Gasoil (fûts 200L)", localisation: "Hangar matériels", qte: "3 fûts", unite: "fûts", valeur: "516 000 XOF", statut: "Normal" as const },
   { code: "STK-MAT-003", produit: "Huile moteur 15W40 (bidon 5L)", localisation: "Hangar matériels", qte: "6 bidons", unite: "bidons", valeur: "54 000 XOF", statut: "Normal" as const },
 ];
+
+const STOCKS = [
+  { id: "S1", produit: "Cacao Grade A", categorie: "Production", quantite: 2400, unite: "kg", seuilCritique: 500, entrepot: "Entrepôt Principal", valeur: 3600000 },
+  { id: "S2", produit: "Anacarde Brut", categorie: "Production", quantite: 850, unite: "kg", seuilCritique: 200, entrepot: "Entrepôt 2", valeur: 1275000 },
+  { id: "S3", produit: "Engrais NPK", categorie: "Intrants", quantite: 120, unite: "sacs", seuilCritique: 30, entrepot: "Magasin Intrants", valeur: 480000 },
+  { id: "S4", produit: "Emballages carton", categorie: "Emballage", quantite: 45, unite: "boîtes", seuilCritique: 20, entrepot: "Entrepôt Principal", valeur: 67500 },
+];
+
+const exportData = STOCKS.map(s => ({
+  produit: s.produit,
+  quantite: s.quantite,
+  unite: s.unite,
+  entrepot: s.entrepot,
+  valeur: s.valeur,
+  seuilCritique: s.seuilCritique,
+}));
 
 type Statut = "Normal" | "Bas";
 
@@ -89,7 +105,6 @@ function InventaireTable({ titre, rows }: { titre: string; rows: StockRow[] }) {
   );
 }
 
-/* ─── Mouvements ────────────────────────────────────────────────────────────── */
 type MvtFilter = "Tous" | "Entrées" | "Sorties";
 
 const mouvements = [
@@ -110,7 +125,6 @@ const mouvements = [
   { date: "01/06", type: "Entrée" as const, article: "Cacao Grade AA", qte: "+1 534 kg", valeur: "+1 664 391 XOF", motif: "Transformation lot-039", ref: "LOT-2025-039" },
 ];
 
-/* données grouped bar chart Entrées vs Sorties 30j */
 const barData = [
   { semaine: "S1", entrees: 4126000, sorties: 3695800 },
   { semaine: "S2", entrees: 2841000, sorties: 0 },
@@ -131,7 +145,6 @@ function MvtBadge({ type }: { type: "Entrée" | "Sortie" }) {
   );
 }
 
-/* ─── Valorisation ──────────────────────────────────────────────────────────── */
 const donutData = [
   { label: "Cacao Grade AA", pct: 89.4, valeur: "25,7M", color: "#1B5E20" },
   { label: "Anacarde WW240", pct: 4.5, valeur: "1,28M", color: "#2E7D32" },
@@ -170,7 +183,6 @@ const fifo = [
   { produit: "Anacarde WW240", qte: "842 kg", fifo: "1,18M XOF", marche: "1,28M XOF", plusvalue: "+0,10M XOF", ok: true },
 ];
 
-/* ─── Alertes ───────────────────────────────────────────────────────────────── */
 const alertes = [
   {
     produit: "Super Cupravit OB 50 WP",
@@ -196,7 +208,6 @@ const seuilsTable = [
   { article: "KCl 60%", alerte: "5 sacs", autoCmd: "3 sacs", minCmd: "15 sacs" },
 ];
 
-/* ─── Page ──────────────────────────────────────────────────────────────────── */
 const TABS = ["Inventaire", "Mouvements", "Valorisation", "Alertes"] as const;
 type Tab = typeof TABS[number];
 
@@ -204,6 +215,8 @@ export default function StocksPage() {
   const [activeTab, setActiveTab] = useState<Tab>("Inventaire");
   const [mvtFilter, setMvtFilter] = useState<MvtFilter>("Tous");
   const [search, setSearch] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [toast, setToast] = useState(false);
 
   const filteredMvts = mouvements.filter(m => {
     if (mvtFilter === "Entrées" && m.type !== "Entrée") return false;
@@ -212,29 +225,48 @@ export default function StocksPage() {
     return true;
   });
 
+  function handleModalSubmit() {
+    setModalOpen(false);
+    setToast(true);
+    setTimeout(() => setToast(false), 3000);
+  }
+
   return (
     <div>
       <Topbar title="Gestion des Stocks" breadcrumb={["Logistique", "Stocks"]} />
 
+      {toast && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-sm font-medium shadow-lg">
+          Mouvement enregistré
+        </div>
+      )}
+
+      <ModalDepenseStock
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleModalSubmit}
+      />
+
       <div className="p-4 sm:p-6 space-y-6">
-        {/* Header actions */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Gestion des Stocks</h1>
             <p className="text-sm text-gray-500 mt-0.5">Inventaire en temps réel — Cacao, Anacarde, Intrants, Matières</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <ExportButton data={exportData} filename="stocks-export" label="Exporter" />
             <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50">
               <BarChart2 size={14} /> Valorisation
             </button>
-            <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium text-white"
+            <button
+              onClick={() => setModalOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium text-white"
               style={{ backgroundColor: "#2E7D32" }}>
               <Plus size={14} /> Nouveau mouvement
             </button>
           </div>
         </div>
 
-        {/* KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {kpis.map(k => {
             const Icon = k.icon;
@@ -252,9 +284,46 @@ export default function StocksPage() {
           })}
         </div>
 
-        {/* Tabs */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+          <div className="px-5 py-3 border-b border-gray-100">
+            <span className="text-sm font-semibold text-gray-800">Articles en stock</span>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ backgroundColor: "#F8FBF8" }}>
+                {["Produit", "Catégorie", "Quantité", "Unité", "Entrepôt", "Valeur (XOF)", "Statut"].map(h => (
+                  <th key={h} className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {STOCKS.map(s => {
+                const critique = s.quantite < s.seuilCritique;
+                return (
+                  <tr key={s.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs font-medium text-gray-900 whitespace-nowrap">{s.produit}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{s.categorie}</td>
+                    <td className="px-4 py-3 text-xs font-bold text-gray-900">{s.quantite.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500">{s.unite}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{s.entrepot}</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 whitespace-nowrap">{s.valeur.toLocaleString()}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap"
+                        style={critique
+                          ? { backgroundColor: "#FFEBEE", color: "#B71C1C" }
+                          : { backgroundColor: "#E8F5E9", color: "#2E7D32" }}>
+                        {critique ? "🔴 Critique" : "✅ Normal"}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-          {/* Tab bar */}
           <div className="flex border-b border-gray-100 overflow-x-auto">
             {TABS.map(tab => (
               <button key={tab} onClick={() => setActiveTab(tab)}
@@ -273,7 +342,6 @@ export default function StocksPage() {
             ))}
           </div>
 
-          {/* ── Inventaire ── */}
           {activeTab === "Inventaire" && (
             <div className="overflow-x-auto">
               <InventaireTable titre="Produits agricoles" rows={agricoles} />
@@ -287,10 +355,8 @@ export default function StocksPage() {
             </div>
           )}
 
-          {/* ── Mouvements ── */}
           {activeTab === "Mouvements" && (
             <div className="p-5 space-y-5">
-              {/* Filtres */}
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex rounded-xl border border-gray-200 overflow-hidden">
                   {(["Tous", "Entrées", "Sorties"] as MvtFilter[]).map(f => (
@@ -314,16 +380,13 @@ export default function StocksPage() {
                 </div>
               </div>
 
-              {/* Grouped bar chart Entrées vs Sorties */}
               <div className="rounded-xl border border-gray-100 p-4 overflow-x-auto">
                 <div className="text-xs font-semibold text-gray-700 mb-3">Entrées vs Sorties — 30 derniers jours (XOF)</div>
                 <svg viewBox="0 0 640 200" width="100%" style={{ minWidth: 400 }} xmlns="http://www.w3.org/2000/svg">
-                  {/* grille */}
                   {[0, 1, 2, 3, 4].map(i => {
                     const y = 20 + i * 36;
                     return <line key={i} x1="60" y1={y} x2="620" y2={y} stroke="#E5E7EB" strokeWidth="1" />;
                   })}
-                  {/* barres */}
                   {barData.map((d, gi) => {
                     const groupW = 130, barW = 38, gap = 8;
                     const gx = 60 + gi * groupW + 20;
@@ -331,20 +394,14 @@ export default function StocksPage() {
                     const hs = (d.sorties / maxBar) * 144;
                     return (
                       <g key={gi}>
-                        {/* entrée */}
                         <rect x={gx} y={164 - he} width={barW} height={he} fill="#2E7D32" rx="3" />
-                        {/* sortie */}
                         <rect x={gx + barW + gap} y={164 - hs} width={barW} height={hs} fill="#E65100" rx="3" />
-                        {/* label semaine */}
                         <text x={gx + barW + gap / 2} y="180" textAnchor="middle" fontSize="10" fill="#6B7280">{d.semaine}</text>
-                        {/* valeur entrée */}
                         {he > 10 && <text x={gx + barW / 2} y={158 - he} textAnchor="middle" fontSize="8" fill="#1B5E20">{(d.entrees / 1000000).toFixed(1)}M</text>}
-                        {/* valeur sortie */}
                         {hs > 10 && <text x={gx + barW + gap + barW / 2} y={158 - hs} textAnchor="middle" fontSize="8" fill="#B71C1C">{(d.sorties / 1000000).toFixed(1)}M</text>}
                       </g>
                     );
                   })}
-                  {/* légende */}
                   <rect x="440" y="8" width="10" height="10" fill="#2E7D32" rx="2" />
                   <text x="454" y="17" fontSize="9" fill="#374151">Entrées</text>
                   <rect x="500" y="8" width="10" height="10" fill="#E65100" rx="2" />
@@ -352,7 +409,6 @@ export default function StocksPage() {
                 </svg>
               </div>
 
-              {/* Tableau mouvements */}
               <div className="overflow-x-auto rounded-xl border border-gray-100">
                 <table className="w-full text-sm">
                   <thead>
@@ -385,11 +441,9 @@ export default function StocksPage() {
             </div>
           )}
 
-          {/* ── Valorisation ── */}
           {activeTab === "Valorisation" && (
             <div className="p-5 space-y-6">
               <div className="flex flex-col md:flex-row items-start gap-8">
-                {/* Donut */}
                 <div className="flex flex-col items-center gap-4">
                   <div className="text-xs font-semibold text-gray-700">Répartition de la valeur stock par catégorie</div>
                   <Donut />
@@ -404,7 +458,6 @@ export default function StocksPage() {
                   </div>
                 </div>
 
-                {/* Tableau FIFO */}
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-semibold text-gray-700 mb-3">Valorisation FIFO vs cours marché</div>
                   <div className="overflow-x-auto rounded-xl border border-gray-100">
@@ -440,7 +493,6 @@ export default function StocksPage() {
             </div>
           )}
 
-          {/* ── Alertes ── */}
           {activeTab === "Alertes" && (
             <div className="p-5 space-y-6">
               <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
@@ -484,7 +536,6 @@ export default function StocksPage() {
                 ))}
               </div>
 
-              {/* Paramétrage seuils */}
               <div>
                 <div className="text-xs font-semibold text-gray-700 mb-3">Paramétrage des seuils</div>
                 <div className="overflow-x-auto rounded-xl border border-gray-100">
