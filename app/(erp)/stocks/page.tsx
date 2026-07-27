@@ -280,7 +280,7 @@ export default function StocksPage() {
           <div className="flex gap-2 flex-wrap">
             <ExportButton data={exportData} filename="stocks-export" label="Exporter" />
             <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50"
-              onClick={() => showToast("Rapport de valorisation disponible prochainement")}>
+              onClick={() => setActiveTab("Valorisation")}>
               <BarChart2 size={14} /> Valorisation
             </button>
             <button

@@ -297,7 +297,7 @@ export default function IntegrationsPage() {
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-xs text-gray-400 shrink-0">Documentation</span>
                     <button
-                      onClick={() => showToast("Lien disponible prochainement")}
+                      onClick={() => showToast("Contactez votre administrateur système pour activer cette intégration")}
                       className="text-xs text-[#2E7D32] font-medium flex items-center gap-1 hover:underline"
                     >
                       Voir la doc API <ExternalLink size={11} />

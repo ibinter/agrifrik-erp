@@ -2,11 +2,24 @@
 
 import Topbar from "../../components/Topbar";
 import { useState } from "react";
-import { CheckCircle, Clock, AlertTriangle, Award, Droplets, Thermometer, ShieldCheck } from "lucide-react";
+import { CheckCircle, Clock, AlertTriangle, Award, Droplets, Thermometer, ShieldCheck, X } from "lucide-react";
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
-const lots = [
+type LotRow = {
+  cq: string;
+  date: string;
+  lot: string;
+  cutTest: number;
+  humidite: number;
+  score: number;
+  auditeur: string;
+  grade?: string;
+  resultat?: string;
+  notes?: string;
+};
+
+const initialLots: LotRow[] = [
   { cq: "CQ-2025-038", date: "12/01", lot: "LOT-038", cutTest: 92, humidite: 7.6, score: 91, auditeur: "Interne" },
   { cq: "CQ-2025-039", date: "10/02", lot: "LOT-039", cutTest: 91, humidite: 7.8, score: 90, auditeur: "Interne" },
   { cq: "CQ-2025-040", date: "14/03", lot: "LOT-040", cutTest: 93, humidite: 7.4, score: 93, auditeur: "Interne" },
@@ -16,6 +29,20 @@ const lots = [
   { cq: "CQ-2025-044", date: "22/06", lot: "LOT-044", cutTest: 95, humidite: 7.4, score: 95, auditeur: "Interne" },
   { cq: "CQ-2025-045", date: "22/06", lot: "LOT-045", cutTest: 94, humidite: 7.3, score: 94, auditeur: "Interne" },
   { cq: "CQ-2025-046", date: "01/07", lot: "LOT-046", cutTest: 97, humidite: 7.2, score: 96, auditeur: "BV Soubré" },
+];
+
+const LOT_OPTIONS = [
+  "LOT-2025-048",
+  "LOT-2025-047",
+  "LOT-2025-046",
+  "LOT-2025-045",
+  "LOT-2025-044",
+  "LOT-2025-043",
+  "LOT-2025-042",
+  "LOT-2025-041",
+  "LOT-2025-040",
+  "LOT-2025-039",
+  "LOT-2025-038",
 ];
 
 // ── SVG Line Chart ─────────────────────────────────────────────────────────────
@@ -40,7 +67,6 @@ const areaPath =
 // ── Heatmap ────────────────────────────────────────────────────────────────────
 
 type CellQ = "excellent" | "ok";
-// columns: Cut test AA% | Humidité | Moisissures | Fermentation | Score global
 const heatmapData: CellQ[][] = [
   ["ok",        "ok", "excellent", "ok", "ok"],
   ["ok",        "ok", "excellent", "ok", "ok"],
@@ -66,11 +92,201 @@ const heatmapValues: (string | number)[][] = [
 ];
 const heatmapRows = ["LOT-038", "LOT-039", "LOT-040", "LOT-041", "LOT-042", "LOT-043", "LOT-044", "LOT-045", "LOT-046"];
 
+// ── Modal Nouveau Contrôle ─────────────────────────────────────────────────────
+
+type ModalProps = {
+  onClose: () => void;
+  onSave: (row: LotRow) => void;
+};
+
+function ModalNouveauControle({ onClose, onSave }: ModalProps) {
+  const today = new Date().toISOString().split("T")[0];
+  const [lot, setLot] = useState(LOT_OPTIONS[0]);
+  const [date, setDate] = useState(today);
+  const [cutTest, setCutTest] = useState("");
+  const [humidite, setHumidite] = useState("");
+  const [defauts, setDefauts] = useState("");
+  const [grade, setGrade] = useState("Grade AA");
+  const [resultat, setResultat] = useState("Conforme");
+  const [notes, setNotes] = useState("");
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const ct = parseFloat(cutTest);
+    const hum = humidite !== "" ? parseFloat(humidite) : 0;
+    const score = Math.round(ct * 0.7 + (100 - hum * 5) * 0.3);
+    const [day, month] = date.split("-").reverse();
+    const newRow: LotRow = {
+      cq: `CQ-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`,
+      date: `${day}/${month}`,
+      lot: lot.replace("LOT-2025-", "LOT-"),
+      cutTest: ct,
+      humidite: hum,
+      score: Math.min(100, score),
+      auditeur: "Interne",
+      grade,
+      resultat,
+      notes,
+    };
+    onSave(newRow);
+  }
+
+  const labelCls = "block text-xs font-medium text-gray-700 mb-1";
+  const inputCls = "w-full rounded-xl border border-gray-200 px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+      <div className="bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col w-full max-w-lg shadow-2xl">
+        {/* Header */}
+        <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="text-sm font-bold text-gray-900">Nouveau contrôle qualité</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Saisir les résultats du contrôle</p>
+          </div>
+          <button onClick={onClose} className="rounded-xl p-1.5 hover:bg-gray-100 transition-colors">
+            <X size={16} className="text-gray-500" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+          {/* Lot */}
+          <div>
+            <label className={labelCls}>Lot</label>
+            <select value={lot} onChange={(e) => setLot(e.target.value)} className={inputCls}>
+              {LOT_OPTIONS.map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Date */}
+          <div>
+            <label className={labelCls}>Date du contrôle <span className="text-red-500">*</span></label>
+            <input
+              type="date"
+              required
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+
+          {/* Cut test */}
+          <div>
+            <label className={labelCls}>Cut test % <span className="text-red-500">*</span></label>
+            <input
+              type="number"
+              required
+              min={0}
+              max={100}
+              step={0.1}
+              placeholder="ex: 94"
+              value={cutTest}
+              onChange={(e) => setCutTest(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+
+          {/* Humidité + Défauts */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Humidité %</label>
+              <input
+                type="number"
+                min={0}
+                max={20}
+                step={0.1}
+                placeholder="ex: 7.4"
+                value={humidite}
+                onChange={(e) => setHumidite(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Défauts %</label>
+              <input
+                type="number"
+                min={0}
+                max={20}
+                step={0.1}
+                placeholder="ex: 0"
+                value={defauts}
+                onChange={(e) => setDefauts(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+          </div>
+
+          {/* Grade + Résultat */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Grade résultant</label>
+              <select value={grade} onChange={(e) => setGrade(e.target.value)} className={inputCls}>
+                {["Grade AA", "Grade A", "Grade B", "Hors grade"].map((g) => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Résultat</label>
+              <select value={resultat} onChange={(e) => setResultat(e.target.value)} className={inputCls}>
+                {["Conforme", "Non conforme", "En attente"].map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className={labelCls}>Notes</label>
+            <textarea
+              rows={3}
+              placeholder="Observations, remarques..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className={`${inputCls} resize-none`}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              className="rounded-xl bg-[#2E7D32] text-white px-4 py-2 text-xs font-medium hover:bg-[#1B5E20] transition-colors"
+            >
+              Enregistrer le contrôle
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function SuiviQualitePage() {
   const [tab, setTab] = useState<"liste" | "heatmap">("liste");
+  const [lots, setLots] = useState<LotRow[]>(initialLots);
+  const [showModal, setShowModal] = useState(false);
+  const [toast, setToast] = useState("");
   const threshY = yOf(95);
+
+  function handleSave(row: LotRow) {
+    setLots((prev) => [...prev, row]);
+    setShowModal(false);
+    setToast("Contrôle enregistré");
+    setTimeout(() => setToast(""), 3000);
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -86,7 +302,10 @@ export default function SuiviQualitePage() {
               Contrôles qualité des lots cacao — Exploitation EXP-001
             </p>
           </div>
-          <button className="mt-2 sm:mt-0 self-start bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors">
+          <button
+            onClick={() => setShowModal(true)}
+            className="mt-2 sm:mt-0 self-start bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors"
+          >
             + Nouveau contrôle qualité
           </button>
         </div>
@@ -94,7 +313,7 @@ export default function SuiviQualitePage() {
         {/* ── KPIs ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: <ShieldCheck size={18} className="text-[#2E7D32]" />, bg: "bg-green-50", label: "Contrôles 2025", value: "9", sub: "lots contrôlés" },
+            { icon: <ShieldCheck size={18} className="text-[#2E7D32]" />, bg: "bg-green-50", label: "Contrôles 2025", value: String(lots.length), sub: "lots contrôlés" },
             { icon: <CheckCircle size={18} className="text-[#2E7D32]" />, bg: "bg-green-50", label: "Conformité", value: "100%", sub: "tous lots conformes" },
             { icon: <Award size={18} className="text-amber-600" />, bg: "bg-amber-50", label: "Grade AA", value: "94,4%", sub: "cut test moyen" },
             { icon: <CheckCircle size={18} className="text-blue-600" />, bg: "bg-blue-50", label: "Lots rejetés", value: "0", sub: "aucun rejet 2025" },
@@ -210,7 +429,9 @@ export default function SuiviQualitePage() {
                         <td className="px-3 py-2.5 text-gray-600">{row.date}</td>
                         <td className="px-3 py-2.5 font-medium text-gray-800">{row.lot}</td>
                         <td className="px-3 py-2.5">
-                          <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-[10px] font-semibold">AA ✅</span>
+                          <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-[10px] font-semibold">
+                            {row.grade ?? "AA"} ✅
+                          </span>
                         </td>
                         <td className="px-3 py-2.5">
                           <span className={`font-semibold ${row.cutTest >= 95 ? "text-[#2E7D32]" : "text-gray-700"}`}>{row.cutTest}%</span>
@@ -221,9 +442,19 @@ export default function SuiviQualitePage() {
                         </td>
                         <td className="px-3 py-2.5 text-gray-600">{row.auditeur}</td>
                         <td className="px-3 py-2.5">
-                          <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 rounded-full px-2 py-0.5 text-[10px] font-medium">
-                            <CheckCircle size={10} /> Approuvé
-                          </span>
+                          {row.resultat === "Non conforme" ? (
+                            <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 rounded-full px-2 py-0.5 text-[10px] font-medium">
+                              <AlertTriangle size={10} /> Non conforme
+                            </span>
+                          ) : row.resultat === "En attente" ? (
+                            <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 rounded-full px-2 py-0.5 text-[10px] font-medium">
+                              <Clock size={10} /> En attente
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 rounded-full px-2 py-0.5 text-[10px] font-medium">
+                              <CheckCircle size={10} /> Approuvé
+                            </span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -295,6 +526,22 @@ export default function SuiviQualitePage() {
         </div>
 
       </div>
+
+      {/* ── Modal ── */}
+      {showModal && (
+        <ModalNouveauControle
+          onClose={() => setShowModal(false)}
+          onSave={handleSave}
+        />
+      )}
+
+      {/* ── Toast ── */}
+      {toast && (
+        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 bg-[#1B5E20] text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg">
+          <CheckCircle size={14} />
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

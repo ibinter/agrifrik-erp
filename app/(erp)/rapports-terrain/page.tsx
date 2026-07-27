@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import Topbar from "../../components/Topbar";
 import {
   Search, Filter, MapPin, Camera, CheckCircle, AlertTriangle,
-  Clock, FileText, BarChart2, ChevronDown, Upload, Navigation,
+  Clock, FileText, BarChart2, ChevronDown, Upload, Navigation, X,
 } from "lucide-react";
 
 const TABS = ["Rapports", "Formulaire", "Tableaux de bord"] as const;
@@ -28,7 +28,7 @@ interface Rapport {
   photos?: number;
 }
 
-const RAPPORTS: Rapport[] = [
+const RAPPORTS_INITIAL: Rapport[] = [
   {
     ref: "RT-2025-082",
     date: "11/07/2025",
@@ -136,6 +136,10 @@ const TYPE_COLORS: Record<string, string> = {
   "Récolte": "bg-yellow-100 text-yellow-700",
   "Maintenance préventive": "bg-orange-100 text-orange-700",
   "Inspection phyto": "bg-red-100 text-red-700",
+  "Traitement phytosanitaire": "bg-red-100 text-red-700",
+  "Irrigation": "bg-cyan-100 text-cyan-700",
+  "Observation": "bg-indigo-100 text-indigo-700",
+  "Incident": "bg-rose-100 text-rose-700",
 };
 
 const ANOMALIES = [
@@ -164,10 +168,212 @@ const STATUT_LABELS: Record<StatutType, { label: string; cls: string }> = {
   "resolu": { label: "Résolu", cls: "bg-green-100 text-green-700" },
 };
 
-function RapportsTab() {
+const TYPES_RAPPORT = ["Récolte", "Traitement phytosanitaire", "Fertilisation", "Irrigation", "Observation", "Incident"] as const;
+const PARCELLES = ["PAR-A1", "PAR-A2", "PAR-A3", "PAR-B1", "PAR-C1", "PAR-D1"] as const;
+
+interface NouveauRapportModalProps {
+  onClose: () => void;
+  onSave: (rapport: Rapport) => void;
+}
+
+function NouveauRapportModal({ onClose, onSave }: NouveauRapportModalProps) {
+  const [titre, setTitre] = useState("");
+  const [type, setType] = useState("");
+  const [parcelle, setParcelle] = useState("");
+  const [dateObs, setDateObs] = useState("");
+  const [operateur, setOperateur] = useState("");
+  const [observations, setObservations] = useState("");
+  const [recommandations, setRecommandations] = useState("");
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+
+  const validate = () => {
+    const e: Record<string, boolean> = {};
+    if (!titre.trim()) e.titre = true;
+    if (!dateObs) e.dateObs = true;
+    if (!observations.trim()) e.observations = true;
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSave = () => {
+    if (!validate()) return;
+    const today = new Date();
+    const dateStr = dateObs
+      ? new Date(dateObs).toLocaleDateString("fr-FR")
+      : today.toLocaleDateString("fr-FR");
+    const refNum = String(Math.floor(Math.random() * 900) + 83).padStart(3, "0");
+    const rapport: Rapport = {
+      ref: `RT-2025-${refNum}`,
+      date: dateStr,
+      operateur: operateur.trim() || "—",
+      lieu: parcelle || "—",
+      type: type || "Observation",
+      parcelle: parcelle || undefined,
+      resume: [
+        observations.trim(),
+        ...(recommandations.trim() ? [`Recommandations : ${recommandations.trim()}`] : []),
+      ],
+    };
+    onSave(rapport);
+  };
+
+  const inputCls = (field: string) =>
+    `w-full border rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32] ${
+      errors[field] ? "border-red-400 bg-red-50" : "border-gray-200"
+    }`;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+
+      {/* Modal */}
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl z-10">
+          <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+            <FileText size={16} className="text-[#2E7D32]" />
+            Nouveau rapport terrain
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 space-y-4">
+          {/* Titre */}
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-1.5 block">
+              Titre du rapport <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={titre}
+              onChange={e => setTitre(e.target.value)}
+              placeholder="Ex. : Traitement phytosanitaire PAR-A1"
+              className={inputCls("titre")}
+            />
+            {errors.titre && <p className="text-[10px] text-red-500 mt-1">Champ requis</p>}
+          </div>
+
+          {/* Type + Parcelle */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Type</label>
+              <div className="relative">
+                <select
+                  value={type}
+                  onChange={e => setType(e.target.value)}
+                  className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+                >
+                  <option value="">Sélectionner…</option>
+                  {TYPES_RAPPORT.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <ChevronDown size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Parcelle</label>
+              <div className="relative">
+                <select
+                  value={parcelle}
+                  onChange={e => setParcelle(e.target.value)}
+                  className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+                >
+                  <option value="">Sélectionner…</option>
+                  {PARCELLES.map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+                <ChevronDown size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+
+          {/* Date + Opérateur */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                Date d&apos;observation <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={dateObs}
+                onChange={e => setDateObs(e.target.value)}
+                className={inputCls("dateObs")}
+              />
+              {errors.dateObs && <p className="text-[10px] text-red-500 mt-1">Champ requis</p>}
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Opérateur terrain</label>
+              <input
+                type="text"
+                value={operateur}
+                onChange={e => setOperateur(e.target.value)}
+                placeholder="Nom de l'opérateur"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+              />
+            </div>
+          </div>
+
+          {/* Observations */}
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-1.5 block">
+              Observations <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              rows={3}
+              value={observations}
+              onChange={e => setObservations(e.target.value)}
+              placeholder="Décrire les observations terrain, anomalies constatées…"
+              className={`${inputCls("observations")} resize-none`}
+            />
+            {errors.observations && <p className="text-[10px] text-red-500 mt-1">Champ requis</p>}
+          </div>
+
+          {/* Recommandations */}
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-1.5 block">Recommandations</label>
+            <textarea
+              rows={3}
+              value={recommandations}
+              onChange={e => setRecommandations(e.target.value)}
+              placeholder="Actions recommandées, suivi à prévoir…"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+          <button
+            onClick={handleSave}
+            className="flex-1 bg-[#2E7D32] text-white rounded-xl text-xs font-medium py-2.5 hover:bg-[#1B5E20] transition-colors"
+          >
+            Enregistrer le rapport
+          </button>
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+          >
+            Annuler
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RapportsTab({ rapports }: { rapports: Rapport[] }) {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("Tous");
-  const filtered = RAPPORTS.filter(r =>
+  const filtered = rapports.filter(r =>
     r.operateur.toLowerCase().includes(search.toLowerCase()) ||
     r.type.toLowerCase().includes(search.toLowerCase()) ||
     r.ref.toLowerCase().includes(search.toLowerCase())
@@ -203,7 +409,7 @@ function RapportsTab() {
           ))}
         </div>
         <div className="flex items-center gap-4 ml-auto text-xs text-gray-500">
-          <span><span className="font-semibold text-gray-800">82</span> rapports YTD</span>
+          <span><span className="font-semibold text-gray-800">{rapports.length}</span> rapports YTD</span>
           <span><span className="font-semibold text-gray-800">4,2</span> / semaine</span>
           <span className="flex items-center gap-1"><MapPin size={11} className="text-green-500" /><span className="font-semibold text-gray-800">100%</span> géolocalisés</span>
         </div>
@@ -502,7 +708,6 @@ function FormulaireTab() {
 }
 
 function TableauxDeBordTab() {
-  // Bar chart data
   const barData = [
     { label: "Ibrahim S.", value: 28 },
     { label: "Konan Y.", value: 22 },
@@ -512,7 +717,6 @@ function TableauxDeBordTab() {
   ];
   const barMax = 28;
 
-  // Donut data
   const donutData = [
     { label: "Op. culturale", pct: 42, color: "#2E7D32" },
     { label: "Ctrl qualité", pct: 28, color: "#3b82f6" },
@@ -521,7 +725,6 @@ function TableauxDeBordTab() {
     { label: "Incident", pct: 6, color: "#ef4444" },
   ];
 
-  // Donut path builder
   const cx = 90, cy = 90, r = 60, ir = 36;
   let startAngle = -Math.PI / 2;
   const donutPaths = donutData.map(seg => {
@@ -542,9 +745,7 @@ function TableauxDeBordTab() {
 
   return (
     <div className="space-y-6">
-      {/* Charts row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Bar chart */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
           <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <BarChart2 size={16} className="text-[#2E7D32]" /> Rapports par opérateur — YTD 2025
@@ -567,7 +768,6 @@ function TableauxDeBordTab() {
           </svg>
         </div>
 
-        {/* Donut chart */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
           <h2 className="font-semibold text-gray-800 mb-4">Répartition par type de rapport</h2>
           <div className="flex items-center gap-6">
@@ -591,7 +791,6 @@ function TableauxDeBordTab() {
         </div>
       </div>
 
-      {/* Table anomalies */}
       <div className="rounded-2xl border border-gray-100 bg-white p-5 overflow-x-auto">
         <h2 className="font-semibold text-gray-800 mb-4">Anomalies signalées — 30 derniers jours</h2>
         <table className="w-full text-xs min-w-[600px]">
@@ -630,11 +829,19 @@ function TableauxDeBordTab() {
 
 export default function RapportsTerrainPage() {
   const [tab, setTab] = useState<Tab>("Rapports");
+  const [showModal, setShowModal] = useState(false);
+  const [rapports, setRapports] = useState<Rapport[]>(RAPPORTS_INITIAL);
   const [pageToast, setPageToast] = useState<string | null>(null);
 
   const showPageToast = (msg: string) => {
     setPageToast(msg);
     setTimeout(() => setPageToast(null), 3000);
+  };
+
+  const handleSaveRapport = (rapport: Rapport) => {
+    setRapports(prev => [rapport, ...prev]);
+    setShowModal(false);
+    showPageToast("Rapport enregistré");
   };
 
   return (
@@ -648,19 +855,27 @@ export default function RapportsTerrainPage() {
             <p className="text-xs text-gray-500 mt-0.5">Rapports quotidiens des équipes terrain — Semaine 29</p>
           </div>
           <button
-            onClick={() => showPageToast("Nouveau rapport disponible prochainement")}
+            onClick={() => setShowModal(true)}
             className="flex items-center gap-2 text-xs bg-[#2E7D32] text-white px-4 py-2 rounded-xl font-medium hover:bg-[#1B5E20] transition-colors"
           >
-            <FileText size={13} /> Nouveau rapport
+            <FileText size={13} /> + Nouveau rapport
           </button>
         </div>
 
         {/* Page-level Toast */}
         {pageToast && (
           <div className="fixed bottom-6 right-6 z-50 bg-[#2E7D32] text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
-            <Clock size={14} />
+            <CheckCircle size={14} />
             {pageToast}
           </div>
+        )}
+
+        {/* Modal */}
+        {showModal && (
+          <NouveauRapportModal
+            onClose={() => setShowModal(false)}
+            onSave={handleSaveRapport}
+          />
         )}
 
         {/* Tabs */}
@@ -680,7 +895,7 @@ export default function RapportsTerrainPage() {
           ))}
         </div>
 
-        {tab === "Rapports" && <RapportsTab />}
+        {tab === "Rapports" && <RapportsTab rapports={rapports} />}
         {tab === "Formulaire" && <FormulaireTab />}
         {tab === "Tableaux de bord" && <TableauxDeBordTab />}
       </main>

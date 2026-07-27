@@ -2,11 +2,29 @@
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
-import { CheckCircle, MapPin, FileText, Download } from "lucide-react";
+import { CheckCircle, MapPin, FileText, Download, X } from "lucide-react";
+
+// ── Types ──────────────────────────────────────────────────────────────────────
+
+type Lot = {
+  lot: string;
+  parcelle: string;
+  recolte: string;
+  ferment: string;
+  sechage: string;
+  grade: string;
+  poids: string;
+  client: string;
+  export: string;
+  score: string;
+  ok: boolean;
+  highlight?: boolean;
+  pending?: boolean;
+};
 
 // ── Données lots ───────────────────────────────────────────────────────────────
 
-const lots = [
+const lotsInitiaux: Lot[] = [
   { lot: "LOT-2025-038", parcelle: "PAR-A1+A2", recolte: "05/01", ferment: "6j ✅", sechage: "7j ✅", grade: "AA", poids: "3 200 kg", client: "BC CI", export: "BL-001", score: "100/100", ok: true },
   { lot: "LOT-2025-039", parcelle: "PAR-A1",    recolte: "03/02", ferment: "6j ✅", sechage: "7j ✅", grade: "AA", poids: "3 400 kg", client: "BC CI", export: "BL-002", score: "99/100",  ok: true },
   { lot: "LOT-2025-040", parcelle: "PAR-A2",    recolte: "05/03", ferment: "6j ✅", sechage: "8j ✅", grade: "AA", poids: "3 200 kg", client: "BC CI", export: "BL-003", score: "100/100", ok: true },
@@ -69,10 +87,250 @@ const eudrCriteres = [
   { critere: "Certification RA COC", preuve: "RA-CI-2025-EFA001", verification: "✅ Valide" },
 ];
 
+// ── Modal Nouveau Lot ──────────────────────────────────────────────────────────
+
+const PARCELLES = [
+  "PAR-A1 Soubré",
+  "PAR-A2 Soubré",
+  "PAR-A3 Soubré",
+  "PAR-C1 Korhogo",
+  "PAR-C2 Korhogo",
+];
+
+const CERTIFICATIONS = ["Rainforest Alliance", "UTZ", "Bio", "Standard"];
+
+function generateRef(existing: Lot[]): string {
+  const nums = existing
+    .map((l) => parseInt(l.lot.replace("LOT-2025-", ""), 10))
+    .filter((n) => !isNaN(n));
+  const next = nums.length > 0 ? Math.max(...nums) + 1 : 48;
+  return `LOT-2025-${String(next).padStart(3, "0")}`;
+}
+
+type ModalProps = {
+  lots: Lot[];
+  onClose: () => void;
+  onCreer: (lot: Lot) => void;
+};
+
+function NouveauLotModal({ lots, onClose, onCreer }: ModalProps) {
+  const [ref, setRef] = useState(generateRef(lots));
+  const [parcelle, setParcelle] = useState(PARCELLES[0]);
+  const [dateRecolte, setDateRecolte] = useState("");
+  const [volume, setVolume] = useState("");
+  const [operateur, setOperateur] = useState("");
+  const [certification, setCertification] = useState(CERTIFICATIONS[0]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function validate() {
+    const e: Record<string, string> = {};
+    if (!ref.trim()) e.ref = "Champ requis";
+    if (!dateRecolte) e.dateRecolte = "Champ requis";
+    if (!volume || isNaN(Number(volume)) || Number(volume) <= 0) e.volume = "Volume invalide";
+    return e;
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+
+    // Formater la date DD/MM
+    const d = new Date(dateRecolte);
+    const formatted = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+    const parcelleCode = parcelle.split(" ")[0]; // ex: PAR-A1
+
+    const nouveau: Lot = {
+      lot: ref.trim(),
+      parcelle: parcelleCode,
+      recolte: formatted,
+      ferment: "⏳ À débuter",
+      sechage: "⏳",
+      grade: "—",
+      poids: `${Number(volume).toLocaleString("fr-FR")} kg`,
+      client: "—",
+      export: "—",
+      score: "—",
+      ok: false,
+      pending: true,
+    };
+
+    onCreer(nouveau);
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col w-full max-w-lg shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Nouveau lot</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Enregistrer un nouveau lot de traçabilité</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+          {/* Référence lot */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Référence lot
+            </label>
+            <input
+              type="text"
+              value={ref}
+              onChange={(e) => setRef(e.target.value)}
+              placeholder="LOT-2025-050"
+              className={`w-full border rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2E7D32] ${errors.ref ? "border-red-400" : "border-gray-200"}`}
+            />
+            {errors.ref && <p className="text-xs text-red-500 mt-1">{errors.ref}</p>}
+          </div>
+
+          {/* Parcelle d'origine */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Parcelle d&apos;origine
+            </label>
+            <select
+              value={parcelle}
+              onChange={(e) => setParcelle(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] bg-white"
+            >
+              {PARCELLES.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Date récolte */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Date récolte <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              value={dateRecolte}
+              onChange={(e) => setDateRecolte(e.target.value)}
+              className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] ${errors.dateRecolte ? "border-red-400" : "border-gray-200"}`}
+            />
+            {errors.dateRecolte && <p className="text-xs text-red-500 mt-1">{errors.dateRecolte}</p>}
+          </div>
+
+          {/* Volume initial */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Volume initial (kg) <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              value={volume}
+              onChange={(e) => setVolume(e.target.value)}
+              placeholder="ex: 3200"
+              min={1}
+              className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] ${errors.volume ? "border-red-400" : "border-gray-200"}`}
+            />
+            {errors.volume && <p className="text-xs text-red-500 mt-1">{errors.volume}</p>}
+          </div>
+
+          {/* Opérateur */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Opérateur
+            </label>
+            <input
+              type="text"
+              value={operateur}
+              onChange={(e) => setOperateur(e.target.value)}
+              placeholder="Nom de l'opérateur"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
+            />
+          </div>
+
+          {/* Certification visée */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Certification visée
+            </label>
+            <select
+              value={certification}
+              onChange={(e) => setCertification(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E7D32] bg-white"
+            >
+              {CERTIFICATIONS.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+        </form>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs font-medium text-gray-600 hover:text-gray-900 px-4 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const errs = validate();
+              if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+              const d = new Date(dateRecolte);
+              const formatted = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+              const parcelleCode = parcelle.split(" ")[0];
+              const nouveau: Lot = {
+                lot: ref.trim(),
+                parcelle: parcelleCode,
+                recolte: formatted,
+                ferment: "⏳ À débuter",
+                sechage: "⏳",
+                grade: "—",
+                poids: `${Number(volume).toLocaleString("fr-FR")} kg`,
+                client: "—",
+                export: "—",
+                score: "—",
+                ok: false,
+                pending: true,
+              };
+              onCreer(nouveau);
+            }}
+            className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-5 py-2.5 hover:bg-[#1B5E20] transition-colors"
+          >
+            Créer le lot
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function TracabilitePage() {
+  const [lots, setLots] = useState<Lot[]>(lotsInitiaux);
   const [toast, setToast] = useState("");
+  const [showModal, setShowModal] = useState(false);
+
+  function handleCreer(lot: Lot) {
+    setLots((prev) => [...prev, lot]);
+    setShowModal(false);
+    setToast("Lot créé avec succès");
+    setTimeout(() => setToast(""), 4000);
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Topbar />
@@ -88,7 +346,7 @@ export default function TracabilitePage() {
             </p>
           </div>
           <button
-            onClick={() => setToast("Création de lot disponible prochainement")}
+            onClick={() => setShowModal(true)}
             className="mt-2 sm:mt-0 self-start bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors"
           >
             + Nouveau lot
@@ -98,7 +356,7 @@ export default function TracabilitePage() {
         {/* ── KPIs ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: <FileText size={18} className="text-[#2E7D32]" />, bg: "bg-green-50", label: "Lots tracés 2025", value: "9", sub: "registre complet" },
+            { icon: <FileText size={18} className="text-[#2E7D32]" />, bg: "bg-green-50", label: "Lots tracés 2025", value: String(lots.length), sub: "registre complet" },
             { icon: <MapPin size={18} className="text-blue-600" />, bg: "bg-blue-50", label: "Traçabilité GPS", value: "100%", sub: "toutes parcelles" },
             { icon: <CheckCircle size={18} className="text-[#2E7D32]" />, bg: "bg-green-50", label: "Score moyen", value: "99,2/100", sub: "traçabilité lots" },
             { icon: <CheckCircle size={18} className="text-purple-600" />, bg: "bg-purple-50", label: "Ruptures chaîne", value: "0", sub: "aucune rupture 2025" },
@@ -223,6 +481,15 @@ export default function TracabilitePage() {
         </div>
 
       </div>
+
+      {/* ── Modal ── */}
+      {showModal && (
+        <NouveauLotModal
+          lots={lots}
+          onClose={() => setShowModal(false)}
+          onCreer={handleCreer}
+        />
+      )}
 
       {/* ── Toast ── */}
       {toast && (

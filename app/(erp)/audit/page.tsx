@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Topbar from "../../components/Topbar";
@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   TrendingUp,
   Download,
+  X,
 } from "lucide-react";
 
 // ─── KPI ─────────────────────────────────────────────────────────────────────
@@ -23,7 +24,7 @@ const kpis = [
 
 // ─── Audits réalisés ──────────────────────────────────────────────────────────
 
-const auditsRealises = [
+const auditsRealisesInit = [
   { ref: "AUD-2025-006", type: "Interne qualité", auditeur: "Adjoua Messou", perimetre: "Séchage + conditionnement", date: "30/06/2025", resultat: "✅ 97/100", ncCritiques: 0, ncMajeures: 0, ncMineures: 1 },
   { ref: "AUD-2025-005", type: "Terrain RA", auditeur: "Ibrahim S.", perimetre: "PAR-A1, A2, A3", date: "15/06/2025", resultat: "✅ 94/100", ncCritiques: 0, ncMajeures: 1, ncMineures: 2 },
   { ref: "AUD-2025-004", type: "Interne RH", auditeur: "Mariam Kouyaté", perimetre: "Salaires + contrats", date: "31/05/2025", resultat: "✅ 96/100", ncCritiques: 0, ncMajeures: 0, ncMineures: 2 },
@@ -32,7 +33,7 @@ const auditsRealises = [
   { ref: "AUD-2025-001", type: "Sécurité alimentaire", auditeur: "Bureau Véritas", perimetre: "Fermentation + séchage", date: "15/02/2025", resultat: "⚠️ 87/100", ncCritiques: 0, ncMajeures: 3, ncMineures: 4 },
 ];
 
-const auditsPlanifies = [
+const auditsPlanifiesInit = [
   { ref: "AUD-2025-007", type: "Interne pré-RA", auditeur: "Ibrahim S.", perimetre: "8 parcelles", date: "01/08/2025" },
   { ref: "AUD-2025-008", type: "Externe RA annuel", auditeur: "RA International", perimetre: "8 parcelles", date: "15/09/2025" },
   { ref: "AUD-2025-009", type: "GlobalG.A.P. surveillance", auditeur: "Bureau Véritas", perimetre: "4 parcelles", date: "15/10/2025" },
@@ -225,7 +226,6 @@ const echeances = [
 // ─── Composant historique ─────────────────────────────────────────────────────
 
 function HistoriqueRA() {
-  // données SVG area chart scores RA
   const scores = [82, 87, 91, 92, 94];
   const annees = ["2021", "2022", "2023", "2024", "2025"];
   const svgW = 640, svgH = 200;
@@ -250,7 +250,6 @@ function HistoriqueRA() {
 
   return (
     <div className="space-y-6">
-      {/* KPI en-tête */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Audits RA 2021-2025", value: "5", color: "#2E7D32", bg: "#E8F5E9" },
@@ -265,12 +264,10 @@ function HistoriqueRA() {
         ))}
       </div>
 
-      {/* SVG Area chart progression */}
       <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
         <h2 className="font-semibold text-sm text-gray-900 dark:text-white mb-4">Progression scores RA 2021-2025</h2>
         <div className="overflow-x-auto">
           <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full min-w-[320px]" aria-label="Progression scores RA">
-            {/* grille horizontale */}
             {[75, 80, 85, 90, 95, 100].map((v) => {
               const y = padT + (1 - (v - minV) / (maxV - minV)) * chartH;
               return (
@@ -280,13 +277,10 @@ function HistoriqueRA() {
                 </g>
               );
             })}
-            {/* seuil minimal 75 — pointillé rouge */}
             <line x1={padL} y1={seuilY} x2={svgW - padR} y2={seuilY} stroke="#E53935" strokeWidth={1.5} strokeDasharray="5,4" />
             <text x={svgW - padR + 2} y={seuilY + 4} fontSize={9} fill="#E53935">min 75</text>
-            {/* area verte */}
             <polygon points={area} fill="#4CAF50" fillOpacity={0.15} />
             <polyline points={poly} fill="none" stroke="#2E7D32" strokeWidth={2.5} strokeLinejoin="round" />
-            {/* points + labels */}
             {pts.map((p, i) => (
               <g key={p.a}>
                 <circle cx={p.x} cy={p.y} r={5} fill={i === pts.length - 1 ? "#2E7D32" : "#A5D6A7"} stroke="white" strokeWidth={2} />
@@ -296,7 +290,6 @@ function HistoriqueRA() {
             ))}
           </svg>
         </div>
-        {/* mini KPI ligne */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
           {[
             { label: "Tendance", value: "+3 pts/an en moyenne", ok: true },
@@ -311,7 +304,6 @@ function HistoriqueRA() {
         </div>
       </div>
 
-      {/* Liste des audits historiques */}
       <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
           <h2 className="font-semibold text-sm text-gray-900 dark:text-white">Liste des audits RA 2021-2025</h2>
@@ -344,7 +336,6 @@ function HistoriqueRA() {
         </div>
       </div>
 
-      {/* Non-conformités historiques */}
       <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
           <h2 className="font-semibold text-sm text-gray-900 dark:text-white">Non-conformités historiques (toutes résolues)</h2>
@@ -383,7 +374,6 @@ function HistoriqueRA() {
         </div>
       </div>
 
-      {/* Prochaines échéances */}
       <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
           <h2 className="font-semibold text-sm text-gray-900 dark:text-white">Prochaines échéances</h2>
@@ -414,11 +404,212 @@ function HistoriqueRA() {
   );
 }
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface AuditPlanifie {
+  ref: string;
+  type: string;
+  auditeur: string;
+  perimetre: string;
+  date: string;
+}
+
+interface ModalForm {
+  type: string;
+  perimetre: string;
+  date: string;
+  auditeur: string;
+  priorite: string;
+  notes: string;
+}
+
+const EMPTY_FORM: ModalForm = {
+  type: "Interne qualité",
+  perimetre: "",
+  date: "",
+  auditeur: "",
+  priorite: "Normal",
+  notes: "",
+};
+
+// ─── Modal Planifier un audit ─────────────────────────────────────────────────
+
+interface ModalPlanifierProps {
+  onClose: () => void;
+  onSubmit: (audit: AuditPlanifie) => void;
+}
+
+function ModalPlanifier({ onClose, onSubmit }: ModalPlanifierProps) {
+  const [form, setForm] = useState<ModalForm>(EMPTY_FORM);
+
+  function handleChange(field: keyof ModalForm, value: string) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const nextRef = `AUD-2025-${String(Math.floor(Math.random() * 900) + 10).padStart(3, "0")}`;
+    onSubmit({
+      ref: nextRef,
+      type: form.type,
+      auditeur: form.auditeur || "—",
+      perimetre: form.perimetre || "—",
+      date: new Date(form.date).toLocaleDateString("fr-FR"),
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+
+      {/* Modal */}
+      <div className="relative w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-2">
+            <Calendar size={18} className="text-[#2E7D32]" />
+            <h2 className="font-semibold text-gray-900 dark:text-white text-sm">Planifier un audit</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          {/* Type d'audit */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Type d&apos;audit <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={form.type}
+              onChange={(e) => handleChange("type", e.target.value)}
+              required
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/40 focus:border-[#2E7D32] transition-colors"
+            >
+              <option value="Interne qualité">Interne qualité</option>
+              <option value="Certification RA">Certification RA</option>
+              <option value="UTZ">UTZ</option>
+              <option value="EUDR Compliance">EUDR Compliance</option>
+              <option value="Traçabilité">Traçabilité</option>
+              <option value="Financier">Financier</option>
+            </select>
+          </div>
+
+          {/* Périmètre */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Périmètre
+            </label>
+            <input
+              type="text"
+              value={form.perimetre}
+              onChange={(e) => handleChange("perimetre", e.target.value)}
+              placeholder="ex: Exploitation entière, Bloc A, Lots cacao"
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/40 focus:border-[#2E7D32] transition-colors"
+            />
+          </div>
+
+          {/* Date prévue + Auditeur côte à côte */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Date prévue <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => handleChange("date", e.target.value)}
+                required
+                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/40 focus:border-[#2E7D32] transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Auditeur
+              </label>
+              <input
+                type="text"
+                value={form.auditeur}
+                onChange={(e) => handleChange("auditeur", e.target.value)}
+                placeholder="Nom ou organisme"
+                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/40 focus:border-[#2E7D32] transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Priorité */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Priorité
+            </label>
+            <select
+              value={form.priorite}
+              onChange={(e) => handleChange("priorite", e.target.value)}
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/40 focus:border-[#2E7D32] transition-colors"
+            >
+              <option value="Urgent">Urgent</option>
+              <option value="Normal">Normal</option>
+              <option value="Planifié">Planifié</option>
+            </select>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Notes
+            </label>
+            <textarea
+              value={form.notes}
+              onChange={(e) => handleChange("notes", e.target.value)}
+              rows={3}
+              placeholder="Informations complémentaires, contexte, objectifs..."
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm px-3 py-2.5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/40 focus:border-[#2E7D32] transition-colors resize-none"
+            />
+          </div>
+
+          {/* Boutons */}
+          <div className="flex justify-end gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-medium text-white bg-[#2E7D32] hover:bg-[#1B5E20] transition-colors"
+            >
+              <Calendar size={13} />
+              Planifier l&apos;audit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function AuditPage() {
   const [onglet, setOnglet] = useState<"audits" | "nc" | "rapport" | "plan" | "historique">("audits");
   const [toast, setToast] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [auditsPlanifies, setAuditsPlanifies] = useState<AuditPlanifie[]>(auditsPlanifiesInit);
+
+  function handlePlanifier(audit: AuditPlanifie) {
+    setAuditsPlanifies((prev) => [...prev, audit]);
+    setShowModal(false);
+    setToast("Audit planifié avec succès");
+    setTimeout(() => setToast(""), 3500);
+  }
 
   const onglets = [
     { key: "audits" as const, label: "Audits" },
@@ -439,10 +630,14 @@ export default function AuditPage() {
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Audits &amp; Conformité</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Historique des audits Rainforest Alliance, CNRA et internes</p>
           </div>
-          <button onClick={() => setToast("Planification d'audit disponible prochainement")} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white bg-[#2E7D32] hover:bg-[#1B5E20] transition-colors self-start sm:self-auto">
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white bg-[#2E7D32] hover:bg-[#1B5E20] transition-colors self-start sm:self-auto"
+          >
             <Calendar size={14} /> + Planifier un audit
           </button>
         </div>
+
         {/* KPI */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {kpis.map((k) => {
@@ -482,7 +677,7 @@ export default function AuditPage() {
             {/* Réalisés */}
             <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
-                <h2 className="font-semibold text-sm text-gray-900 dark:text-white">Audits réalisés (6)</h2>
+                <h2 className="font-semibold text-sm text-gray-900 dark:text-white">Audits réalisés ({auditsRealisesInit.length})</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -494,7 +689,7 @@ export default function AuditPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {auditsRealises.map((a) => (
+                    {auditsRealisesInit.map((a) => (
                       <tr key={a.ref} className="border-t border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                         <td className="px-4 py-3 font-mono text-xs font-bold text-[#2E7D32] whitespace-nowrap">{a.ref}</td>
                         <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">{a.type}</td>
@@ -526,7 +721,7 @@ export default function AuditPage() {
             {/* Planifiés */}
             <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
-                <h2 className="font-semibold text-sm text-gray-900 dark:text-white">Audits planifiés (3)</h2>
+                <h2 className="font-semibold text-sm text-gray-900 dark:text-white">Audits planifiés ({auditsPlanifies.length})</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -687,9 +882,18 @@ export default function AuditPage() {
         )}
       </div>
 
+      {/* Modal planifier */}
+      {showModal && (
+        <ModalPlanifier
+          onClose={() => setShowModal(false)}
+          onSubmit={handlePlanifier}
+        />
+      )}
+
+      {/* Toast */}
       {toast && (
         <div
-          className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-sm shadow-lg"
+          className="fixed bottom-4 right-4 bg-green-600 text-white rounded-xl px-4 py-2 z-50 text-sm shadow-lg cursor-pointer"
           onClick={() => setToast("")}
         >
           {toast}

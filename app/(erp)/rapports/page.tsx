@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Topbar from "../../components/Topbar";
 import {
   BarChart3,
@@ -22,9 +23,10 @@ import {
   Bot,
   Layers,
   Eye,
+  X,
 } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ─────────────────────────────────────────────────────────────────────
 
 type Tab = "catalogue" | "recents" | "favoris" | "generer";
 
@@ -50,7 +52,7 @@ interface FavCard {
   icon: React.ReactNode;
 }
 
-// ─── KPIs ─────────────────────────────────────────────────────────────────────
+// ─── KPIs ──────────────────────────────────────────────────────────────────────
 
 const KPIS = [
   { label: "Rapports disponibles", value: "42", icon: <FileText size={18} className="text-[#2E7D32]" /> },
@@ -59,7 +61,7 @@ const KPIS = [
   { label: "Dernière génération", value: "il y a 2h", icon: <Clock size={18} className="text-gray-500" /> },
 ];
 
-// ─── Catalogue ────────────────────────────────────────────────────────────────
+// ─── Catalogue ─────────────────────────────────────────────────────────────────
 
 const CATALOGUE: CatalogSection[] = [
   {
@@ -162,9 +164,9 @@ const CATALOGUE: CatalogSection[] = [
   },
 ];
 
-// ─── Récents ──────────────────────────────────────────────────────────────────
+// ─── Récents ───────────────────────────────────────────────────────────────────
 
-const RECENTS: RecentItem[] = [
+const RECENTS_INITIAL: RecentItem[] = [
   { titre: "Récap. production quotidien", date: "11/07 06:00", par: "Automatique", duree: "2s", format: "PDF", taille: "84 KB" },
   { titre: "Cours cacao matinal", date: "11/07 07:00", par: "Automatique", duree: "1s", format: "Email", taille: "—" },
   { titre: "Bilan trésorerie Juin 2025", date: "05/07 08:00", par: "Jean-Baptiste K.", duree: "8s", format: "PDF", taille: "420 KB" },
@@ -177,7 +179,7 @@ const RECENTS: RecentItem[] = [
   { titre: "Rapport coopérative Mai", date: "25/06 09:00", par: "Mariam K.", duree: "10s", format: "PDF", taille: "560 KB" },
 ];
 
-// ─── Favoris ─────────────────────────────────────────────────────────────────
+// ─── Favoris ───────────────────────────────────────────────────────────────────
 
 const FAVORIS: FavCard[] = [
   { titre: "Compte de résultat", categorie: "Finance", icon: <BarChart3 size={22} className="text-yellow-600" /> },
@@ -195,9 +197,46 @@ const ALL_RAPPORTS = [
   "Suivi des parcelles", "Rapport coopérative", "Score RSE",
 ];
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Routes par rapport ─────────────────────────────────────────────────────────
+
+const RAPPORT_ROUTES: Record<string, string> = {
+  "Récap. production quotidien": "/cultures",
+  "Cours cacao matinal": "/prix-marche",
+  "Bilan trésorerie Juin 2025": "/tresorerie",
+  "État stocks consolidé": "/stocks",
+  "Rapport RA pré-audit S1": "/audit",
+  "Compte de résultat S1 2025": "/comptabilite",
+  "Masse salariale Juin": "/paie",
+  "Top clients CA S1": "/ventes",
+  "Mouvements stocks semaine 26": "/stocks",
+  "Rapport coopérative Mai": "/cooperative",
+  // Catalogue
+  "Bilan de campagne cacao": "/cultures",
+  "Suivi des parcelles": "/cultures",
+  "État des cultures": "/cultures",
+  "Analyse rendements": "/analytics",
+  "État des stocks consolidé": "/stocks",
+  "Bilan commercial mensuel": "/ventes",
+  "Top clients CA": "/ventes",
+  "Compte de résultat": "/comptabilite",
+  "Flux de trésorerie": "/tresorerie",
+  "Rapport bailleurs": "/bailleur",
+  "Masse salariale": "/paie",
+  "Score RSE": "/rse",
+  "Tableau de bord direction": "/direction",
+  "Rapport terrain hebdo": "/rapports-terrain",
+  "Recommandations IA du mois": "/ia",
+  "Rapport RA pré-audit": "/audit",
+};
+
+function rapportRoute(titre: string): string {
+  return RAPPORT_ROUTES[titre] ?? "/analytics";
+}
+
+// ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function RapportsPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>("catalogue");
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     "Production & Cultures": true,
@@ -209,14 +248,36 @@ export default function RapportsPage() {
   const [perimetre, setPerimetre] = useState("Toutes exploitations");
   const [langue, setLangue] = useState("Français");
   const [toast, setToast] = useState<string | null>(null);
+  const [previewRapport, setPreviewRapport] = useState<string | null>(null);
+  const [recents, setRecents] = useState<RecentItem[]>(RECENTS_INITIAL);
 
   function showToast(msg: string) {
     setToast(msg);
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 3500);
   }
 
   function toggleSection(title: string) {
     setOpenSections((prev) => ({ ...prev, [title]: !prev[title] }));
+  }
+
+  function handleGenerer(titre: string) {
+    const now = new Date();
+    const dateStr = `${now.getDate().toString().padStart(2, "0")}/${(now.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")} ${now.getHours().toString().padStart(2, "0")}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+    const newItem: RecentItem = {
+      titre,
+      date: dateStr,
+      par: "Admin",
+      duree: "3s",
+      format: "PDF",
+      taille: "—",
+    };
+    setRecents((prev) => [newItem, ...prev]);
+    showToast(`Rapport généré — disponible dans Rapports`);
   }
 
   const TABS: { key: Tab; label: string }[] = [
@@ -233,6 +294,50 @@ export default function RapportsPage() {
           {toast}
         </div>
       )}
+
+      {/* Modal prévisualisation */}
+      {previewRapport && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold text-[#2E7D32] uppercase tracking-wide mb-1">Prévisualisation</p>
+                <h3 className="text-sm font-bold text-gray-900">{previewRapport}</h3>
+              </div>
+              <button
+                onClick={() => setPreviewRapport(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-xs text-gray-500 leading-relaxed min-h-[120px] flex items-center justify-center">
+              <div className="text-center space-y-2">
+                <FileText size={32} className="text-gray-300 mx-auto" />
+                <p className="font-medium text-gray-400">Aperçu — {previewRapport}</p>
+                <p className="text-[11px] text-gray-400">Données consolidées — Période : S1 2025</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                className="flex-1 text-xs font-semibold bg-[#2E7D32] text-white py-2 rounded-xl hover:bg-[#1B5E20] transition-colors flex items-center justify-center gap-1.5"
+                onClick={() => { setPreviewRapport(null); router.push(rapportRoute(previewRapport)); }}
+              >
+                <Eye size={12} />
+                Ouvrir le module
+              </button>
+              <button
+                className="flex-1 text-xs font-semibold border border-gray-200 text-gray-600 py-2 rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5"
+                onClick={() => { setPreviewRapport(null); window.print(); }}
+              >
+                <Download size={12} />
+                Télécharger
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Topbar title="Rapports & Business Intelligence" breadcrumb={["Rapports & BI", "Rapports"]} />
 
       <main className="p-4 sm:p-6 max-w-6xl mx-auto space-y-5 pb-14">
@@ -268,7 +373,6 @@ export default function RapportsPage() {
         {/* ── Catalogue ── */}
         {tab === "catalogue" && (
           <div className="space-y-3">
-            {/* Recherche */}
             <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm">
               <Search size={14} className="text-gray-400" />
               <input
@@ -280,7 +384,6 @@ export default function RapportsPage() {
               />
             </div>
 
-            {/* Sections accordéon */}
             {CATALOGUE.map((section) => {
               const isOpen = !!openSections[section.title];
               const filtered = catSearch
@@ -307,6 +410,7 @@ export default function RapportsPage() {
                         <div
                           key={r}
                           className="flex items-center justify-between gap-2 bg-gray-50 hover:bg-green-50 rounded-xl px-3 py-2 group cursor-pointer transition-colors"
+                          onClick={() => setPreviewRapport(r)}
                         >
                           <div className="flex items-center gap-2 min-w-0">
                             <FileText size={12} className="text-gray-400 shrink-0 group-hover:text-[#2E7D32]" />
@@ -314,7 +418,7 @@ export default function RapportsPage() {
                           </div>
                           <button
                             className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => showToast("Rapport en cours de chargement")}
+                            onClick={(e) => { e.stopPropagation(); setPreviewRapport(r); }}
                           >
                             <Eye size={13} className="text-[#2E7D32]" />
                           </button>
@@ -332,7 +436,7 @@ export default function RapportsPage() {
         {tab === "recents" && (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="px-5 py-3 border-b border-gray-50 bg-[#F8FBF8]">
-              <p className="text-sm font-bold text-gray-700">10 derniers rapports générés</p>
+              <p className="text-sm font-bold text-gray-700">{recents.length} derniers rapports générés</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[700px]">
@@ -344,7 +448,7 @@ export default function RapportsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {RECENTS.map((r, i) => (
+                  {recents.map((r, i) => (
                     <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{r.titre}</td>
                       <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
@@ -370,13 +474,13 @@ export default function RapportsPage() {
                             <>
                               <button
                                 className="text-[11px] font-semibold text-[#2E7D32] border border-[#2E7D32]/25 bg-green-50 hover:bg-green-100 px-2 py-1 rounded-lg transition-colors"
-                                onClick={() => showToast("Ouverture du rapport")}
+                                onClick={() => router.push(rapportRoute(r.titre))}
                               >
                                 Voir
                               </button>
                               <button
                                 className="text-[11px] font-semibold text-gray-600 border border-gray-200 bg-gray-50 hover:bg-gray-100 px-2 py-1 rounded-lg transition-colors flex items-center gap-1"
-                                onClick={() => { showToast("Téléchargement du rapport"); window.print(); }}
+                                onClick={() => { showToast(`Téléchargement : ${r.titre}`); window.print(); }}
                               >
                                 <Download size={10} />
                                 DL
@@ -386,7 +490,7 @@ export default function RapportsPage() {
                           {r.format === "Email" && (
                             <button
                               className="text-[11px] font-semibold text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors"
-                              onClick={() => showToast("Rapport disponible")}
+                              onClick={() => router.push(rapportRoute(r.titre))}
                             >
                               Revoir
                             </button>
@@ -419,14 +523,14 @@ export default function RapportsPage() {
                   <div className="flex gap-2 mt-auto">
                     <button
                       className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold bg-[#2E7D32] text-white py-1.5 rounded-xl hover:bg-[#1B5E20] transition-colors"
-                      onClick={() => showToast("Génération du rapport en cours...")}
+                      onClick={() => handleGenerer(fav.titre)}
                     >
                       <RefreshCw size={11} />
                       Générer
                     </button>
                     <button
                       className="flex items-center gap-1 text-xs font-semibold border border-gray-200 text-gray-600 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors"
-                      onClick={() => window.print()}
+                      onClick={() => { showToast(`Téléchargement : ${fav.titre}`); window.print(); }}
                     >
                       <Download size={11} />
                     </button>
@@ -440,11 +544,9 @@ export default function RapportsPage() {
         {/* ── Générer ── */}
         {tab === "generer" && (
           <div className="space-y-5">
-            {/* Formulaire */}
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm space-y-4">
               <p className="text-sm font-bold text-gray-800">Génération rapide</p>
 
-              {/* Rapport */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-600">Rapport</label>
                 <div className="relative">
@@ -461,7 +563,6 @@ export default function RapportsPage() {
                 </div>
               </div>
 
-              {/* Période */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-gray-600">Période</label>
@@ -488,7 +589,6 @@ export default function RapportsPage() {
                 </div>
               </div>
 
-              {/* Format */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-600">Format</label>
                 <div className="flex flex-wrap gap-3">
@@ -508,7 +608,6 @@ export default function RapportsPage() {
                 </div>
               </div>
 
-              {/* Périmètre + Langue */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-gray-600">Périmètre</label>
@@ -545,18 +644,17 @@ export default function RapportsPage() {
                 </div>
               </div>
 
-              {/* Boutons */}
               <div className="flex flex-wrap gap-2 pt-1">
                 <button
                   className="text-xs font-semibold border border-[#2E7D32] text-[#2E7D32] px-4 py-2 rounded-xl hover:bg-green-50 transition-colors flex items-center gap-1.5"
-                  onClick={() => showToast("Prévisualisation en cours...")}
+                  onClick={() => setPreviewRapport(selectedRapport)}
                 >
                   <Eye size={13} />
                   Prévisualiser
                 </button>
                 <button
                   className="text-xs font-semibold bg-[#2E7D32] text-white px-4 py-2 rounded-xl hover:bg-[#1B5E20] transition-colors flex items-center gap-1.5"
-                  onClick={() => { showToast("Génération du rapport en cours..."); window.print(); }}
+                  onClick={() => { handleGenerer(selectedRapport); window.print(); }}
                 >
                   <Download size={13} />
                   Générer &amp; Télécharger
@@ -574,7 +672,6 @@ export default function RapportsPage() {
             {/* Rapport en vedette */}
             <div className="rounded-2xl border border-[#2E7D32]/20 bg-green-50 p-5 shadow-sm">
               <div className="flex items-start gap-4">
-                {/* Icône PDF */}
                 <div className="w-14 h-16 rounded-xl bg-white border border-red-200 flex flex-col items-center justify-center gap-0.5 shadow-sm shrink-0">
                   <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
                     <FileText size={16} className="text-red-600" />
@@ -582,7 +679,6 @@ export default function RapportsPage() {
                   <span className="text-[9px] font-bold text-red-500">PDF</span>
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 flex-wrap">
                     <div>
@@ -598,7 +694,6 @@ export default function RapportsPage() {
                     </button>
                   </div>
 
-                  {/* KPIs du rapport */}
                   <div className="flex flex-wrap gap-3 mt-3">
                     {[
                       { label: "CA", value: "156 M XOF" },

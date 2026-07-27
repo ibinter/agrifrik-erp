@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Topbar from "../../components/Topbar";
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface Alerte {
   id: number;
   niveau: "CRITIQUE" | "IMPORTANTE" | "INFO";
@@ -14,7 +15,7 @@ interface Alerte {
   actions: { label: string; primary?: boolean }[];
 }
 
-// â”€â”€â”€ Données alertes actives â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Données alertes actives ──────────────────────────────────────────────────
 const ALERTES_INITIALES: Alerte[] = [
   {
     id: 1,
@@ -24,7 +25,7 @@ const ALERTES_INITIALES: Alerte[] = [
     module: "Logistique",
     declencheLe: "11/07/2025 08h00",
     actions: [
-      { label: "Commander maintenant â†’", primary: true },
+      { label: "Commander maintenant", primary: true },
       { label: "Ignorer" },
     ],
   },
@@ -36,7 +37,7 @@ const ALERTES_INITIALES: Alerte[] = [
     module: "Qualité",
     declencheLe: "11/07/2025 06h00",
     actions: [
-      { label: "Effectuer le contrôle â†’", primary: true },
+      { label: "Effectuer le contrôle", primary: true },
       { label: "Reporter" },
     ],
   },
@@ -44,7 +45,7 @@ const ALERTES_INITIALES: Alerte[] = [
     id: 3,
     niveau: "IMPORTANTE",
     titre: "Révision tracteur dans 19 jours",
-    detail: "JD5055E (MAT-2021-004) : révision 3 000h prévue ~30/07. Ã€ planifier avant la grande récolte.",
+    detail: "JD5055E (MAT-2021-004) : révision 3 000h prévue ~30/07. À planifier avant la grande récolte.",
     module: "Matériels",
     declencheLe: "05/07/2025",
     actions: [
@@ -55,7 +56,7 @@ const ALERTES_INITIALES: Alerte[] = [
     id: 4,
     niveau: "IMPORTANTE",
     titre: "Devis DEV-2025-003 expire dans 29 jours",
-    detail: "Devis OLAM Cocoa CI (8t â€” 8,76M XOF) expire le 09/08/2025. Relancer le client.",
+    detail: "Devis OLAM Cocoa CI (8t – 8,76M XOF) expire le 09/08/2025. Relancer le client.",
     module: "Commerce",
     declencheLe: "10/07/2025",
     actions: [
@@ -125,19 +126,19 @@ const ALERTES_INITIALES: Alerte[] = [
   },
 ];
 
-// â”€â”€â”€ Historique â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Historique ────────────────────────────────────────────────────────────────
 const HISTORIQUE = [
   { date: "08/07", type: "CRITIQUE", description: "Super Cupravit insuffisant (1,3 kg manquants)", resolution: "Commande SCPA livrée", delai: "2 jours" },
   { date: "05/07", type: "IMPORTANTE", description: "Facture FAC-2025-008 à encaisser", resolution: "Règlement reçu SGBCI", delai: "3 jours" },
-  { date: "01/07", type: "IMPORTANTE", description: "Cut test LOT-2025-046 à effectuer", resolution: "CQ-2025-046 effectué âœ…", delai: "0 jour" },
+  { date: "01/07", type: "IMPORTANTE", description: "Cut test LOT-2025-046 à effectuer", resolution: "CQ-2025-046 effectué ✅", delai: "0 jour" },
   { date: "28/06", type: "CRITIQUE", description: "PAR-A1 : lot FER-2025-046 J6 fermentation", resolution: "Sorti en séchage", delai: "1 jour" },
-  { date: "26/06", type: "IMPORTANTE", description: "Stock NPK insuffisant â€” campagne B2", resolution: "Livraison SCPA reçue", delai: "4 jours" },
+  { date: "26/06", type: "IMPORTANTE", description: "Stock NPK insuffisant – campagne B2", resolution: "Livraison SCPA reçue", delai: "4 jours" },
   { date: "22/06", type: "IMPORTANTE", description: "Révision MAT-2021-003 dépassée", resolution: "Révision effectuée atelier Soubré", delai: "2 jours" },
   { date: "18/06", type: "INFO", description: "Facture FAC-2025-005 émise", resolution: "Facture envoyée client", delai: "0 jour" },
-  { date: "15/06", type: "CRITIQUE", description: "Humidité entrepôt > 78% â€” lot 044", resolution: "Ventilation activée â€” taux normalisé", delai: "6 heures" },
+  { date: "15/06", type: "CRITIQUE", description: "Humidité entrepôt > 78% – lot 044", resolution: "Ventilation activée – taux normalisé", delai: "6 heures" },
 ];
 
-// â”€â”€â”€ Config alertes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Config alertes ────────────────────────────────────────────────────────────
 const CONFIG_ALERTES = [
   { categorie: "Stocks critiques", actives: 1, seuil: "Configurable", notification: "Email + App" },
   { categorie: "Qualité lots", actives: 1, seuil: "Automatique", notification: "Email + App" },
@@ -147,22 +148,23 @@ const CONFIG_ALERTES = [
   { categorie: "Maintenance matériels", actives: 1, seuil: "30 jours avant", notification: "Email + App" },
 ];
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function niveauStyle(niveau: string) {
-  if (niveau === "CRITIQUE") return { card: "border-red-200 bg-red-50", badge: "bg-red-100 text-red-700", dot: "ðŸ”´" };
-  if (niveau === "IMPORTANTE") return { card: "border-amber-200 bg-amber-50", badge: "bg-amber-100 text-amber-700", dot: "ðŸŸ¡" };
-  return { card: "border-green-200 bg-green-50", badge: "bg-green-100 text-green-700", dot: "ðŸŸ¢" };
+  if (niveau === "CRITIQUE") return { card: "border-red-200 bg-red-50", badge: "bg-red-100 text-red-700", dot: "🔴" };
+  if (niveau === "IMPORTANTE") return { card: "border-amber-200 bg-amber-50", badge: "bg-amber-100 text-amber-700", dot: "🟡" };
+  return { card: "border-green-200 bg-green-50", badge: "bg-green-100 text-green-700", dot: "🟢" };
 }
 
-// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function AlertesPage() {
+  const router = useRouter();
   const [alertes, setAlertes] = useState<Alerte[]>(ALERTES_INITIALES);
   const [lues, setLues] = useState<Set<number>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToast(msg);
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 3500);
   };
 
   const marquerLue = (id: number) => setLues((prev) => new Set([...prev, id]));
@@ -183,7 +185,7 @@ export default function AlertesPage() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-xl font-bold text-gray-800">Centre d&apos;Alertes</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Surveillance en temps réel â€” Stocks, Production, Finance, Qualité</p>
+              <p className="text-sm text-gray-500 mt-0.5">Surveillance en temps réel – Stocks, Production, Finance, Qualité</p>
             </div>
             <div className="flex gap-2 flex-wrap">
               <button
@@ -193,7 +195,7 @@ export default function AlertesPage() {
                 Tout marquer comme lu
               </button>
               <button
-                onClick={() => showToast("Configuration des alertes disponible dans Paramètres")}
+                onClick={() => router.push("/parametres")}
                 className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2 hover:bg-[#1B5E20] transition-colors"
               >
                 Configurer les alertes
@@ -225,7 +227,7 @@ export default function AlertesPage() {
         {/* Bandeau critique */}
         {critiques > 0 && (
           <div className="rounded-2xl border border-red-300 bg-red-50 p-4 flex items-center gap-3">
-            <span className="text-xl">ðŸ”´</span>
+            <span className="text-xl">🔴</span>
             <p className="text-sm font-semibold text-red-800">
               {critiques} alerte{critiques > 1 ? "s" : ""} critique{critiques > 1 ? "s" : ""} nécessite{critiques > 1 ? "nt" : ""} votre attention immédiate
             </p>
@@ -240,7 +242,7 @@ export default function AlertesPage() {
           <div className="space-y-3">
             {alertesActives.length === 0 && (
               <div className="rounded-2xl border border-green-100 bg-green-50 p-8 text-center">
-                <p className="text-2xl mb-2">âœ…</p>
+                <p className="text-2xl mb-2">✅</p>
                 <p className="text-sm font-semibold text-green-800">Toutes les alertes ont été traitées</p>
                 <p className="text-xs text-green-600 mt-1">Aucune alerte active pour le moment</p>
               </div>
@@ -271,9 +273,7 @@ export default function AlertesPage() {
                         <button
                           key={j}
                           onClick={() =>
-                            action.primary
-                              ? showToast(`Action "${action.label}" effectuée`)
-                              : showToast("Action secondaire enregistrée")
+                            showToast(`Action '${action.label}' enregistrée pour traitement`)
                           }
                           className={`text-[11px] font-medium px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80 ${
                             action.primary
@@ -289,7 +289,7 @@ export default function AlertesPage() {
                         className="text-[11px] text-gray-400 hover:text-gray-600 px-2 py-1.5 rounded-xl hover:bg-white/60 transition-colors"
                         title="Marquer comme lu"
                       >
-                        âœ“
+                        ✓
                       </button>
                     </div>
                   </div>
@@ -302,7 +302,7 @@ export default function AlertesPage() {
         {/* Historique résolues */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
           <h2 className="text-sm font-semibold text-gray-800 mb-4">
-            Historique des alertes résolues â€” 30 derniers jours
+            Historique des alertes résolues – 30 derniers jours
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
@@ -330,7 +330,7 @@ export default function AlertesPage() {
                       <td className="px-3 py-2.5 text-gray-600">{row.resolution}</td>
                       <td className="px-3 py-2.5">
                         <span className="text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-md">
-                          âœ… {row.delai}
+                          ✅ {row.delai}
                         </span>
                       </td>
                     </tr>
@@ -343,7 +343,15 @@ export default function AlertesPage() {
 
         {/* Configuration des alertes */}
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-sm font-semibold text-gray-800 mb-4">Configuration des alertes</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-gray-800">Configuration des alertes</h2>
+            <button
+              onClick={() => router.push("/parametres")}
+              className="text-xs text-[#2E7D32] font-medium hover:underline"
+            >
+              Modifier dans Paramètres &rarr;
+            </button>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
@@ -368,7 +376,7 @@ export default function AlertesPage() {
                     <td className="px-3 py-2.5 text-gray-600">{row.seuil}</td>
                     <td className="px-3 py-2.5">
                       <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
-                        âœ… {row.notification}
+                        ✅ {row.notification}
                       </span>
                     </td>
                   </tr>
@@ -388,4 +396,3 @@ export default function AlertesPage() {
     </div>
   );
 }
-

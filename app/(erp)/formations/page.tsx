@@ -119,13 +119,146 @@ function radarPolygon(cx: number, cy: number, maxR: number, values: number[]) {
   }).join(" ");
 }
 
+type NewFormation = {
+  titre: string;
+  type: string;
+  formateur: string;
+  date: string;
+  duree: string;
+  participants: string;
+  description: string;
+};
+
+const TYPES_FORMATION = ["Technique agricole", "Sécurité", "Management", "Certification", "Autre"];
+
+function ModalNouvelleFormation({ onClose, onSubmit }: { onClose: () => void; onSubmit: (f: NewFormation) => void }) {
+  const [form, setForm] = useState<NewFormation>({ titre: "", type: "Technique agricole", formateur: "", date: "", duree: "", participants: "", description: "" });
+  const set = (field: keyof NewFormation, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.titre.trim()) return;
+    onSubmit(form);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-base font-semibold text-gray-900">Nouvelle formation</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+        </div>
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Titre <span className="text-red-500">*</span></label>
+            <input
+              required
+              value={form.titre}
+              onChange={e => set("titre", e.target.value)}
+              placeholder="Intitulé de la formation"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#2E7D32]"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+              <select
+                value={form.type}
+                onChange={e => set("type", e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#2E7D32]"
+              >
+                {TYPES_FORMATION.map(t => <option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Formateur</label>
+              <input
+                value={form.formateur}
+                onChange={e => set("formateur", e.target.value)}
+                placeholder="Nom du formateur"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#2E7D32]"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Date</label>
+              <input
+                type="date"
+                value={form.date}
+                onChange={e => set("date", e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#2E7D32]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Durée (heures)</label>
+              <input
+                type="number"
+                min="1"
+                value={form.duree}
+                onChange={e => set("duree", e.target.value)}
+                placeholder="ex: 8"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#2E7D32]"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Participants cibles</label>
+            <input
+              value={form.participants}
+              onChange={e => set("participants", e.target.value)}
+              placeholder="ex: Agents terrain, techniciens"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#2E7D32]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              value={form.description}
+              onChange={e => set("description", e.target.value)}
+              placeholder="Objectifs, programme, lieu..."
+              rows={3}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#2E7D32] resize-none"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
+            <button type="submit" className="px-4 py-2 rounded-xl text-xs font-medium text-white" style={{ backgroundColor: "#2E7D32" }}>
+              Planifier la formation
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function FormationsPage() {
   const [tab, setTab] = useState<"formations" | "calendrier" | "competences">("formations");
   const [toast, setToast] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [formationsList, setFormationsList] = useState(formations);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
+  }
+
+  function handleNouvelleFormation(f: NewFormation) {
+    const newId = `FORM-${String(formationsList.length + 1).padStart(3, "0")}`;
+    setFormationsList(prev => [...prev, {
+      id: newId,
+      intitule: f.titre,
+      type: f.type,
+      formateur: f.formateur || "—",
+      date: f.date ? new Date(f.date).toLocaleDateString("fr-FR") : "—",
+      duree: f.duree ? `${f.duree}h` : "—",
+      participants: f.participants || "—",
+      cout: 0,
+      statut: "Planifiée",
+    }]);
+    setModalOpen(false);
+    showToast("Formation planifiée avec succès");
   }
 
   const weeksJuillet = buildWeeks(2025, 6, calJuillet);
@@ -152,7 +285,7 @@ export default function FormationsPage() {
           </div>
           <button
             className="bg-[#2E7D32] text-white rounded-xl text-xs font-medium px-4 py-2"
-            onClick={() => showToast("Fonctionnalité à venir : création de formation")}
+            onClick={() => setModalOpen(true)}
           >
             + Nouvelle formation
           </button>
@@ -225,7 +358,7 @@ export default function FormationsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {formations.map(f => (
+                    {formationsList.map(f => (
                       <tr key={f.id} className="hover:bg-gray-50 transition-colors">
                         <td className="p-3 text-xs text-gray-400 font-mono">{f.id}</td>
                         <td className="p-3 font-medium text-gray-900">{f.intitule}</td>
@@ -510,6 +643,13 @@ export default function FormationsPage() {
         <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg">
           {toast}
         </div>
+      )}
+
+      {modalOpen && (
+        <ModalNouvelleFormation
+          onClose={() => setModalOpen(false)}
+          onSubmit={handleNouvelleFormation}
+        />
       )}
     </div>
   );

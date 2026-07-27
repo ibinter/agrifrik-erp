@@ -202,6 +202,80 @@ function HoursBarChart() {
   );
 }
 
+// ─── Modal Nouvel Élément ─────────────────────────────────────────────────────
+
+const EMPLOYES_OPTIONS = ["Jean-Baptiste Koffi", "Kouamé Assi", "Marie Brou", "Fatou Diallo", "Ibrahim Coulibaly"];
+const TYPES_PLANNING = ["Présence", "Absence", "Congé", "Formation", "Déplacement"];
+
+type NewPlanning = { employe: string; type: string; semaine: string; notes: string };
+
+function ModalNouvelElement({ onClose, onSubmit }: { onClose: () => void; onSubmit: (p: NewPlanning) => void }) {
+  const [form, setForm] = useState<NewPlanning>({ employe: EMPLOYES_OPTIONS[0], type: TYPES_PLANNING[0], semaine: "", notes: "" });
+  const set = (field: keyof NewPlanning, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    onSubmit(form);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-base font-semibold text-gray-900">Nouvel élément de planning</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+        </div>
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Employé</label>
+            <select
+              value={form.employe}
+              onChange={e => set("employe", e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#2E7D32]"
+            >
+              {EMPLOYES_OPTIONS.map(emp => <option key={emp}>{emp}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+            <select
+              value={form.type}
+              onChange={e => set("type", e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#2E7D32]"
+            >
+              {TYPES_PLANNING.map(t => <option key={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Semaine (date de début)</label>
+            <input
+              type="date"
+              value={form.semaine}
+              onChange={e => set("semaine", e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#2E7D32]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+            <input
+              value={form.notes}
+              onChange={e => set("notes", e.target.value)}
+              placeholder="Informations complémentaires"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#2E7D32]"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
+            <button type="submit" className="px-4 py-2 rounded-xl text-xs font-medium text-white" style={{ backgroundColor: "#2E7D32" }}>
+              Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 const BASE_WEEK_YEAR = 2025;
@@ -222,12 +296,20 @@ function getWeekLabel(offset: number): string {
 export default function PlanningRHPage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [toast, setToast] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [planningEntries, setPlanningEntries] = useState<NewPlanning[]>([]);
 
   const week = getWeekLabel(weekOffset);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(""), 3000);
+  }
+
+  function handleNouvelElement(p: NewPlanning) {
+    setPlanningEntries(prev => [...prev, p]);
+    setModalOpen(false);
+    showToast(`Planning enregistré — ${p.employe} : ${p.type}`);
   }
 
   return (
@@ -264,7 +346,7 @@ export default function PlanningRHPage() {
               Sem. suivante <ChevronRight size={14} />
             </button>
             <button
-              onClick={() => showToast("Ajout d'un élément — fonctionnalité à venir")}
+              onClick={() => setModalOpen(true)}
               className="flex items-center gap-1 rounded-xl bg-[#2E7D32] text-white px-3 py-2 text-xs font-medium hover:bg-[#1B5E20] transition-colors"
             >
               + Nouvel élément
@@ -471,7 +553,44 @@ export default function PlanningRHPage() {
           </div>
         </div>
 
+        {/* ── Nouvelles entrées de planning ── */}
+        {planningEntries.length > 0 && (
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <h2 className="font-semibold text-gray-800 mb-4">Éléments ajoutés</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs min-w-[400px]">
+                <thead>
+                  <tr className="bg-[#F8FBF8]">
+                    {["Employé", "Type", "Semaine", "Notes"].map(h => (
+                      <th key={h} className="text-left py-2 px-3 font-medium text-gray-600">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {planningEntries.map((p, i) => (
+                    <tr key={i} className="hover:bg-gray-50">
+                      <td className="py-2.5 px-3 font-medium text-gray-800">{p.employe}</td>
+                      <td className="py-2.5 px-3">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#E8F5E9] text-[#2E7D32]">{p.type}</span>
+                      </td>
+                      <td className="py-2.5 px-3 text-gray-600">{p.semaine || "—"}</td>
+                      <td className="py-2.5 px-3 text-gray-500">{p.notes || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
       </main>
+
+      {modalOpen && (
+        <ModalNouvelElement
+          onClose={() => setModalOpen(false)}
+          onSubmit={handleNouvelElement}
+        />
+      )}
     </div>
   );
 }

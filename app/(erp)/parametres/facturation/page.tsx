@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Building2,
   Smartphone,
+  X,
 } from "lucide-react";
 
 // ── Sidebar nav ───────────────────────────────────────────────────────────────
@@ -92,12 +93,98 @@ function KpiCard({ label, value, sub }: { label: string; value: string; sub?: st
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+// ── Renewal Modal ─────────────────────────────────────────────────────────────
+
+function RenewalModal({ onClose }: { onClose: () => void }) {
+  const [date, setDate] = useState("2026-01-01");
+  const [mode, setMode] = useState("virement");
+  const [email, setEmail] = useState("comptabilite@agrifrik.com");
+  const [saved, setSaved] = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaved(true);
+    setTimeout(onClose, 1500);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+            <RefreshCw size={15} className="text-[#2E7D32]" />
+            Renouvellement automatique
+          </h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1.5">Date de renouvellement</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1.5">Mode de paiement</label>
+            <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+            >
+              <option value="virement">Virement bancaire</option>
+              <option value="carte">Carte bancaire</option>
+              <option value="mobile">Mobile Money</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1.5">Email de notification</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="email@agrifrik.com"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32]"
+              required
+            />
+          </div>
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 text-xs font-medium text-gray-600 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              className="flex items-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-xs font-medium px-4 py-2.5 rounded-xl transition-colors"
+            >
+              <RefreshCw size={13} />
+              {saved ? "Enregistré ✅" : "Configurer"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function FacturationPage() {
   const [toast, setToast] = useState<string | null>(null);
+  const [showRenewalModal, setShowRenewalModal] = useState(false);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      {showRenewalModal && <RenewalModal onClose={() => setShowRenewalModal(false)} />}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg">
           {toast}
@@ -304,11 +391,11 @@ export default function FacturationPage() {
                 <span className="font-medium text-gray-700">+225 27 XX XX XX</span>.
               </p>
               <button
-                onClick={() => showToast("Export ZIP disponible prochainement")}
+                onClick={() => showToast("Export de l'historique de facturation - veuillez contacter support@agrifrik.com")}
                 className="flex items-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-xs font-medium px-4 py-2.5 rounded-xl transition-colors"
               >
                 <Download size={14} />
-                Télécharger toutes les factures (ZIP)
+                Exporter toutes les factures (ZIP)
               </button>
             </div>
 
@@ -329,7 +416,7 @@ export default function FacturationPage() {
                     <strong className="text-gray-900">15/12/2025</strong>.
                   </p>
                   <button
-                    onClick={() => showToast("Configuration du renouvellement disponible prochainement")}
+                    onClick={() => setShowRenewalModal(true)}
                     className="flex items-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-xs font-medium px-4 py-2.5 rounded-xl transition-colors mt-2"
                   >
                     <RefreshCw size={13} />

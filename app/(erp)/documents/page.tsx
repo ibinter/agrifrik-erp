@@ -12,12 +12,18 @@ import {
   Eye,
   Download,
   PenLine,
+  X,
+  Image,
+  File,
+  FileCheck,
+  BarChart2,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type DocStatus = "archived" | "pending_payment" | "active" | "valid" | "definitive";
-type SignStatus = "validated" | "signed" | "parties" | "bureau_veritas" | "cnra" | "mclu" | "anader" | "bv";
+type DocType = "Contrat" | "Facture" | "Certificat" | "Rapport" | "Photo" | "Autre";
+type DocCategory = "Commercial" | "RH" | "Financier" | "Technique" | "Légal";
 
 interface RecentDoc {
   id: number;
@@ -30,6 +36,8 @@ interface RecentDoc {
   status: DocStatus;
   statusLabel: string;
   statusColor: string;
+  type?: DocType;
+  description?: string;
 }
 
 interface ExpiryCard {
@@ -60,7 +68,7 @@ interface PendingSignature {
 
 const FILTER_TABS = ["Tous", "Certifications", "Contrats", "Financiers", "Techniques", "RH", "Légaux"];
 
-const RECENT_DOCS: RecentDoc[] = [
+const INITIAL_DOCS: RecentDoc[] = [
   {
     id: 1,
     name: "BUL-2025-07-002_Ibrahim_Sawadogo.pdf",
@@ -72,6 +80,7 @@ const RECENT_DOCS: RecentDoc[] = [
     status: "archived",
     statusLabel: "Archivé",
     statusColor: "bg-green-100 text-green-700",
+    type: "Rapport",
   },
   {
     id: 2,
@@ -84,6 +93,7 @@ const RECENT_DOCS: RecentDoc[] = [
     status: "pending_payment",
     statusLabel: "En attente règlement",
     statusColor: "bg-blue-100 text-blue-700",
+    type: "Facture",
   },
   {
     id: 3,
@@ -96,6 +106,7 @@ const RECENT_DOCS: RecentDoc[] = [
     status: "active",
     statusLabel: "Actif",
     statusColor: "bg-[#E8F5E9] text-[#2E7D32]",
+    type: "Contrat",
   },
   {
     id: 4,
@@ -108,6 +119,7 @@ const RECENT_DOCS: RecentDoc[] = [
     status: "valid",
     statusLabel: "Valide",
     statusColor: "bg-[#E8F5E9] text-[#2E7D32]",
+    type: "Certificat",
   },
   {
     id: 5,
@@ -120,6 +132,7 @@ const RECENT_DOCS: RecentDoc[] = [
     status: "valid",
     statusLabel: "Valide",
     statusColor: "bg-[#E8F5E9] text-[#2E7D32]",
+    type: "Certificat",
   },
   {
     id: 6,
@@ -132,6 +145,7 @@ const RECENT_DOCS: RecentDoc[] = [
     status: "definitive",
     statusLabel: "Définitif",
     statusColor: "bg-gray-100 text-gray-600",
+    type: "Contrat",
   },
   {
     id: 7,
@@ -144,6 +158,7 @@ const RECENT_DOCS: RecentDoc[] = [
     status: "archived",
     statusLabel: "Archivé",
     statusColor: "bg-green-100 text-green-700",
+    type: "Autre",
   },
   {
     id: 8,
@@ -156,6 +171,7 @@ const RECENT_DOCS: RecentDoc[] = [
     status: "archived",
     statusLabel: "Archivé",
     statusColor: "bg-green-100 text-green-700",
+    type: "Rapport",
   },
 ];
 
@@ -206,6 +222,30 @@ const PENDING_SIGNATURES: PendingSignature[] = [
   { id: 8, document: "FORM-2025-Q3-ANADER — plan formation", requestedBy: "RH AGRIFRIK", signatory: "ANADER Soubré", since: "04/07/2025" },
 ];
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function typeIcon(type?: DocType) {
+  switch (type) {
+    case "Contrat": return <FileCheck size={14} className="text-blue-400" />;
+    case "Facture": return <FileText size={14} className="text-orange-400" />;
+    case "Certificat": return <FileCheck size={14} className="text-green-500" />;
+    case "Rapport": return <BarChart2 size={14} className="text-purple-400" />;
+    case "Photo": return <Image size={14} className="text-pink-400" />;
+    default: return <FileText size={14} className="text-red-400" />;
+  }
+}
+
+function typeIconBg(type?: DocType) {
+  switch (type) {
+    case "Contrat": return "bg-blue-50";
+    case "Facture": return "bg-orange-50";
+    case "Certificat": return "bg-green-50";
+    case "Rapport": return "bg-purple-50";
+    case "Photo": return "bg-pink-50";
+    default: return "bg-red-50";
+  }
+}
+
 // ─── SVG Donut ────────────────────────────────────────────────────────────────
 
 function DonutChart() {
@@ -229,9 +269,7 @@ function DonutChart() {
   return (
     <div className="flex items-center gap-6">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="flex-shrink-0">
-        {/* Track */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F3F4F6" strokeWidth={strokeW} />
-        {/* Slices */}
         {slices.map((s, i) => (
           <circle
             key={i}
@@ -247,12 +285,9 @@ function DonutChart() {
             transform={`rotate(-90 ${cx} ${cy})`}
           />
         ))}
-        {/* Centre label */}
-        <text x={cx} y={cy - 8} textAnchor="middle" className="text-lg font-bold" fill="#1F2937" fontSize="22" fontWeight="700">47</text>
+        <text x={cx} y={cy - 8} textAnchor="middle" fill="#1F2937" fontSize="22" fontWeight="700">47</text>
         <text x={cx} y={cy + 12} textAnchor="middle" fill="#6B7280" fontSize="10">documents</text>
       </svg>
-
-      {/* Legend */}
       <div className="flex flex-col gap-2">
         {DONUT_SLICES.map((s) => (
           <div key={s.label} className="flex items-center gap-2">
@@ -279,14 +314,262 @@ function KpiCard({ value, label, sub, color }: { value: string | number; label: 
   );
 }
 
+// ─── Modal Overlay ────────────────────────────────────────────────────────────
+
+function ModalOverlay({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"
+        >
+          <X size={14} />
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─── Upload Modal ─────────────────────────────────────────────────────────────
+
+interface UploadModalProps {
+  onClose: () => void;
+  onSave: (doc: RecentDoc) => void;
+}
+
+function UploadModal({ onClose, onSave }: UploadModalProps) {
+  const [nom, setNom] = useState("");
+  const [type, setType] = useState<DocType>("Contrat");
+  const [categorie, setCategorie] = useState<DocCategory>("Commercial");
+  const [description, setDescription] = useState("");
+  const [fileName, setFileName] = useState<string | null>(null);
+
+  const categoryToDisplay: Record<DocCategory, string> = {
+    Commercial: "Commercial",
+    RH: "RH",
+    Financier: "Finance",
+    Technique: "Technique",
+    Légal: "Légaux — Foncier",
+  };
+
+  const handleSave = () => {
+    if (!nom.trim()) return;
+    const today = new Date();
+    const dateStr = `${String(today.getDate()).padStart(2, "0")}/${String(today.getMonth() + 1).padStart(2, "0")}/${today.getFullYear()}`;
+    const newDoc: RecentDoc = {
+      id: Date.now(),
+      name: nom.trim(),
+      category: categoryToDisplay[categorie],
+      size: fileName ? "—" : "—",
+      updated: dateStr,
+      signedBy: "En attente",
+      signedOk: false,
+      status: "active",
+      statusLabel: "Actif",
+      statusColor: "bg-[#E8F5E9] text-[#2E7D32]",
+      type,
+      description: description.trim() || undefined,
+    };
+    onSave(newDoc);
+    onClose();
+  };
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <div className="p-5">
+        <h2 className="text-sm font-bold text-gray-900 mb-4">Déposer un document</h2>
+        <div className="flex flex-col gap-3">
+          {/* Nom */}
+          <div>
+            <label className="text-xs font-medium text-gray-700 block mb-1">Nom du document *</label>
+            <input
+              value={nom}
+              onChange={(e) => setNom(e.target.value)}
+              placeholder="ex. CTR-2025-010_partenaire.pdf"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-[#2E7D32] transition-colors"
+            />
+          </div>
+          {/* Type */}
+          <div>
+            <label className="text-xs font-medium text-gray-700 block mb-1">Type</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as DocType)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-[#2E7D32] transition-colors bg-white"
+            >
+              {(["Contrat", "Facture", "Certificat", "Rapport", "Photo", "Autre"] as DocType[]).map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          {/* Catégorie */}
+          <div>
+            <label className="text-xs font-medium text-gray-700 block mb-1">Catégorie</label>
+            <select
+              value={categorie}
+              onChange={(e) => setCategorie(e.target.value as DocCategory)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-[#2E7D32] transition-colors bg-white"
+            >
+              {(["Commercial", "RH", "Financier", "Technique", "Légal"] as DocCategory[]).map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          {/* Description */}
+          <div>
+            <label className="text-xs font-medium text-gray-700 block mb-1">Description <span className="text-gray-400">(optionnel)</span></label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Notes, contexte…"
+              rows={2}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-[#2E7D32] transition-colors resize-none"
+            />
+          </div>
+          {/* File input */}
+          <div>
+            <label className="text-xs font-medium text-gray-700 block mb-1">Fichier</label>
+            <label className="flex items-center gap-2 cursor-pointer w-full border border-dashed border-gray-300 rounded-xl px-3 py-2 hover:border-[#2E7D32] transition-colors">
+              <File size={13} className="text-gray-400 flex-shrink-0" />
+              <span className="text-xs text-gray-500 truncate">
+                {fileName ? fileName : "Sélectionner un fichier…"}
+              </span>
+              <input
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) setFileName(f.name);
+                }}
+              />
+            </label>
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 mt-5">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-xs rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!nom.trim()}
+            className="px-4 py-2 text-xs rounded-xl bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </ModalOverlay>
+  );
+}
+
+// ─── Voir Modal ───────────────────────────────────────────────────────────────
+
+function VoirModal({ doc, onClose }: { doc: RecentDoc; onClose: () => void }) {
+  const handlePrint = () => {
+    const printContent = `
+      <html>
+        <head>
+          <title>${doc.name}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; color: #111; }
+            h1 { font-size: 18px; margin-bottom: 24px; }
+            .field { margin-bottom: 12px; }
+            .label { font-size: 11px; color: #6B7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+            .value { font-size: 14px; margin-top: 2px; }
+            hr { border: none; border-top: 1px solid #E5E7EB; margin: 20px 0; }
+            .footer { margin-top: 40px; font-size: 10px; color: #9CA3AF; }
+          </style>
+        </head>
+        <body>
+          <h1>${doc.name}</h1>
+          <hr/>
+          <div class="field"><div class="label">Type</div><div class="value">${doc.type ?? "—"}</div></div>
+          <div class="field"><div class="label">Catégorie</div><div class="value">${doc.category}</div></div>
+          <div class="field"><div class="label">Taille</div><div class="value">${doc.size}</div></div>
+          <div class="field"><div class="label">Mis à jour</div><div class="value">${doc.updated}</div></div>
+          <div class="field"><div class="label">Signature / Visa</div><div class="value">${doc.signedBy}</div></div>
+          <div class="field"><div class="label">Statut</div><div class="value">${doc.statusLabel}</div></div>
+          ${doc.description ? `<div class="field"><div class="label">Description</div><div class="value">${doc.description}</div></div>` : ""}
+          <hr/>
+          <div class="footer">Document AGRIFRIK ERP — Imprimé le ${new Date().toLocaleDateString("fr-FR")}</div>
+        </body>
+      </html>
+    `;
+    const w = window.open("", "_blank");
+    if (w) {
+      w.document.write(printContent);
+      w.document.close();
+      w.focus();
+      w.print();
+      w.close();
+    }
+  };
+
+  const rows: { label: string; value: string }[] = [
+    { label: "Nom", value: doc.name },
+    { label: "Type", value: doc.type ?? "—" },
+    { label: "Catégorie", value: doc.category },
+    { label: "Taille", value: doc.size },
+    { label: "Mis à jour", value: doc.updated },
+    { label: "Signature / Visa", value: doc.signedBy },
+    { label: "Statut", value: doc.statusLabel },
+  ];
+
+  if (doc.description) {
+    rows.push({ label: "Description", value: doc.description });
+  }
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <div className="p-5">
+        <div className="flex items-center gap-3 mb-4 pr-6">
+          <div className={`w-9 h-9 rounded-xl ${typeIconBg(doc.type)} flex items-center justify-center flex-shrink-0`}>
+            {typeIcon(doc.type)}
+          </div>
+          <h2 className="text-sm font-bold text-gray-900 leading-tight truncate">{doc.name}</h2>
+        </div>
+        <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden mb-4">
+          {rows.map((row) => (
+            <div key={row.label} className="flex items-start px-3 py-2 gap-3">
+              <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide w-28 flex-shrink-0 pt-0.5">{row.label}</span>
+              <span className="text-xs text-gray-800 break-all">{row.value}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-xs rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            Fermer
+          </button>
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs rounded-xl bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors"
+          >
+            <Download size={11} /> Télécharger PDF
+          </button>
+        </div>
+      </div>
+    </ModalOverlay>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DocumentsPage() {
   const [activeFilter, setActiveFilter] = useState("Tous");
   const [search, setSearch] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
+  const [docs, setDocs] = useState<RecentDoc[]>(INITIAL_DOCS);
+  const [showUpload, setShowUpload] = useState(false);
+  const [voirDoc, setVoirDoc] = useState<RecentDoc | null>(null);
 
-  const filteredDocs = RECENT_DOCS.filter((d) => {
+  const filteredDocs = docs.filter((d) => {
     const matchSearch = search === "" || d.name.toLowerCase().includes(search.toLowerCase());
     const matchFilter =
       activeFilter === "Tous" ||
@@ -297,6 +580,50 @@ export default function DocumentsPage() {
       (activeFilter === "Légaux" && d.category.includes("Légaux"));
     return matchSearch && matchFilter;
   });
+
+  const handleAddDoc = (doc: RecentDoc) => {
+    setDocs((prev) => [doc, ...prev]);
+  };
+
+  const handleTelecharger = (doc: RecentDoc) => {
+    const printContent = `
+      <html>
+        <head>
+          <title>${doc.name}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; color: #111; }
+            h1 { font-size: 18px; margin-bottom: 24px; }
+            .field { margin-bottom: 12px; }
+            .label { font-size: 11px; color: #6B7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+            .value { font-size: 14px; margin-top: 2px; }
+            hr { border: none; border-top: 1px solid #E5E7EB; margin: 20px 0; }
+            .footer { margin-top: 40px; font-size: 10px; color: #9CA3AF; }
+          </style>
+        </head>
+        <body>
+          <h1>${doc.name}</h1>
+          <hr/>
+          <div class="field"><div class="label">Type</div><div class="value">${doc.type ?? "—"}</div></div>
+          <div class="field"><div class="label">Catégorie</div><div class="value">${doc.category}</div></div>
+          <div class="field"><div class="label">Taille</div><div class="value">${doc.size}</div></div>
+          <div class="field"><div class="label">Mis à jour</div><div class="value">${doc.updated}</div></div>
+          <div class="field"><div class="label">Signature / Visa</div><div class="value">${doc.signedBy}</div></div>
+          <div class="field"><div class="label">Statut</div><div class="value">${doc.statusLabel}</div></div>
+          ${doc.description ? `<div class="field"><div class="label">Description</div><div class="value">${doc.description}</div></div>` : ""}
+          <hr/>
+          <div class="footer">Document AGRIFRIK ERP — Imprimé le ${new Date().toLocaleDateString("fr-FR")}</div>
+        </body>
+      </html>
+    `;
+    const w = window.open("", "_blank");
+    if (w) {
+      w.document.write(printContent);
+      w.document.close();
+      w.focus();
+      w.print();
+      w.close();
+    }
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -309,14 +636,17 @@ export default function DocumentsPage() {
             <h1 className="text-xl font-bold text-gray-900">Documents</h1>
             <p className="text-sm text-gray-500 mt-0.5">Gestion électronique des documents — EXP-001</p>
           </div>
-          <button onClick={() => setToast("Upload de documents disponible prochainement")} className="flex items-center gap-2 px-3 py-2 text-xs bg-[#2E7D32] text-white rounded-xl hover:bg-[#1B5E20] transition-colors font-medium flex-shrink-0">
+          <button
+            onClick={() => setShowUpload(true)}
+            className="flex items-center gap-2 px-3 py-2 text-xs bg-[#2E7D32] text-white rounded-xl hover:bg-[#1B5E20] transition-colors font-medium flex-shrink-0"
+          >
             <Upload size={13} />Déposer un document
           </button>
         </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <KpiCard value={47} label="Documents" sub="Base documentaire totale" color="text-gray-900" />
+          <KpiCard value={docs.length} label="Documents" sub="Base documentaire totale" color="text-gray-900" />
           <KpiCard value={6} label="Catégories" sub="Classement actif" color="text-[#2E7D32]" />
           <KpiCard value={8} label="En attente de signature" sub="Flux de validation" color="text-amber-600" />
           <KpiCard value={3} label="Expirent dans 30j" sub="À renouveler" color="text-red-600" />
@@ -367,8 +697,8 @@ export default function DocumentsPage() {
                   <tr key={doc.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-                          <FileText size={14} className="text-red-400" />
+                        <div className={`w-7 h-7 rounded-lg ${typeIconBg(doc.type)} flex items-center justify-center flex-shrink-0`}>
+                          {typeIcon(doc.type)}
                         </div>
                         <span className="font-medium text-gray-800 max-w-[220px] truncate">{doc.name}</span>
                       </div>
@@ -389,10 +719,18 @@ export default function DocumentsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <button onClick={() => setToast("Visualisation disponible prochainement")} className="p-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" title="Voir">
+                        <button
+                          onClick={() => setVoirDoc(doc)}
+                          className="p-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                          title="Voir"
+                        >
                           <Eye size={11} />
                         </button>
-                        <button onClick={() => setToast("Téléchargement disponible prochainement")} className="p-1.5 rounded-lg bg-[#E8F5E9] text-[#2E7D32] hover:bg-[#C8E6C9] transition-colors" title="Télécharger">
+                        <button
+                          onClick={() => handleTelecharger(doc)}
+                          className="p-1.5 rounded-lg bg-[#E8F5E9] text-[#2E7D32] hover:bg-[#C8E6C9] transition-colors"
+                          title="Télécharger"
+                        >
                           <Download size={11} />
                         </button>
                       </div>
@@ -412,9 +750,7 @@ export default function DocumentsPage() {
               <div
                 key={card.id}
                 className={`rounded-2xl border p-4 ${
-                  card.level === "red"
-                    ? "bg-red-50 border-red-200"
-                    : "bg-amber-50 border-amber-200"
+                  card.level === "red" ? "bg-red-50 border-red-200" : "bg-amber-50 border-amber-200"
                 }`}
               >
                 <div className="flex items-start gap-2 mb-2">
@@ -492,16 +828,12 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-xs px-4 py-2.5 rounded-xl shadow-lg"
-          onAnimationEnd={() => setToast(null)}
-          style={{ animation: "fadeout 3s forwards" }}
-        >
-          {toast}
-          <style>{`@keyframes fadeout{0%{opacity:1}70%{opacity:1}100%{opacity:0}}`}</style>
-        </div>
+      {/* Modals */}
+      {showUpload && (
+        <UploadModal onClose={() => setShowUpload(false)} onSave={handleAddDoc} />
+      )}
+      {voirDoc && (
+        <VoirModal doc={voirDoc} onClose={() => setVoirDoc(null)} />
       )}
     </div>
   );

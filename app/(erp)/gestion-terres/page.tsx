@@ -11,27 +11,54 @@ import {
   Download,
   Eye,
   TrendingUp,
+  X,
+  Printer,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type OngletId = "parcelles" | "fermages" | "cartographie" | "documents";
 
+interface Parcelle {
+  id: string;
+  surface: string;
+  exploitation: string;
+  statut: string;
+  statutLabel: string;
+  numTitre: string;
+  emetteur: string;
+  date: string;
+  valeur: string;
+  culture?: string;
+  proprietaire?: string;
+  gps?: string;
+}
+
+interface Document {
+  nom: string;
+  parcelle: string;
+  type: string;
+  numero: string;
+  date: string;
+  format: string;
+  alerte: boolean;
+}
+
 // ─── Données ──────────────────────────────────────────────────────────────────
 
-const parcelles = [
-  { id: "PAR-A1", surface: "6,2 ha", exploitation: "Exploit. A", statut: "titre", statutLabel: "✅ Titre foncier", numTitre: "TF-23847-CI", emetteur: "DGSF Soubré", date: "15/03/2010", valeur: "18,6 M XOF" },
-  { id: "PAR-A2", surface: "5,8 ha", exploitation: "Exploit. A", statut: "titre", statutLabel: "✅ Titre foncier", numTitre: "TF-23848-CI", emetteur: "DGSF Soubré", date: "15/03/2010", valeur: "17,4 M XOF" },
-  { id: "PAR-A3", surface: "4,8 ha", exploitation: "Exploit. A", statut: "titre", statutLabel: "✅ Titre foncier", numTitre: "TF-28912-CI", emetteur: "DGSF Soubré", date: "10/07/2015", valeur: "14,4 M XOF" },
-  { id: "PAR-C1", surface: "5,6 ha", exploitation: "Exploit. A", statut: "titre", statutLabel: "✅ Titre foncier", numTitre: "TF-31204-CI", emetteur: "DGSF Soubré", date: "20/11/2018", valeur: "16,8 M XOF" },
-  { id: "PAR-C2", surface: "4,8 ha", exploitation: "Exploit. A", statut: "titre", statutLabel: "✅ Titre foncier", numTitre: "TF-31205-CI", emetteur: "DGSF Soubré", date: "20/11/2018", valeur: "14,4 M XOF" },
-  { id: "PAR-F1", surface: "6,0 ha", exploitation: "Exploit. C", statut: "encours", statutLabel: "⏳ En cours", numTitre: "Dossier TF-GANG-2024-08", emetteur: "DGSF Gagnoa", date: "Soumis Jan 2025", valeur: "12,0 M XOF (estimé)" },
-  { id: "PAR-B1", surface: "3,2 ha", exploitation: "Exploit. A", statut: "fermage", statutLabel: "📋 Fermage", numTitre: "CT-FARM-2018-014", emetteur: "—", date: "Expire 12/2027", valeur: "960 000 XOF/an" },
-  { id: "PAR-B2", surface: "3,4 ha", exploitation: "Exploit. A", statut: "fermage", statutLabel: "📋 Fermage", numTitre: "CT-FARM-2018-015", emetteur: "—", date: "Expire 12/2027", valeur: "1 020 000 XOF/an" },
-  { id: "PAR-D1", surface: "5,6 ha", exploitation: "Exploit. A", statut: "fermage", statutLabel: "📋 Fermage", numTitre: "CT-FARM-2020-022", emetteur: "—", date: "Expire 06/2026", valeur: "840 000 XOF/an" },
-  { id: "PAR-D2", surface: "2,4 ha", exploitation: "Exploit. A", statut: "alerte", statutLabel: "⚠️ Fermage", numTitre: "CT-FARM-2020-023", emetteur: "—", date: "Expire 12/2025", valeur: "480 000 XOF/an ⚠️" },
-  { id: "PAR-E1", surface: "8,2 ha", exploitation: "Exploit. B", statut: "fermage", statutLabel: "📋 Fermage long", numTitre: "CT-FARM-2007-006", emetteur: "—", date: "Expire 2025+18ans", valeur: "1 640 000 XOF/an" },
-  { id: "PAR-E2", surface: "5,8 ha", exploitation: "Exploit. B", statut: "fermage", statutLabel: "📋 Fermage long", numTitre: "CT-FARM-2007-007", emetteur: "—", date: "Expire 2025+18ans", valeur: "870 000 XOF/an" },
+const parcelles: Parcelle[] = [
+  { id: "PAR-A1", surface: "6,2 ha", exploitation: "Exploit. A", statut: "titre", statutLabel: "✅ Titre foncier", numTitre: "TF-23847-CI", emetteur: "DGSF Soubré", date: "15/03/2010", valeur: "18,6 M XOF", culture: "Cacao", proprietaire: "AGRIFRIK SA", gps: "5°47'N 6°36'O" },
+  { id: "PAR-A2", surface: "5,8 ha", exploitation: "Exploit. A", statut: "titre", statutLabel: "✅ Titre foncier", numTitre: "TF-23848-CI", emetteur: "DGSF Soubré", date: "15/03/2010", valeur: "17,4 M XOF", culture: "Cacao", proprietaire: "AGRIFRIK SA", gps: "5°47'N 6°35'O" },
+  { id: "PAR-A3", surface: "4,8 ha", exploitation: "Exploit. A", statut: "titre", statutLabel: "✅ Titre foncier", numTitre: "TF-28912-CI", emetteur: "DGSF Soubré", date: "10/07/2015", valeur: "14,4 M XOF", culture: "Hévéa", proprietaire: "AGRIFRIK SA", gps: "5°46'N 6°36'O" },
+  { id: "PAR-C1", surface: "5,6 ha", exploitation: "Exploit. A", statut: "titre", statutLabel: "✅ Titre foncier", numTitre: "TF-31204-CI", emetteur: "DGSF Soubré", date: "20/11/2018", valeur: "16,8 M XOF", culture: "Palmier à huile", proprietaire: "AGRIFRIK SA", gps: "5°48'N 6°34'O" },
+  { id: "PAR-C2", surface: "4,8 ha", exploitation: "Exploit. A", statut: "titre", statutLabel: "✅ Titre foncier", numTitre: "TF-31205-CI", emetteur: "DGSF Soubré", date: "20/11/2018", valeur: "14,4 M XOF", culture: "Palmier à huile", proprietaire: "AGRIFRIK SA", gps: "5°48'N 6°33'O" },
+  { id: "PAR-F1", surface: "6,0 ha", exploitation: "Exploit. C", statut: "encours", statutLabel: "⏳ En cours", numTitre: "Dossier TF-GANG-2024-08", emetteur: "DGSF Gagnoa", date: "Soumis Jan 2025", valeur: "12,0 M XOF (estimé)", culture: "Café", proprietaire: "AGRIFRIK SA", gps: "6°08'N 5°57'O" },
+  { id: "PAR-B1", surface: "3,2 ha", exploitation: "Exploit. A", statut: "fermage", statutLabel: "📋 Fermage", numTitre: "CT-FARM-2018-014", emetteur: "—", date: "Expire 12/2027", valeur: "960 000 XOF/an", culture: "Cacao", proprietaire: "Fam. Konan Joseph" },
+  { id: "PAR-B2", surface: "3,4 ha", exploitation: "Exploit. A", statut: "fermage", statutLabel: "📋 Fermage", numTitre: "CT-FARM-2018-015", emetteur: "—", date: "Expire 12/2027", valeur: "1 020 000 XOF/an", culture: "Cacao", proprietaire: "Fam. Konan Joseph" },
+  { id: "PAR-D1", surface: "5,6 ha", exploitation: "Exploit. A", statut: "fermage", statutLabel: "📋 Fermage", numTitre: "CT-FARM-2020-022", emetteur: "—", date: "Expire 06/2026", valeur: "840 000 XOF/an", culture: "Hévéa", proprietaire: "M. Coulibaly Lacina" },
+  { id: "PAR-D2", surface: "2,4 ha", exploitation: "Exploit. A", statut: "alerte", statutLabel: "⚠️ Fermage", numTitre: "CT-FARM-2020-023", emetteur: "—", date: "Expire 12/2025", valeur: "480 000 XOF/an ⚠️", culture: "Maïs", proprietaire: "M. Séka Parfait" },
+  { id: "PAR-E1", surface: "8,2 ha", exploitation: "Exploit. B", statut: "fermage", statutLabel: "📋 Fermage long", numTitre: "CT-FARM-2007-006", emetteur: "—", date: "Expire 2025+18ans", valeur: "1 640 000 XOF/an", culture: "Cacao / Café", proprietaire: "Héritiers Traoré" },
+  { id: "PAR-E2", surface: "5,8 ha", exploitation: "Exploit. B", statut: "fermage", statutLabel: "📋 Fermage long", numTitre: "CT-FARM-2007-007", emetteur: "—", date: "Expire 2025+18ans", valeur: "870 000 XOF/an", culture: "Cacao / Café", proprietaire: "Héritiers Traoré" },
 ];
 
 const loyers = [
@@ -41,7 +68,7 @@ const loyers = [
   { parcelles: "PAR-E1 + E2", proprietaire: "Héritiers Traoré", loyer: "2 510 000 XOF", paiement: "Semestriel", prochain: "01/07/2025", statut: "due" },
 ];
 
-const documents = [
+const documents: Document[] = [
   { nom: "Titre foncier PAR-A1", parcelle: "PAR-A1", type: "Titre foncier", numero: "TF-23847", date: "2010", format: "PDF 2,4 MB", alerte: false },
   { nom: "Titre foncier PAR-A2", parcelle: "PAR-A2", type: "Titre foncier", numero: "TF-23848", date: "2010", format: "PDF 2,3 MB", alerte: false },
   { nom: "Titre foncier PAR-A3", parcelle: "PAR-A3", type: "Titre foncier", numero: "TF-28912", date: "2015", format: "PDF 2,1 MB", alerte: false },
@@ -53,6 +80,10 @@ const documents = [
   { nom: "Plan topographique PAR-A", parcelle: "PAR-A1 à D2", type: "Plan", numero: "—", date: "2019", format: "PDF 8,4 MB", alerte: false },
   { nom: "Certificat bornage", parcelle: "PAR-F1", type: "Bornage", numero: "—", date: "Jan 2025", format: "PDF 1,2 MB", alerte: false },
 ];
+
+function countDocsForParcelle(parcelleId: string): number {
+  return documents.filter((d) => d.parcelle.includes(parcelleId)).length;
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -72,9 +103,159 @@ function StatutBadge({ statut, label }: { statut: string; label: string }) {
   );
 }
 
+// ─── Modal Parcelle ───────────────────────────────────────────────────────────
+
+function ModalParcelle({ parcelle, onClose }: { parcelle: Parcelle; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-100 dark:border-gray-800">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+              <Home size={16} className="text-[#2E7D32]" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Fiche parcelle</p>
+              <p className="font-bold text-gray-800 dark:text-gray-100 font-mono">{parcelle.id}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-5 py-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <InfoField label="Superficie" value={parcelle.surface} />
+            <InfoField label="Exploitation" value={parcelle.exploitation} />
+            <InfoField label="Statut foncier" value={<StatutBadge statut={parcelle.statut} label={parcelle.statutLabel} />} />
+            {parcelle.culture && <InfoField label="Culture principale" value={parcelle.culture} />}
+            <InfoField label="N° Titre / Contrat" value={<span className="font-mono">{parcelle.numTitre}</span>} />
+            <InfoField label="Émis par" value={parcelle.emetteur} />
+            <InfoField label="Date / Expiration" value={parcelle.date} />
+            <InfoField label="Valeur estimée" value={<span className="font-semibold text-[#2E7D32]">{parcelle.valeur}</span>} />
+            {parcelle.proprietaire && (
+              <InfoField label="Propriétaire / Bailleur" value={parcelle.proprietaire} />
+            )}
+            {parcelle.gps && (
+              <InfoField label="Coordonnées GPS" value={<span className="font-mono">{parcelle.gps}</span>} />
+            )}
+          </div>
+
+          {parcelle.statut === "alerte" && (
+            <div className="rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 px-3 py-2 flex items-center gap-2 mt-2">
+              <AlertTriangle size={14} className="text-orange-500 flex-shrink-0" />
+              <p className="text-xs text-orange-700 dark:text-orange-400">
+                Contrat arrivant à expiration — renouveler avant octobre 2025.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 pb-5 pt-2 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl text-xs font-medium bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InfoField({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 px-3 py-2">
+      <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-0.5">{label}</p>
+      <div className="text-xs text-gray-800 dark:text-gray-200">{value}</div>
+    </div>
+  );
+}
+
+// ─── Modal Document ───────────────────────────────────────────────────────────
+
+function ModalDocument({ doc, onClose }: { doc: Document; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 dark:border-gray-800">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+              <FileText size={16} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Document foncier</p>
+              <p className="font-bold text-gray-800 dark:text-gray-100 text-sm">{doc.nom}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-5 py-4 grid grid-cols-2 gap-3">
+          <InfoField label="Parcelle(s)" value={<span className="font-mono">{doc.parcelle}</span>} />
+          <InfoField label="Type" value={doc.type} />
+          <InfoField label="N° document" value={<span className="font-mono">{doc.numero}</span>} />
+          <InfoField label="Date" value={doc.date} />
+          <InfoField label="Format / Taille" value={doc.format} />
+          {doc.alerte && (
+            <div className="col-span-2 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 px-3 py-2 flex items-center gap-2">
+              <AlertTriangle size={13} className="text-orange-500 flex-shrink-0" />
+              <p className="text-xs text-orange-700 dark:text-orange-400">Document en alerte — action requise.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 pb-5 pt-2 flex items-center justify-end gap-2">
+          <button
+            onClick={() => { window.print(); }}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Printer size={12} /> Imprimer
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl text-xs font-medium bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Onglets ─────────────────────────────────────────────────────────────────
 
-function OngletParcelles({ showToast }: { showToast: (msg: string) => void }) {
+function OngletParcelles({
+  showToast,
+  onVoirParcelle,
+}: {
+  showToast: (msg: string) => void;
+  onVoirParcelle: (p: Parcelle) => void;
+}) {
+  function handleDocs(p: Parcelle) {
+    const n = countDocsForParcelle(p.id);
+    showToast(`Documents : ${p.id} — ${n} document${n > 1 ? "s" : ""} disponible${n > 1 ? "s" : ""}`);
+  }
+
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5">
       <div className="flex items-center gap-2 mb-4">
@@ -111,14 +292,15 @@ function OngletParcelles({ showToast }: { showToast: (msg: string) => void }) {
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => showToast("Fiche parcelle disponible prochainement")}
+                      onClick={() => onVoirParcelle(p)}
                       className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors"
                     >
                       <Eye size={10} /> Voir
                     </button>
                     <button
-                      onClick={() => showToast("Documents de la parcelle disponibles prochainement")}
+                      onClick={() => handleDocs(p)}
                       className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      title="Documents de la parcelle"
                     >
                       <FileText size={10} />
                     </button>
@@ -327,7 +509,7 @@ function OngletCartographie() {
   );
 }
 
-function OngletDocuments({ showToast }: { showToast: (msg: string) => void }) {
+function OngletDocuments({ onVoirDocument }: { onVoirDocument: (d: Document) => void }) {
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5">
       <div className="flex items-center gap-2 mb-4">
@@ -364,14 +546,15 @@ function OngletDocuments({ showToast }: { showToast: (msg: string) => void }) {
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => showToast("Visualisation disponible prochainement")}
+                      onClick={() => onVoirDocument(d)}
                       className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs bg-[#2E7D32] text-white hover:bg-[#1B5E20] transition-colors whitespace-nowrap"
                     >
                       <Eye size={10} /> Voir
                     </button>
                     <button
-                      onClick={() => showToast("Téléchargement disponible prochainement")}
+                      onClick={() => window.print()}
                       className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors whitespace-nowrap"
+                      title="Télécharger / Imprimer"
                     >
                       <Download size={10} />
                     </button>
@@ -391,10 +574,12 @@ function OngletDocuments({ showToast }: { showToast: (msg: string) => void }) {
 export default function GestionTerresPage() {
   const [onglet, setOnglet] = useState<OngletId>("parcelles");
   const [toast, setToast] = useState<string | null>(null);
+  const [voirParcelle, setVoirParcelle] = useState<Parcelle | null>(null);
+  const [voirDocument, setVoirDocument] = useState<Document | null>(null);
 
   function showToast(msg: string) {
     setToast(msg);
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 3500);
   }
 
   const onglets: { id: OngletId; label: string; icon: React.ReactNode }[] = [
@@ -421,6 +606,16 @@ export default function GestionTerresPage() {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-sm px-5 py-3 rounded-xl shadow-lg transition-all">
           {toast}
         </div>
+      )}
+
+      {/* Modal parcelle */}
+      {voirParcelle && (
+        <ModalParcelle parcelle={voirParcelle} onClose={() => setVoirParcelle(null)} />
+      )}
+
+      {/* Modal document */}
+      {voirDocument && (
+        <ModalDocument doc={voirDocument} onClose={() => setVoirDocument(null)} />
       )}
 
       <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-5">
@@ -458,10 +653,14 @@ export default function GestionTerresPage() {
         </div>
 
         {/* Contenu onglet */}
-        {onglet === "parcelles" && <OngletParcelles showToast={showToast} />}
+        {onglet === "parcelles" && (
+          <OngletParcelles showToast={showToast} onVoirParcelle={setVoirParcelle} />
+        )}
         {onglet === "fermages" && <OngletFermages />}
         {onglet === "cartographie" && <OngletCartographie />}
-        {onglet === "documents" && <OngletDocuments showToast={showToast} />}
+        {onglet === "documents" && (
+          <OngletDocuments onVoirDocument={setVoirDocument} />
+        )}
       </div>
     </div>
   );
